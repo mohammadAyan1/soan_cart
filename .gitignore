@@ -1,0 +1,180 @@
+# ==========================================
+# ROOT GITIGNORE
+# React Native + Expo + Node.js + Vite
+# ==========================================
+
+
+# ==========================================
+# NODE.JS / NPM / YARN / PNPM
+# ==========================================
+
+# Dependencies - ALL projects
+**/node_modules/
+node_modules/
+
+# Package manager logs
+**/npm-debug.log*
+**/yarn-debug.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+
+
+# ==========================================
+# ENVIRONMENT FILES
+# ==========================================
+
+# Ignore all .env files in all 5 projects
+**/.env
+**/.env.*
+.env
+.env.*
+
+# Allow example env files
+!.env.example
+!**/.env.example
+
+
+# ==========================================
+# VITE FRONTEND
+# ==========================================
+
+# Vite production/build output
+**/dist/
+
+# Vite cache
+**/.vite/
+
+
+# ==========================================
+# REACT NATIVE / EXPO
+# ==========================================
+
+# Expo
+**/.expo/
+**/.expo-shared/
+
+# Expo web/build output
+**/web-build/
+
+# React Native Metro
+**/.metro/
+
+# React Native caches
+**/.react-native/
+
+# Android
+**/.gradle/
+**/android/.gradle/
+**/android/build/
+**/android/app/build/
+**/android/.cxx/
+
+# iOS
+**/ios/Pods/
+**/ios/build/
+**/ios/DerivedData/
+
+# Xcode
+**/*.xcuserstate
+**/*.xcuserdata/
+
+# Fastlane
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots/
+**/fastlane/test_output/
+
+
+# ==========================================
+# NODE BACKEND
+# ==========================================
+
+# Build output
+**/build/
+**/out/
+
+# Coverage
+**/coverage/
+
+# Runtime files
+**/*.pid
+**/*.seed
+**/*.pid.lock
+
+
+# ==========================================
+# GENERAL BUILD / CACHE
+# ==========================================
+
+**/.cache/
+**/.parcel-cache/
+**/.turbo/
+**/.next/
+**/.nuxt/
+
+# Temporary files
+**/*.tmp
+**/*.temp
+
+
+# ==========================================
+# LOGS
+# ==========================================
+
+**/*.log
+logs/
+**/logs/
+
+
+# ==========================================
+# DATABASE / LOCAL FILES
+# ==========================================
+
+# Local SQLite databases
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+
+
+# ==========================================
+# IDE / EDITOR
+# ==========================================
+
+.vscode/
+.idea/
+
+**/*.swp
+**/*.swo
+
+
+# ==========================================
+# OPERATING SYSTEM
+# ==========================================
+
+.DS_Store
+**/.DS_Store
+
+Thumbs.db
+**/Thumbs.db
+
+
+# ==========================================
+# SECRETS / CERTIFICATES
+# ==========================================
+
+# Private keys
+**/*.pem
+**/*.key
+
+# Android signing files
+**/*.jks
+**/*.keystore
+
+
+# ==========================================
+# TEST / COVERAGE
+# ==========================================
+
+**/.nyc_output/
+**/.eslintcache
+**/app.zip
