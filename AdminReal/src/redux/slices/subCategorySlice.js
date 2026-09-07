@@ -2,17 +2,17 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
 
 // -----------------------------------------------------------------
-// Fetch all sub‑categories (with pagination)
+// Fetch all sub‑categories (with pagination + status filter)
 // -----------------------------------------------------------------
 export const fetchAllSubCategories = createAsyncThunk(
     "subCategory/fetchAllSubCategories",
-    async ({ page = 1, limit = 10 } = {}, { rejectWithValue }) => {
+    async ({ page = 1, limit = 10, status = "active" } = {}, { rejectWithValue }) => {
         try {
             const data = await api.get(
-                `/api/product-sub-category/get-all?page=${page}&limit=${limit}`
+                `/api/product-sub-category/get-all?page=${page}&limit=${limit}&status=${status}`
             );
             // data: { success, currentPage, perPage, totalSubCategories, totalPages, hasNextPage, hasPreviousPage, subCategories }
-            return data;
+            return data?.data;
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message || "Sub‑categories load nahi ho paaye"

@@ -2,14 +2,14 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
 
 // -----------------------------------------------------------------
-// Fetch all categories (with pagination)
+// Fetch all categories (with pagination + status filter)
 // -----------------------------------------------------------------
 export const fetchAllCategory = createAsyncThunk(
     "category/fetchAllCategory",
-    async ({ page = 1, limit = 20 } = {}, { rejectWithValue }) => {
+    async ({ page = 1, limit = 20, status = "active" } = {}, { rejectWithValue }) => {
         try {
             const data = await api.get(
-                `/api/product-category/get-all?page=${page}&limit=${limit}`
+                `/api/product-category/get-all?page=${page}&limit=${limit}&status=${status}`
             );
             // data already contains: { success, currentPage, perPage, totalProductsCat, totalPages, hasNextPage, hasPreviousPage, productsCat }
 

@@ -8,6 +8,8 @@ import Login from "./pages/Login";
 import Order from "./pages/Order";
 import Product from "./pages/Product";
 import UpdateProduct from "./pages/UpdateProduct";
+import Category from "./pages/Category";
+import SubCategory from "./pages/SubCategory";
 
 function App() {
 
@@ -37,6 +39,15 @@ function App() {
           element={<Product />}
         />
 
+        <Route
+          path="categories"
+          element={<Category />}
+        />
+
+        <Route
+          path="subcategories"
+          element={<SubCategory />}
+        />
 
         <Route path="product/update/:id"
           element={<UpdateProduct />} />
@@ -45,7 +56,6 @@ function App() {
           element={<Login />}
         />
       </Route>
-
     </Routes>
 
   );

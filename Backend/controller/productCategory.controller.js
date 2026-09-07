@@ -93,19 +93,30 @@ export const createProductCategory = async (req, res) => {
     }
 }
 
+// 👇 UPDATED - ab `status` query param support karta hai: active | inactive | all
 export const getAllProductCategory = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
+        const { status } = req.query; // "active" | "inactive" | "all"
 
         const skip = (page - 1) * limit;
+
+        let whereClause = {};
+
+        if (status === "inactive") {
+            whereClause.isDelete = true;
+        } else if (status === "all") {
+            // isDelete par koi filter nahi - dono aayenge
+        } else {
+            // default - "active"
+            whereClause.isDelete = false;
+        }
 
 
         const [productsCat, totalProductsCat] = await Promise.all([
             prisma.productCategory.findMany({
-                where: {
-                    isDelete: false
-                },
+                where: whereClause,
                 include: {
                     _count: {
                         select: {
@@ -122,9 +133,7 @@ export const getAllProductCategory = async (req, res) => {
             }),
 
             prisma.productCategory.count({
-                where: {
-                    isDelete: false
-                }
+                where: whereClause
             })
         ]);
 
