@@ -27,7 +27,7 @@ import adminUserRoutes from "./routes/admin/adminUser.routes.js";
 const app = express();
 
 app.use(cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:5174", "http://localhost:5173"],
+    origin: [process.env.FRONTEND_URL, process.env.FRONTEND_URL_VENDOR, process.env.FRONTEND_URL_ADMIN],
     credentials: true
 }));
 
