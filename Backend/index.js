@@ -1,3 +1,4 @@
+import prisma from "./config/prisma.js";
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
@@ -34,6 +35,31 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+
+
+app.get("/db-test", async (req, res) => {
+    try {
+        const db = await prisma.$queryRaw`
+      SELECT DATABASE() AS database_name
+    `;
+
+        const tables = await prisma.$queryRaw`
+      SHOW TABLES
+    `;
+
+        res.json({
+            success: true,
+            database: db,
+            tables: tables
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
 
 ///////////////////ADMIN////////////////////////
 app.use("/api/admin", adminUserRoutes);
