@@ -61,7 +61,7 @@ app.get("/db-test", async (req, res) => {
     }
 });
 
-///////////////////ADMIN////////////////////////
+///////////////////ADMIN///////////////////////
 app.use("/api/admin", adminUserRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes); // 👈 NAYA
 app.use("/api/auth", authRoutes);
