@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `analyticsevent` ADD COLUMN `categoryId` INTEGER NULL,
+ALTER TABLE `AnalyticsEvent` ADD COLUMN `categoryId` INTEGER NULL,
     ADD COLUMN `subCategoryId` INTEGER NULL;
 
 -- CreateIndex

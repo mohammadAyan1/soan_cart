@@ -5,5 +5,5 @@
 
 */
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `imageUrl` TEXT NULL,
+ALTER TABLE `User` ADD COLUMN `imageUrl` TEXT NULL,
     ADD COLUMN `image_id` VARCHAR(191) NOT NULL;

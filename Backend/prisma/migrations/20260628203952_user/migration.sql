@@ -14,30 +14,30 @@
 
 */
 -- DropIndex
-DROP INDEX `ProductCategory_product_category_name_key` ON `productcategory`;
+DROP INDEX `ProductCategory_product_category_name_key` ON `ProductCategory`;
 
 -- DropIndex
-DROP INDEX `ProductSubCategory_product_subcategory_name_key` ON `productsubcategory`;
+DROP INDEX `ProductSubCategory_product_subcategory_name_key` ON `ProductSubCategory`;
 
 -- AlterTable
-ALTER TABLE `product` ADD COLUMN `userId` INTEGER NOT NULL;
+ALTER TABLE `Product` ADD COLUMN `userId` INTEGER NOT NULL;
 
 -- AlterTable
-ALTER TABLE `productcategory` DROP COLUMN `product_category_name`,
+ALTER TABLE `ProductCategory` DROP COLUMN `product_category_name`,
     ADD COLUMN `productCategoryName` VARCHAR(191) NOT NULL,
     ADD COLUMN `userId` INTEGER NOT NULL;
 
 -- AlterTable
-ALTER TABLE `productimage` ADD COLUMN `isPrimary` BOOLEAN NOT NULL DEFAULT false,
+ALTER TABLE `ProductImage` ADD COLUMN `isPrimary` BOOLEAN NOT NULL DEFAULT false,
     MODIFY `imageId` VARCHAR(191) NULL;
 
 -- AlterTable
-ALTER TABLE `productsubcategory` DROP COLUMN `product_subcategory_name`,
+ALTER TABLE `ProductSubCategory` DROP COLUMN `product_subcategory_name`,
     ADD COLUMN `productSubCategoryName` VARCHAR(191) NOT NULL,
     ADD COLUMN `userId` INTEGER NOT NULL;
 
 -- AlterTable
-ALTER TABLE `user` DROP COLUMN `image_id`,
+ALTER TABLE `User` DROP COLUMN `image_id`,
     ADD COLUMN `imageId` VARCHAR(191) NULL;
 
 -- CreateIndex

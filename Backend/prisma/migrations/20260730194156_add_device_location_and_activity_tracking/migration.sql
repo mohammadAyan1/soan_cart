@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `analyticsevent` ADD COLUMN `durationSeconds` INTEGER NULL,
+ALTER TABLE `AnalyticsEvent` ADD COLUMN `durationSeconds` INTEGER NULL,
     ADD COLUMN `productId` INTEGER NULL,
     ADD COLUMN `referrerScreen` VARCHAR(50) NULL,
     ADD COLUMN `scrollDepth` INTEGER NULL,
@@ -15,7 +15,7 @@ ALTER TABLE `analyticsevent` ADD COLUMN `durationSeconds` INTEGER NULL,
     MODIFY `payload` JSON NULL;
 
 -- AlterTable
-ALTER TABLE `usersession` ADD COLUMN `latitude` DECIMAL(10, 7) NULL,
+ALTER TABLE `UserSession` ADD COLUMN `latitude` DECIMAL(10, 7) NULL,
     ADD COLUMN `longitude` DECIMAL(10, 7) NULL,
     MODIFY `platform` ENUM('WEB', 'ANDROID', 'IOS') NOT NULL DEFAULT 'WEB';
 

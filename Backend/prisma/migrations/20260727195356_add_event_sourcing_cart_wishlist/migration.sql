@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `cartitem` ADD COLUMN `convertedAt` DATETIME(3) NULL,
+ALTER TABLE `CartItem` ADD COLUMN `convertedAt` DATETIME(3) NULL,
     ADD COLUMN `convertedDeviceId` VARCHAR(191) NULL,
     ADD COLUMN `convertedSessionId` VARCHAR(191) NULL,
     ADD COLUMN `convertedUserId` INTEGER NULL,

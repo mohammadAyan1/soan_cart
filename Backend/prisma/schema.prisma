@@ -396,17 +396,19 @@ model Product {
   productName   String
   description   String?            @db.Text
   userId        Int
-  categoryId    Int
-  subCategoryId Int
+  categoryId    Int?
+  subCategoryId Int?
   tags          Json?
   imageUrl      String?            @db.Text
   imageId       String?
   variants      ProductVariant[]
   user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category      ProductCategory    @relation(fields: [categoryId], references: [id])
-  subCategory   ProductSubCategory @relation(fields: [subCategoryId], references: [id])
+  category      ProductCategory?    @relation(fields: [categoryId], references: [id])
+  subCategory   ProductSubCategory? @relation(fields: [subCategoryId], references: [id])
   isDelete      Boolean            @default(false)
   isApprove     Boolean            @default(false)
+  categoryRemark String? @db.Text
+  subCategoryRemark String? @db.Text
   cartItems     CartItem[]
   orderItems    OrderItem[]
   wishlistItems WishlistItem[]

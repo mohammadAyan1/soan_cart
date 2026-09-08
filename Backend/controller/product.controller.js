@@ -20,6 +20,7 @@ import { uploadToCloudinary } from "../helper/cloudinaryUpload.js";
  * BODY (multipart/form-data, non-file fields as string/JSON string):
  * ---------------------------------
  * - productName, description, categoryId, subCategoryId, tags (JSON string array)
+ * - categoryId/subCategoryId = "other" -> categoryRemark/subCategoryRemark required
  * - deleteProductImage: "true" | "false"  -> product ki apni image sirf delete karni ho
  * - deleteImageIds: JSON string array of ProductImage.id -> variant images delete karne ke liye
  * - variants: JSON string array, har item:
@@ -51,6 +52,58 @@ const reassignPrimaryIfNeeded = async (tx, variantId, deletedImageWasPrimary) =>
     }
 };
 
+
+
+
+function validateCategoryPayload({
+    categoryId,
+    subCategoryId,
+    categoryRemark,
+    subCategoryRemark,
+}) {
+    const isEmpty = (value) =>
+        value === null ||
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "");
+
+    const isOther = (value) =>
+        typeof value === "string" &&
+        value.trim().toLowerCase() === "other";
+
+    // Category = Other
+    if (isOther(categoryId)) {
+        if (isEmpty(categoryRemark)) {
+            return {
+                success: false,
+                message: "Category remark is required when category is Other.",
+            };
+        }
+
+        if (isEmpty(subCategoryRemark)) {
+            return {
+                success: false,
+                message:
+                    "Sub-category remark is required when category is Other.",
+            };
+        }
+    }
+
+    // Sub-category = Other
+    if (isOther(subCategoryId)) {
+        if (isEmpty(subCategoryRemark)) {
+            return {
+                success: false,
+                message:
+                    "Sub-category remark is required when sub-category is Other.",
+            };
+        }
+    }
+
+    return {
+        success: true,
+    };
+}
+
 // ==================================================================
 // CREATE PRODUCT
 // ==================================================================
@@ -72,18 +125,22 @@ export const createProduct = async (req, res) => {
             categoryId,
             subCategoryId,
             tags,
-            variants
+            variants,
+            categoryRemark,
+            subCategoryRemark
         } = req.body;
-
-
-
-
 
         if (!productName || !categoryId || !subCategoryId) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required"
             });
+        }
+
+        const validation = validateCategoryPayload(req.body);
+
+        if (!validation.success) {
+            return res.status(400).json(validation);
         }
 
         const files = req.files || [];
@@ -95,14 +152,11 @@ export const createProduct = async (req, res) => {
             (f) => f.fieldname === "productImage"
         );
 
-
         let productImageResult = null;
 
         if (productImageFile) {
             productImageResult = await uploadToCloudinary(productImageFile);
         }
-
-
 
         // -----------------------------
         // Parse Variants
@@ -116,10 +170,6 @@ export const createProduct = async (req, res) => {
                     : variants;
         }
 
-
-
-
-
         // -----------------------------
         // Upload Variant Images BEFORE Transaction
         // -----------------------------
@@ -130,20 +180,13 @@ export const createProduct = async (req, res) => {
 
             const variant = parsedVariants[i];
 
-
             const tempKey = variant.tempId ?? `new_${i}`;
-
-
-
 
             const variantFiles = files.filter(
                 (f) =>
                     f.fieldname === `variant_image_${tempKey}` ||
                     f.fieldname === `variant_image_new_${i}`
             );
-
-
-
 
             if (variantFiles.length > 0) {
 
@@ -152,9 +195,6 @@ export const createProduct = async (req, res) => {
                 uploadedVariantImages[tempKey] = uploaded;
             }
         }
-
-
-
 
         // -----------------------------
         // Database Transaction
@@ -168,8 +208,14 @@ export const createProduct = async (req, res) => {
                         productName,
                         description,
                         userId,
-                        categoryId: Number(categoryId),
-                        subCategoryId: Number(subCategoryId),
+
+                        // "other" select kiya to categoryId null jayega aur remark save hoga
+                        categoryId: categoryId === "other" ? null : Number(categoryId),
+                        categoryRemark: categoryId === "other" ? categoryRemark : null,
+
+                        subCategoryId: subCategoryId === "other" ? null : Number(subCategoryId),
+                        subCategoryRemark: subCategoryId === "other" ? subCategoryRemark : null,
+
                         tags: tags
                             ? typeof tags === "string"
                                 ? JSON.parse(tags)
@@ -180,21 +226,11 @@ export const createProduct = async (req, res) => {
                     }
                 });
 
-
-
-
                 for (let i = 0; i < parsedVariants.length; i++) {
 
                     const v = parsedVariants[i];
 
-
-
-
-
                     const tempKey = v.tempId ?? `new_${i}`;
-
-
-
 
                     const newVariant = await tx.productVariant.create({
                         data: {
@@ -214,13 +250,7 @@ export const createProduct = async (req, res) => {
                         }
                     });
 
-
-
-
                     const uploaded = uploadedVariantImages[tempKey];
-
-
-
 
                     if (uploaded?.length) {
 
@@ -637,6 +667,8 @@ export const getAllProductForAdmin = async (req, res) => {
                 vendor: product.user,
                 category: product.category,
                 subCategory: product.subCategory,
+                categoryRemark: product.categoryRemark,
+                subCategoryRemark: product.subCategoryRemark,
                 totalVariants: variants.length,
                 totalStock: productTotalStock,
                 currentlyInCart: { usersCount: productCartUsersCount, totalQuantity: productCartTotalQuantity },
@@ -920,7 +952,9 @@ export const updateProduct = async (req, res) => {
             tags,
             deleteProductImage,
             deleteImageIds,
-            variants
+            variants,
+            categoryRemark,
+            subCategoryRemark
         } = req.body;
 
         if (!productName || !categoryId || !subCategoryId) {
@@ -928,6 +962,12 @@ export const updateProduct = async (req, res) => {
                 success: false,
                 message: "All fields are required"
             });
+        }
+
+        const validation = validateCategoryPayload(req.body);
+
+        if (!validation.success) {
+            return res.status(400).json(validation);
         }
 
         const existingProduct = await prisma.product.findUnique({
@@ -1050,8 +1090,14 @@ export const updateProduct = async (req, res) => {
                 data: {
                     productName,
                     description,
-                    categoryId: Number(categoryId),
-                    subCategoryId: Number(subCategoryId),
+
+                    // "other" select kiya to categoryId null jayega aur remark save hoga
+                    categoryId: categoryId === "other" ? null : Number(categoryId),
+                    categoryRemark: categoryId === "other" ? categoryRemark : null,
+
+                    subCategoryId: subCategoryId === "other" ? null : Number(subCategoryId),
+                    subCategoryRemark: subCategoryId === "other" ? subCategoryRemark : null,
+
                     isApprove: true,
                     tags: tags ? (typeof tags === "string" ? JSON.parse(tags) : tags) : null,
                     ...productImageData

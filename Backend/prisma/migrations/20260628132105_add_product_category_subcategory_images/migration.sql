@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `product` MODIFY `showMrp` BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE `Product` MODIFY `showMrp` BOOLEAN NOT NULL DEFAULT true;

@@ -7,18 +7,18 @@
   - You are about to drop the column `stock` on the `product` table. All the data in the column will be lost.
   - You are about to drop the column `tags` on the `product` table. All the data in the column will be lost.
   - You are about to drop the column `vendorMinPrice` on the `product` table. All the data in the column will be lost.
-  - You are about to drop the column `productId` on the `productimage` table. All the data in the column will be lost.
+  - You are about to drop the column `productId` on the `ProductImage` table. All the data in the column will be lost.
   - Added the required column `productVariantId` to the `ProductImage` table without a default value. This is not possible if the table is not empty.
 
 */
 -- DropForeignKey
-ALTER TABLE `productimage` DROP FOREIGN KEY `ProductImage_productId_fkey`;
+ALTER TABLE `ProductImage` DROP FOREIGN KEY `ProductImage_productId_fkey`;
 
 -- DropIndex
-DROP INDEX `ProductImage_productId_fkey` ON `productimage`;
+DROP INDEX `ProductImage_productId_fkey` ON `ProductImage`;
 
 -- AlterTable
-ALTER TABLE `product` DROP COLUMN `actualPrice`,
+ALTER TABLE `Product` DROP COLUMN `actualPrice`,
     DROP COLUMN `mrp`,
     DROP COLUMN `showMrp`,
     DROP COLUMN `stock`,
@@ -28,7 +28,7 @@ ALTER TABLE `product` DROP COLUMN `actualPrice`,
     ADD COLUMN `imageUrl` TEXT NULL;
 
 -- AlterTable
-ALTER TABLE `productimage` DROP COLUMN `productId`,
+ALTER TABLE `ProductImage` DROP COLUMN `productId`,
     ADD COLUMN `productVariantId` INTEGER NOT NULL,
     MODIFY `imageUrl` TEXT NULL;
 
