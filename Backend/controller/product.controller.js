@@ -1463,6 +1463,109 @@ export const addVariantImage = async (req, res) => {
 
 
 
+// export const getProductsByCategory = async (req, res) => {
+//     try {
+//         const page = Number(req.query.page) || 1;
+//         const limit = Number(req.query.limit) || 10;
+//         const skip = (page - 1) * limit;
+
+//         const { categoryId, subCategoryId } = req.query;
+
+//         if (!categoryId && !subCategoryId) {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "categoryId ya subCategoryId me se ek to dena hi padega"
+//             });
+//         }
+
+//         const whereCondition = {
+//             isDelete: false,
+//             variants: {
+//                 some: {
+//                     isDelete: false,
+//                     isDefault: true
+//                 }
+//             },
+//             ...(categoryId && { categoryId: Number(categoryId) }),
+//             ...(subCategoryId && { subCategoryId: Number(subCategoryId) })
+//         };
+
+//         const [products, totalProducts] = await Promise.all([
+//             prisma.product.findMany({
+//                 where: whereCondition,
+//                 orderBy: {
+//                     createdAt: "desc"
+//                 },
+//                 skip,
+//                 take: limit,
+
+//                 select: {
+//                     id: true,
+//                     productName: true,
+//                     description: true,
+
+//                     variants: {
+//                         where: {
+//                             isDelete: false,
+//                             isDefault: true
+//                         },
+//                         take: 1,
+//                         select: {
+//                             id: true,
+//                             actualPrice: true,
+//                             mrp: true,
+//                             showMrp: true,
+
+//                             images: {
+//                                 where: {
+//                                     isPrimary: true
+//                                 },
+//                                 take: 1,
+//                                 select: {
+//                                     imageUrl: true
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }),
+
+//             prisma.product.count({
+//                 where: whereCondition
+//             })
+//         ]);
+
+//         return res.status(200).json({
+//             success: true,
+//             currentPage: page,
+//             perPage: limit,
+//             totalProducts,
+//             totalPages: Math.ceil(totalProducts / limit),
+//             hasNextPage: page < Math.ceil(totalProducts / limit),
+//             hasPreviousPage: page > 1,
+//             products
+//         });
+
+//     } catch (error) {
+
+//         return res.status(500).json({
+//             success: false,
+//             message: error.message
+//         });
+//     }
+// };
+
+
+
+// ==================================================================
+// GET PRODUCT BY ID — VENDOR EDIT VIEW
+// (Public getProductById se alag — isme DELETED variants bhi aayenge,
+// taaki vendor apne deleted variants dekh/restore kar sake)
+// ==================================================================
+
+
+
+
 export const getProductsByCategory = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1;
@@ -1490,7 +1593,7 @@ export const getProductsByCategory = async (req, res) => {
             ...(subCategoryId && { subCategoryId: Number(subCategoryId) })
         };
 
-        const [products, totalProducts] = await Promise.all([
+        const [products, totalProducts, subCategories] = await Promise.all([
             prisma.product.findMany({
                 where: whereCondition,
                 orderBy: {
@@ -1532,7 +1635,24 @@ export const getProductsByCategory = async (req, res) => {
 
             prisma.product.count({
                 where: whereCondition
-            })
+            }),
+
+            categoryId
+                ? prisma.productSubCategory.findMany({
+                    where: {
+                        categoryId: Number(categoryId),
+                        isDelete: false
+                    },
+                    orderBy: {
+                        createdAt: "desc"
+                    },
+                    select: {
+                        id: true,
+                        productSubCategoryName: true,
+                        imageUrl: true
+                    }
+                })
+                : Promise.resolve([])
         ]);
 
         return res.status(200).json({
@@ -1543,6 +1663,7 @@ export const getProductsByCategory = async (req, res) => {
             totalPages: Math.ceil(totalProducts / limit),
             hasNextPage: page < Math.ceil(totalProducts / limit),
             hasPreviousPage: page > 1,
+            subCategories,
             products
         });
 
@@ -1557,11 +1678,6 @@ export const getProductsByCategory = async (req, res) => {
 
 
 
-// ==================================================================
-// GET PRODUCT BY ID — VENDOR EDIT VIEW
-// (Public getProductById se alag — isme DELETED variants bhi aayenge,
-// taaki vendor apne deleted variants dekh/restore kar sake)
-// ==================================================================
 export const getProductByIdForVendor = async (req, res) => {
     try {
         const { id: userId, role } = req.user;

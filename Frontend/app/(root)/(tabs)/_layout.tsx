@@ -4,8 +4,8 @@ import { useWindowDimensions, View, ActivityIndicator } from "react-native";
 import { TabView } from "react-native-tab-view";
 import { House, Grid2X2, Heart, ShoppingCart, User } from "lucide-react-native";
 import CustomTabBar from "@/components/CustomTabBar";
-import { ScrollProvider } from "@/context/ScrollContext";
-import { TabProvider, useTabContext } from "@/context/TabContext";
+import { useTabContext } from "@/context/TabContext";
+
 import { trackEvent, triggerScreenExit, getCurrentScreen } from "@/utils/eventTracker";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -40,10 +40,23 @@ function TabsContent() {
 
     const previousIndexRef = useRef(null);
 
+    // console.log("🔥 TABS CONTENT RENDER:", activeIndex);
+
+
     // 👇 NAYA - useFocusEffect ke stable callback ke andar latest tab jaanne ke liye
     const activeIndexRef = useRef(activeIndex);
     useEffect(() => {
+
+        // console.log(
+        //     "🔥 EFFECT:",
+        //     "activeIndex =",
+        //     activeIndex,
+        //     "ref =",
+        //     activeIndexRef.current
+        // );
+
         activeIndexRef.current = activeIndex;
+        // console.log(activeIndex);
     }, [activeIndex]);
 
     // 👇 NAYA - pehla mount skip karne ke liye (warna "app_launch" SCREEN_VIEW
@@ -135,10 +148,8 @@ function TabsContent() {
 
 export default function TabsLayout() {
     return (
-        <TabProvider>
-            <ScrollProvider>
-                <TabsContent />
-            </ScrollProvider>
-        </TabProvider>
+        // <TabProvider>
+        <TabsContent />
+        // </TabProvider>
     );
 }

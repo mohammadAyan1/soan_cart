@@ -12,6 +12,12 @@ export function ScrollProvider({ children }) {
     const tabBarTranslateY = useRef(new Animated.Value(0)).current;
     const lastOffset = useRef(0);
     const isHidden = useRef(false);
+    // Child screen active hone par header scroll animation band ho jaati hai
+    const isChildMode = useRef(false);
+
+    const setIsChildMode = (val) => {
+        isChildMode.current = val;
+    };
 
     const showAll = () => {
         isHidden.current = false;
@@ -34,22 +40,36 @@ export function ScrollProvider({ children }) {
         const offsetY = event.nativeEvent.contentOffset.y;
         const diff = offsetY - lastOffset.current;
 
-        if (offsetY <= 0) {
-            // Bilkul top par — sab wapis dikha do
-            showAll();
-        } else if (diff > 8 && !isHidden.current) {
-            // Niche scroll ho raha hai — hide karo
-            hideAll();
-        } else if (diff < -8 && isHidden.current) {
-            // Upar scroll ho raha hai — wapis dikhao
-            showAll();
+        if (isChildMode.current) {
+            // Child screen par — sirf tab bar hide/show karo, header ko mat chedo
+            if (diff > 8 && !isHidden.current) {
+                isHidden.current = true;
+                Animated.timing(tabBarTranslateY, { toValue: TAB_BAR_HEIGHT, duration: 220, useNativeDriver: true }).start();
+            } else if (diff < -8 && isHidden.current) {
+                isHidden.current = false;
+                Animated.timing(tabBarTranslateY, { toValue: 0, duration: 220, useNativeDriver: true }).start();
+            } else if (offsetY <= 0) {
+                isHidden.current = false;
+                Animated.timing(tabBarTranslateY, { toValue: 0, duration: 220, useNativeDriver: true }).start();
+            }
+        } else {
+            if (offsetY <= 0) {
+                // Bilkul top par — sab wapis dikha do
+                showAll();
+            } else if (diff > 8 && !isHidden.current) {
+                // Niche scroll ho raha hai — hide karo
+                hideAll();
+            } else if (diff < -8 && isHidden.current) {
+                // Upar scroll ho raha hai — wapis dikhao
+                showAll();
+            }
         }
 
         lastOffset.current = offsetY;
     };
 
     return (
-        <ScrollContext.Provider value={{ headerHeight, tabBarTranslateY, handleScroll }}>
+        <ScrollContext.Provider value={{ headerHeight, tabBarTranslateY, handleScroll, showAll, setIsChildMode }}>
             {children}
         </ScrollContext.Provider>
     );

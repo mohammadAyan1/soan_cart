@@ -29,6 +29,7 @@
     "nanoid": "^5.1.16",
     "node-cron": "^4.6.0",
     "nodemailer": "^8.0.5",
+    "resend": "^6.26.0",
     "streamifier": "^0.1.1",
     "useragent": "^2.3.0",
     "uuid": "^14.0.1"

@@ -36,8 +36,6 @@ export default function RootLayout() {
           await AsyncStorage.setItem("deviceId", deviceId);
         }
 
-        // const 
-
         const response = await axiosInstance.post("/api/analytics/session/start", {
           deviceId,
           platform: Device.osName === "iOS" ? "IOS" : "ANDROID", // web ke liye "WEB"

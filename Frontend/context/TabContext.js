@@ -6,8 +6,15 @@ const TabContext = createContext(null);
 export function TabProvider({ children }) {
     const [activeIndex, setActiveIndex] = useState(0);
 
-    // 👇 kisi bhi screen se ye function call karke tab switch kar sakte ho
+    // // 👇 kisi bhi screen se ye function call karke tab switch kar sakte ho
+    // const goToTab = (index) => {
+    //     setActiveIndex(index);
+    // };
+
+    // console.log("TAB PROVIDER:", activeIndex);
+
     const goToTab = (index) => {
+        // console.log("GO TO TAB:", index);
         setActiveIndex(index);
     };
 

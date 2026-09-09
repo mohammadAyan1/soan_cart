@@ -29,7 +29,7 @@ export const fetchProductById = createAsyncThunk(
 // 👇 naya thunk — category / subCategory se filtered products
 export const fetchProductsByCategory = createAsyncThunk(
     "products/fetchProductsByCategory",
-    async ({ categoryId, subCategoryId, page = 1, limit = 10 }, { rejectWithValue }) => {
+    async ({ categoryId, subCategoryId, page = 1, limit = 10, isRefresh = false }, { rejectWithValue }) => {
         try {
             const params = new URLSearchParams();
             if (categoryId) params.append("categoryId", categoryId);
@@ -76,6 +76,7 @@ const productSlice = createSlice({
         // 👇 category-filtered product list
         categoryProducts: {
             items: [],
+            subCategories: [], // 👈 NAYA - category ki saari subcategories yahan store hongi
             page: 1,
             hasNextPage: true,
             loading: false,
@@ -104,6 +105,7 @@ const productSlice = createSlice({
         },
         resetCategoryProducts: (state) => {
             state.categoryProducts.items = [];
+            state.categoryProducts.subCategories = []; // 👈 NAYA
             state.categoryProducts.page = 1;
             state.categoryProducts.hasNextPage = true;
             state.categoryProducts.error = null;
@@ -171,9 +173,13 @@ const productSlice = createSlice({
                 state.categoryProducts.error = null;
             })
             .addCase(fetchProductsByCategory.fulfilled, (state, action) => {
-                const { products, hasNextPage, currentPage } = action.payload;
+                const { products, hasNextPage, currentPage, subCategories } = action.payload;
                 state.categoryProducts.items =
                     currentPage === 1 ? products : [...state.categoryProducts.items, ...products];
+                // 👇 NAYA - subCategories sirf pehle page pe aati hai (backend se), tab hi overwrite karo
+                if (currentPage === 1 && subCategories) {
+                    state.categoryProducts.subCategories = subCategories;
+                }
                 state.categoryProducts.hasNextPage = hasNextPage;
                 state.categoryProducts.page = currentPage;
                 state.categoryProducts.loading = false;
