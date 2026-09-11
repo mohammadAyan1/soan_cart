@@ -41,7 +41,7 @@ export const initEventTracker = (currentSessionId) => {
         pending.forEach((eventData) => trackEvent(eventData));
     }
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
         window.addEventListener("beforeunload", flushSync);
         window.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "hidden") flush();

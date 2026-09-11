@@ -25,6 +25,11 @@ import wishlistRoutes from "./routes/wishlist.routes.js";
 import adminAnalyticsRoutes from "./routes/admin/adminAnalytics.routes.js";
 
 import adminUserRoutes from "./routes/admin/adminUser.routes.js";
+
+
+import notificationRouter from "./routes/notification/notificationRoutes.js";
+
+
 const app = express();
 
 app.use(cors({
@@ -77,6 +82,8 @@ app.use("/api/reviews", ReviewRouter)
 app.use("/api/sessions", sessionDeviceRoutes);
 app.use("/api/analytics/session", sessionRoutes);
 app.use("/api/analytics", analyticsRoutes);
+
+app.use('/api/notifications', notificationRouter);
 
 
 

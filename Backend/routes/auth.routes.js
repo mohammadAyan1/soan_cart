@@ -13,6 +13,7 @@ import {
     updateProfile,
     getMe,
     VendorRegister,
+    savePushToken,
 } from "../controller/auth.controller.js"; // apna actual path
 
 
@@ -32,5 +33,7 @@ router.post("/login", login);
 router.post("/logout", requiredAuth, logout);
 router.put("/update-profile", requiredAuth, upload.single("image"), updateProfile);
 router.get("/me", requiredAuth, getMe); // 👈 naya route
+router.post("/save-push-token", requiredAuth, savePushToken); // 👈 NAYA ROUTE
+
 
 export default router;

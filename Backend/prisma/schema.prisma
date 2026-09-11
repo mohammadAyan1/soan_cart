@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +5,536 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   Int                  @id @default(autoincrement())
+  fullName             String
+  phone                String               @unique
+  email                String               @unique
+  password             String
+  otp                  String?
+  otpExpiry            DateTime?
+  pushTokens PushToken[]
+  isVerified           Boolean              @default(false)
+  role                 Role                 @default(USER)
+  isDelete             Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  actual_password      String
+  imageUrl             String?              @db.Text
+  imageId              String?
+  addresses            Address[]
+  analyticsEvents      AnalyticsEvent[]
+  cart                 Cart?
+  cartActivities       CartActivity[]
+  guestConversions     GuestConversion[]
+  orders               Order[]
+  vendorOrderItems     OrderItem[]          @relation("VendorOrderItems")
+  products             Product[]
+  productCategories    ProductCategory[]
+  productSubCategories ProductSubCategory[]
+  reviews              Review[]
+  sessions             UserSession[]
+  wishlist             Wishlist?
+  wishlistActivities   WishlistActivity[]
+  vendorWishlistItems  WishlistItem[]       @relation("VendorWishlistItems")
+}
+
+model UserSession {
+  id              Int               @id @default(autoincrement())
+  sessionId       String            @unique @db.VarChar(100)
+  userId          Int?
+  guestId         String?           @db.VarChar(100)
+  deviceId        String            @db.VarChar(150)
+  platform        Platform          @default(WEB)
+  appVersion      String?           @db.VarChar(30)
+  deviceModel     String?           @db.VarChar(100)
+  osVersion       String?           @db.VarChar(50)
+  ipAddress       String?           @db.VarChar(50)
+  userAgent       String?           @db.Text
+  country         String?           @db.VarChar(100)
+  state           String?           @db.VarChar(100)
+  city            String?           @db.VarChar(100)
+  startedAt       DateTime          @default(now())
+  lastSeen        DateTime          @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+  isActive        Boolean           @default(true)
+  endedBy         SessionEndReason?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  latitude        Decimal?          @db.Decimal(10, 7)
+  longitude       Decimal?          @db.Decimal(10, 7)
+  events          AnalyticsEvent[]
+  user            User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([guestId])
+  @@index([deviceId])
+  @@index([startedAt])
+  @@index([isActive])
+  @@index([platform])
+}
+
+model AnalyticsEvent {
+  id              Int         @id @default(autoincrement())
+  eventType       EventType
+  sessionId       String
+  userId          Int?
+  guestId         String?
+  payload         Json?
+  createdAt       DateTime    @default(now())
+  eventAt         DateTime?
+  screen          String?     @db.VarChar(50)
+  source          String?     @db.VarChar(50)
+  durationSeconds Int?
+  productId       Int?
+  referrerScreen  String?     @db.VarChar(50)
+  scrollDepth     Int?
+  searchQuery     String?     @db.VarChar(255)
+  variantId       Int?
+  categoryId      Int?
+  subCategoryId   Int?
+  session         UserSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  user            User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventType])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([screen])
+  @@index([source])
+  @@index([eventAt])
+  @@index([productId])
+  @@index([variantId])
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([userId, eventType])
+  @@index([sessionId, createdAt])
+}
+
+model ProductCategory {
+  id                  Int                  @id @default(autoincrement())
+  imageUrl            String?              @db.Text
+  imageId             String?
+  tags                Json?
+  isDelete            Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  productCategoryName String               @unique
+  userId              Int
+  products            Product[]
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subCategories       ProductSubCategory[]
+
+  @@index([userId], map: "ProductCategory_userId_fkey")
+}
+
+model ProductSubCategory {
+  id                     Int             @id @default(autoincrement())
+  imageUrl               String?         @db.Text
+  imageId                String?
+  tags                   Json?
+  categoryId             Int
+  isDelete               Boolean         @default(false)
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  productSubCategoryName String
+  userId                 Int
+  products               Product[]
+  category               ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, productSubCategoryName])
+  @@index([userId], map: "ProductSubCategory_userId_fkey")
+}
+
+model Product {
+  id                Int                 @id @default(autoincrement())
+  productName       String
+  description       String?             @db.Text
+  categoryId        Int?
+  subCategoryId     Int?
+  isDelete          Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  userId            Int
+  imageId           String?
+  imageUrl          String?             @db.Text
+  isApprove         Boolean             @default(false)
+  tags              Json?
+  categoryRemark    String?             @db.Text
+  subCategoryRemark String?             @db.Text
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  category          ProductCategory?    @relation(fields: [categoryId], references: [id])
+  subCategory       ProductSubCategory? @relation(fields: [subCategoryId], references: [id])
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variants          ProductVariant[]
+  reviews           Review[]
+  wishlistItems     WishlistItem[]
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+  @@index([subCategoryId], map: "Product_subCategoryId_fkey")
+  @@index([userId], map: "Product_userId_fkey")
+}
+
+model ProductVariant {
+  id             Int            @id @default(autoincrement())
+  description    String?        @db.Text
+  actualPrice    Decimal        @db.Decimal(10, 2)
+  mrp            Decimal        @db.Decimal(10, 2)
+  showMrp        Boolean        @default(true)
+  vendorMinPrice Decimal        @db.Decimal(10, 2)
+  stock          Int            @default(0)
+  tags           Json?
+  attributes     Json?
+  productId      Int
+  isDelete       Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  isDefault      Boolean        @default(false)
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  images         ProductImage[]
+  product        Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reviews        Review[]
+  wishlistItems  WishlistItem[]
+
+  @@index([productId], map: "ProductVariant_productId_fkey")
+}
+
+model ProductImage {
+  id               Int            @id @default(autoincrement())
+  imageUrl         String?        @db.Text
+  imageId          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  isPrimary        Boolean        @default(false)
+  productVariantId Int
+  variant          ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+
+  @@index([productVariantId], map: "ProductImage_productVariantId_fkey")
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int?       @unique
+  guestId   String?    @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id                   Int            @id @default(autoincrement())
+  cartId               Int
+  productId            Int
+  variantId            Int
+  quantity             Int            @default(1)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  convertedAt          DateTime?
+  convertedDeviceId    String?
+  convertedSessionId   String?
+  convertedUserId      Int?
+  firstAddedAt         DateTime       @default(now())
+  originalGuestId      String?
+  originallyAddedBy    ActorType      @default(USER)
+  totalQuantityChanges Int            @default(0)
+  totalReAddCount      Int            @default(0)
+  totalRemoveCount     Int            @default(0)
+  cart                 Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product              Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant              ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, variantId])
+  @@index([productId], map: "CartItem_productId_fkey")
+  @@index([variantId], map: "CartItem_variantId_fkey")
+}
+
+model Order {
+  id               Int               @id @default(autoincrement())
+  orderNumber      String            @unique
+  userId           Int
+  totalAmount      Decimal           @db.Decimal(10, 2)
+  paymentStatus    PaymentStatus     @default(PENDING)
+  orderType        OrderType
+  fullName         String
+  phone            String
+  addressLine      String            @db.Text
+  city             String
+  state            String
+  pincode          String
+  isDelete         Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  orderSource      OrderSourceType   @default(DIRECT)
+  sourceScreen     String?           @db.VarChar(50)
+  user             User              @relation(fields: [userId], references: [id])
+  items            OrderItem[]
+  purchaseJourneys PurchaseJourney[]
+  reviews          Review[]
+
+  @@index([userId], map: "Order_userId_fkey")
+}
+
+model OrderItem {
+  id                   Int                      @id @default(autoincrement())
+  orderId              Int
+  productId            Int
+  variantId            Int
+  vendorId             Int
+  quantity             Int
+  price                Decimal                  @db.Decimal(10, 2)
+  deliveryStatus       DeliveryStatus           @default(PENDING)
+  expectedDeliveryDate DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  fromWishlist         Boolean                  @default(false)
+  order                Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product              Product                  @relation(fields: [productId], references: [id])
+  variant              ProductVariant           @relation(fields: [variantId], references: [id])
+  vendor               User                     @relation("VendorOrderItems", fields: [vendorId], references: [id])
+  statusHistory        OrderItemStatusHistory[]
+  review               Review?
+
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+  @@index([productId], map: "OrderItem_productId_fkey")
+  @@index([variantId], map: "OrderItem_variantId_fkey")
+  @@index([vendorId], map: "OrderItem_vendorId_fkey")
+}
+
+model OrderItemStatusHistory {
+  id          Int            @id @default(autoincrement())
+  orderItemId Int
+  status      DeliveryStatus
+  note        String?        @db.Text
+  changedAt   DateTime       @default(now())
+  orderItem   OrderItem      @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderItemId], map: "OrderItemStatusHistory_orderItemId_fkey")
+}
+
+model Wishlist {
+  id        Int            @id @default(autoincrement())
+  userId    Int?           @unique
+  guestId   String?        @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+}
+
+model WishlistItem {
+  id                Int            @id @default(autoincrement())
+  wishlistId        Int
+  productId         Int
+  variantId         Int
+  vendorId          Int
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  convertedAt       DateTime?
+  convertedUserId   Int?
+  firstAddedAt      DateTime       @default(now())
+  originalGuestId   String?
+  originallyAddedBy ActorType      @default(USER)
+  product           Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant           ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  vendor            User           @relation("VendorWishlistItems", fields: [vendorId], references: [id])
+  wishlist          Wishlist       @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, variantId])
+  @@index([productId], map: "WishlistItem_productId_fkey")
+  @@index([variantId], map: "WishlistItem_variantId_fkey")
+  @@index([vendorId], map: "WishlistItem_vendorId_fkey")
+}
+
+model Address {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  fullName    String
+  phone       String
+  addressLine String   @db.Text
+  city        String
+  state       String
+  pincode     String
+  latitude    Decimal? @db.Decimal(10, 7)
+  longitude   Decimal? @db.Decimal(10, 7)
+  isDefault   Boolean  @default(false)
+  isDelete    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Review {
+  id          Int            @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  variantId   Int
+  orderId     Int
+  orderItemId Int            @unique
+  rating      Int
+  comment     String?        @db.Text
+  isDelete    Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem   OrderItem      @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  images      ReviewImage[]
+
+  @@index([productId])
+  @@index([variantId])
+  @@index([userId])
+  @@index([orderId])
+}
+
+model ReviewImage {
+  id        Int      @id @default(autoincrement())
+  imageUrl  String?  @db.Text
+  imageId   String?
+  reviewId  Int
+  createdAt DateTime @default(now())
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId], map: "ReviewImage_reviewId_fkey")
+}
+
+model CartActivity {
+  id               Int           @id @default(autoincrement())
+  eventType        CartEventType
+  actorType        ActorType
+  userId           Int?
+  guestId          String?
+  cartId           Int
+  cartItemId       Int?
+  productId        Int
+  variantId        Int
+  previousQuantity Int?
+  newQuantity      Int?
+  previousState    Json?
+  currentState     Json?
+  productSnapshot  Json
+  reason           EventReason?
+  reasonNote       String?       @db.Text
+  sessionId        String?
+  deviceId         String?
+  platform         String?
+  ipAddress        String?
+  userAgent        String?       @db.Text
+  sourceScreen     String?
+  createdAt        DateTime      @default(now())
+  user             User?         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([guestId])
+  @@index([cartId])
+  @@index([cartItemId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([eventType])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([userId, eventType])
+  @@index([productId, eventType])
+}
+
+model WishlistActivity {
+  id              Int               @id @default(autoincrement())
+  eventType       WishlistEventType
+  actorType       ActorType
+  userId          Int?
+  guestId         String?
+  wishlistId      Int
+  wishlistItemId  Int?
+  productId       Int
+  variantId       Int
+  previousState   Json?
+  currentState    Json?
+  productSnapshot Json
+  reason          EventReason?
+  reasonNote      String?           @db.Text
+  sessionId       String?
+  deviceId        String?
+  platform        String?
+  ipAddress       String?
+  userAgent       String?           @db.Text
+  sourceScreen    String?
+  createdAt       DateTime          @default(now())
+  user            User?             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([guestId])
+  @@index([wishlistId])
+  @@index([wishlistItemId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([eventType])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([userId, eventType])
+  @@index([productId, eventType])
+}
+
+model GuestConversion {
+  id                        Int              @id @default(autoincrement())
+  guestId                   String
+  guestCartId               Int?
+  guestWishlistId           Int?
+  userId                    Int
+  userCartId                Int?
+  userWishlistId            Int?
+  triggerType               MergeTriggerType @default(AUTO)
+  mergeReason               String?          @db.Text
+  cartItemsMergedCount      Int              @default(0)
+  cartItemsSkippedCount     Int              @default(0)
+  wishlistItemsMergedCount  Int              @default(0)
+  wishlistItemsSkippedCount Int              @default(0)
+  sessionId                 String?
+  deviceId                  String?
+  ipAddress                 String?
+  mergedAt                  DateTime         @default(now())
+  user                      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([guestId])
+  @@index([userId])
+  @@index([mergedAt])
+}
+
+model PurchaseJourney {
+  id                   Int      @id @default(autoincrement())
+  orderId              Int
+  orderItemId          Int
+  originCartActivityId Int?
+  cartId               Int?
+  cartItemId           Int?
+  userId               Int?
+  guestId              String?
+  productId            Int
+  variantId            Int
+  purchasedQuantity    Int
+  purchasedPrice       Decimal  @db.Decimal(10, 2)
+  couponCode           String?
+  discountAmount       Decimal? @db.Decimal(10, 2)
+  paymentMethod        String?
+  orderTimestamp       DateTime @default(now())
+  createdAt            DateTime @default(now())
+  addedFromScreen      String?  @db.VarChar(50)
+  wasInWishlist        Boolean  @default(false)
+  order                Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([guestId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 enum Role {
@@ -25,59 +553,35 @@ enum SessionEndReason {
 enum EventType {
   APP_OPEN
   APP_CLOSE
-
   SCREEN_VIEW
-  SCREEN_EXIT      // 👈 NAYA - page/screen se bahar jaate time (time-spent yahi se calculate hoga)
-
-
+  SCREEN_EXIT
   PRODUCT_IMPRESSION
-
   PRODUCT_VIEW
-
   PRODUCT_CLICK
-
   PRODUCT_SHARE
-
   PRODUCT_ADD_TO_WISHLIST
   PRODUCT_REMOVE_FROM_WISHLIST
-
   PRODUCT_ADD_TO_CART
-
   PRODUCT_REMOVE_FROM_CART
-
   PRODUCT_PURCHASE
-
   SEARCH
   SEARCH_RESULT_CLICK
-
   FILTER_APPLIED
   FILTER_REMOVED
-
   CATEGORY_VIEW
   SUBCATEGORY_VIEW
-
   REMOVE_FROM_WISHLIST
-  SCROLL_STOP      // 👈 NAYA - user scroll karke jaha ruka, wahi ka product/position capture
-
-
+  SCROLL_STOP
   CHECKOUT_STARTED
-
   PAYMENT_SUCCESS
   PAYMENT_FAILED
-
   ORDER_PLACED
-
   LOGIN
   LOGOUT
-
   SUB_CATEGORY_CLICK
   CATEGORY_CLICK
-
-
   HANDLE_CHECK_OUT_FROM_DETAILS_PAGE
   HANDLE_CHECK_OUT_FROM_CART_PAGE
-
-
   REMOVE_PRODUCTS_FROM_CART
   DECREASE_QUANTITY_OF_PRODUCTS_FROM_CART
   CLICK_PRODUCTS_FROM_CART
@@ -85,17 +589,11 @@ enum EventType {
   PRODUCTS_IMAGE_CLICK
   PRODUCT_VARIANT_CHANGE
   PRODUCT_DETAILS_BUY_BTN_CLICK
-
   CART_CHECKOUT_BTN_CLICK
-
   REMOVE_PRODUCT_FROM_WISHLIST
   WISHLIST_PRODUCTS_CLICK
   CLEAR_ALL_WISHLIST
 }
-
-// =====================================================================
-// EVENT SOURCING - ENUMS
-// =====================================================================
 
 enum ActorType {
   GUEST
@@ -155,347 +653,15 @@ enum MergeTriggerType {
   MANUAL
 }
 
-// 👇 NAYA - ye batata hai order kaha se aaya: seedha "Buy Now" se ya cart se checkout karke
 enum OrderSourceType {
   DIRECT
   CART
 }
 
-
-// 👇 NAYA ENUM - platform ab free-text string nahi, fixed values honge
 enum Platform {
   WEB
   ANDROID
   IOS
-}
-
-model User {
-  id Int @id @default(autoincrement())
-
-  fullName String
-
-  phone String @unique
-
-  email String @unique
-
-  password String
-
-  otp String?
-
-  otpExpiry       DateTime?
-  actual_password String
-
-  isVerified Boolean @default(false)
-
-  imageUrl String? @db.Text
-
-  imageId String?
-
-  role Role @default(USER)
-
-  isDelete Boolean @default(false)
-
-  products             Product[]
-  productCategories    ProductCategory[]
-  productSubCategories ProductSubCategory[]
-
-  cart Cart?
-
-  orders           Order[]
-  vendorOrderItems OrderItem[] @relation("VendorOrderItems")
-
-  wishlist            Wishlist?
-  vendorWishlistItems WishlistItem[] @relation("VendorWishlistItems")
-
-  reviews Review[]
-
-  sessions        UserSession[]
-  analyticsEvents AnalyticsEvent[]
-
-  addresses Address[]
-
-  cartActivities     CartActivity[]
-  wishlistActivities WishlistActivity[]
-  guestConversions   GuestConversion[]
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-}
-
-model UserSession {
-  id Int @id @default(autoincrement())
-
-  sessionId String @unique @db.VarChar(100)
-
-  userId Int?
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  guestId String? @db.VarChar(100)
-
-  deviceId String @db.VarChar(150)
-
-  // 👇 CHANGED - ab enum hai (WEB / ANDROID / IOS) - "wo app se hai ya web se" yehi batayega
-  platform Platform @default(WEB)
-
-  appVersion String? @db.VarChar(30)
-
-  // Device ka readable naam - e.g. "Vivo V2228" ya "Chrome on Windows"
-  deviceModel String? @db.VarChar(100)
-
-  osVersion String? @db.VarChar(50)
-
-  ipAddress String? @db.VarChar(50)
-
-  userAgent String? @db.Text
-
-  country String? @db.VarChar(100)
-
-  state String? @db.VarChar(100)
-
-  city String? @db.VarChar(100)
-
-  // 👇 NAYE FIELDS - exact GPS location (frontend se aayegi agar user permission de)
-  latitude  Decimal? @db.Decimal(10, 7)
-  longitude Decimal? @db.Decimal(10, 7)
-
-  startedAt DateTime @default(now())
-
-  lastSeen DateTime @default(now())
-
-  endedAt DateTime?
-
-  durationSeconds Int?
-
-  isActive Boolean @default(true)
-
-  endedBy SessionEndReason?
-  events  AnalyticsEvent[]
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([guestId])
-  @@index([deviceId])
-  @@index([startedAt])
-  @@index([isActive])
-  @@index([platform])
-}
-
-
-model AnalyticsEvent {
-  id Int @id @default(autoincrement())
-
-  eventType EventType
-
-  sessionId String
-
-  session UserSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
-
-  userId Int?
-
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  guestId String?
-
-  // Kis screen/page pe event hua - e.g. "home_page", "product_detail_page", "search_page"
-  screen String? @db.VarChar(50)
-
-  // Event kaha se trigger hua (button/banner/section ka naam) - e.g. "hero_banner", "add_to_cart_btn"
-  source String? @db.VarChar(50)
-
-  // 👇 NAYE EXPLICIT FIELDS - taaki admin har baar Json parse na kare, seedha query kar sake
-  productId Int?
-  variantId Int?
-
-
-  // 👇 NAYE EXPLICIT FIELDS - taaki admin har baar Json parse na kare, seedha query kar sake
-  categoryId Int?
-  subCategoryId Int?
-
-  // SCREEN_EXIT event ke sath aayega - us screen pe kitna time (seconds) bita
-  durationSeconds Int?
-
-  // SCROLL_STOP event ke sath aayega - kitna % scroll kiya (0-100)
-  scrollDepth Int?
-
-  // SEARCH event ke sath aayega - user ne kya search kiya
-  searchQuery String? @db.VarChar(255)
-
-  // Pichla screen kaunsa tha (navigation flow track karne ke liye - e.g. search se product pe gaya)
-  referrerScreen String? @db.VarChar(50)
-
-  // Extra kuch bhi jo upar wale fields me fit nahi hota
-  payload Json?
-
-  eventAt  DateTime?
-  createdAt DateTime @default(now())
-
-  @@index([eventType])
-  @@index([sessionId])
-  @@index([userId])
-  @@index([screen])
-  @@index([source])
-  @@index([eventAt])
-  @@index([productId])
-  @@index([variantId])
-  @@index([categoryId])
-  @@index([subCategoryId])
-  @@index([userId, eventType])
-  @@index([sessionId, createdAt])
-}
-
-model ProductCategory {
-  id Int @id @default(autoincrement())
-
-  productCategoryName String @unique
-
-  imageUrl String? @db.Text
-
-  imageId String?
-
-  tags Json?
-
-  userId Int
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  products Product[]
-
-  subCategories ProductSubCategory[]
-
-  isDelete Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-}
-
-model ProductSubCategory {
-  id                     Int             @id @default(autoincrement())
-  productSubCategoryName String
-  imageUrl               String?         @db.Text
-  imageId                String?
-  tags                   Json?
-  userId                 Int
-  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categoryId             Int
-  category               ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  products               Product[]
-  isDelete               Boolean         @default(false)
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @updatedAt
-
-  @@unique([categoryId, productSubCategoryName])
-}
-
-model Product {
-  id            Int                @id @default(autoincrement())
-  productName   String
-  description   String?            @db.Text
-  userId        Int
-  categoryId    Int?
-  subCategoryId Int?
-  tags          Json?
-  imageUrl      String?            @db.Text
-  imageId       String?
-  variants      ProductVariant[]
-  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category      ProductCategory?    @relation(fields: [categoryId], references: [id])
-  subCategory   ProductSubCategory? @relation(fields: [subCategoryId], references: [id])
-  isDelete      Boolean            @default(false)
-  isApprove     Boolean            @default(false)
-  categoryRemark String? @db.Text
-  subCategoryRemark String? @db.Text
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  wishlistItems WishlistItem[]
-  reviews       Review[]
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-}
-
-model ProductVariant {
-  id             Int            @id @default(autoincrement())
-  images         ProductImage[]
-  description    String?        @db.Text
-  actualPrice    Decimal        @db.Decimal(10, 2)
-  mrp            Decimal        @db.Decimal(10, 2)
-  showMrp        Boolean        @default(true)
-  vendorMinPrice Decimal        @db.Decimal(10, 2)
-  stock          Int            @default(0)
-  tags           Json?
-  attributes     Json?
-  isDefault      Boolean        @default(false)
-  productId      Int
-  product        Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  isDelete       Boolean        @default(false)
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  wishlistItems  WishlistItem[]
-  reviews        Review[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-}
-
-model ProductImage {
-  id               Int            @id @default(autoincrement())
-  imageUrl         String?        @db.Text
-  imageId          String?
-  isPrimary        Boolean        @default(false)
-  productVariantId Int
-  variant          ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-}
-
-model Cart {
-  id Int @id @default(autoincrement())
-
-  userId Int?  @unique
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  guestId String? @unique
-
-  items CartItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model CartItem {
-  id Int @id @default(autoincrement())
-
-  cartId Int
-  cart   Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
-
-  productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  variantId Int
-  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  quantity Int @default(1)
-
-  originallyAddedBy ActorType @default(USER)
-  originalGuestId   String?
-  firstAddedAt      DateTime  @default(now())
-
-  convertedAt        DateTime?
-  convertedSessionId String?
-  convertedDeviceId  String?
-  convertedUserId    Int?
-
-  totalQuantityChanges Int @default(0)
-  totalRemoveCount     Int @default(0)
-  totalReAddCount      Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([cartId, variantId])
 }
 
 enum PaymentStatus {
@@ -524,366 +690,11 @@ enum DeliveryStatus {
   RETURNED
 }
 
-model Order {
-  id Int @id @default(autoincrement())
 
-  orderNumber String @unique
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-
-  totalAmount Decimal @db.Decimal(10, 2)
-
-  paymentStatus PaymentStatus @default(PENDING)
-
-  orderType OrderType
-
-  // 👇 NAYE FIELDS - order kaha se aaya (cart se ya direct buy-now se) aur kis page se
-  orderSource  OrderSourceType @default(DIRECT)
-  sourceScreen String?         @db.VarChar(50)
-
-  fullName    String
-  phone       String
-  addressLine String @db.Text
-  city        String
-  state       String
-  pincode     String
-
-  items OrderItem[]
-
-  reviews Review[]
-
-  purchaseJourneys PurchaseJourney[]
-
-  isDelete Boolean @default(false)
-
+model PushToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model OrderItem {
-  id Int @id @default(autoincrement())
-
-  orderId Int
-  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  productId Int
-  product   Product @relation(fields: [productId], references: [id])
-
-  variantId Int
-  variant   ProductVariant @relation(fields: [variantId], references: [id])
-
-  vendorId Int
-  vendor   User @relation("VendorOrderItems", fields: [vendorId], references: [id])
-
-  quantity Int
-
-  price Decimal @db.Decimal(10, 2)
-
-  deliveryStatus DeliveryStatus @default(PENDING)
-
-  expectedDeliveryDate DateTime?
-
-  // 👇 NAYA - ye product order karne se pehle wishlist me tha kya
-  fromWishlist Boolean @default(false)
-
-  statusHistory OrderItemStatusHistory[]
-
-  review Review?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model OrderItemStatusHistory {
-  id Int @id @default(autoincrement())
-
-  orderItemId Int
-  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-
-  status DeliveryStatus
-
-  note String? @db.Text
-
-  changedAt DateTime @default(now())
-}
-
-model Wishlist {
-  id Int @id @default(autoincrement())
-
-  userId Int?  @unique
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  guestId String? @unique
-
-  items WishlistItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model WishlistItem {
-  id Int @id @default(autoincrement())
-
-  wishlistId Int
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-
-  productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  variantId Int
-  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  vendorId Int
-  vendor   User @relation("VendorWishlistItems", fields: [vendorId], references: [id])
-
-  // 👇 NAYE FIELDS - CartItem ki tarah guest->user conversion track karne ke liye
-  originallyAddedBy ActorType @default(USER)
-  originalGuestId   String?
-  firstAddedAt      DateTime  @default(now())
-
-  convertedAt     DateTime?
-  convertedUserId Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([wishlistId, variantId])
-}
-
-model Address {
-  id Int @id @default(autoincrement())
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  fullName String
-  phone    String
-
-  addressLine String @db.Text
-  city        String
-  state       String
-  pincode     String
-
-  latitude  Decimal? @db.Decimal(10, 7)
-  longitude Decimal? @db.Decimal(10, 7)
-
-  isDefault Boolean @default(false)
-
-  isDelete Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-}
-
-model Review {
-  id Int @id @default(autoincrement())
-
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  productId Int
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  variantId Int
-  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  orderId Int
-  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  orderItemId Int       @unique
-  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-
-  rating Int
-
-  comment String? @db.Text
-
-  images ReviewImage[]
-
-  isDelete Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([productId])
-  @@index([variantId])
-  @@index([userId])
-  @@index([orderId])
-}
-
-model ReviewImage {
-  id Int @id @default(autoincrement())
-
-  imageUrl String? @db.Text
-  imageId  String?
-
-  reviewId Int
-  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-}
-
-model CartActivity {
-  id Int @id @default(autoincrement())
-
-  eventType CartEventType
-  actorType ActorType
-
-  userId  Int?
-  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  guestId String?
-
-  cartId     Int
-  cartItemId Int?
-  productId  Int
-  variantId  Int
-
-  previousQuantity Int?
-  newQuantity      Int?
-
-  previousState Json?
-  currentState  Json?
-
-  productSnapshot Json
-
-  reason     EventReason?
-  reasonNote String?      @db.Text
-
-  sessionId    String?
-  deviceId     String?
-  platform     String?
-  ipAddress    String?
-  userAgent    String?    @db.Text
-  sourceScreen String?
-
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([guestId])
-  @@index([cartId])
-  @@index([cartItemId])
-  @@index([productId])
-  @@index([variantId])
-  @@index([eventType])
-  @@index([sessionId])
-  @@index([createdAt])
-  @@index([userId, eventType])
-  @@index([productId, eventType])
-}
-
-model WishlistActivity {
-  id Int @id @default(autoincrement())
-
-  eventType WishlistEventType
-  actorType ActorType
-
-  userId  Int?
-  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  guestId String?
-
-  wishlistId     Int
-  wishlistItemId Int?
-  productId      Int
-  variantId      Int
-
-  previousState Json?
-  currentState  Json?
-
-  productSnapshot Json
-
-  reason     EventReason?
-  reasonNote String?      @db.Text
-
-  sessionId    String?
-  deviceId     String?
-  platform     String?
-  ipAddress    String?
-  userAgent    String?    @db.Text
-  sourceScreen String?
-
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([guestId])
-  @@index([wishlistId])
-  @@index([wishlistItemId])
-  @@index([productId])
-  @@index([variantId])
-  @@index([eventType])
-  @@index([sessionId])
-  @@index([createdAt])
-  @@index([userId, eventType])
-  @@index([productId, eventType])
-}
-
-model GuestConversion {
-  id Int @id @default(autoincrement())
-
-  guestId         String
-  guestCartId     Int?
-  guestWishlistId Int?
-
-  userId         Int
-  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userCartId     Int?
-  userWishlistId Int?
-
-  triggerType MergeTriggerType @default(AUTO)
-  mergeReason String?          @db.Text
-
-  cartItemsMergedCount      Int @default(0)
-  cartItemsSkippedCount     Int @default(0)
-  wishlistItemsMergedCount  Int @default(0)
-  wishlistItemsSkippedCount Int @default(0)
-
-  sessionId String?
-  deviceId  String?
-  ipAddress String?
-
-  mergedAt DateTime @default(now())
-
-  @@index([guestId])
-  @@index([userId])
-  @@index([mergedAt])
-}
-
-model PurchaseJourney {
-  id Int @id @default(autoincrement())
-
-  orderId     Int
-  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderItemId Int
-
-  originCartActivityId Int?
-
-  cartId     Int?
-  cartItemId Int?
-
-  userId  Int?
-  guestId String?
-
-  productId Int
-  variantId Int
-
-  purchasedQuantity Int
-  purchasedPrice    Decimal @db.Decimal(10, 2)
-
-  couponCode     String?
-  discountAmount Decimal? @db.Decimal(10, 2)
-  paymentMethod  String?
-
-  // 👇 NAYE FIELDS
-  wasInWishlist  Boolean @default(false)
-  addedFromScreen String? @db.VarChar(50) // kis page se ye product cart/direct me add hua tha
-
-  orderTimestamp DateTime @default(now())
-  createdAt      DateTime @default(now())
-
-  @@index([orderId])
-  @@index([userId])
-  @@index([guestId])
-  @@index([productId])
-  @@index([variantId])
 }

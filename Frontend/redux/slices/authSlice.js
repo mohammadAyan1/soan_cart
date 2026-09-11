@@ -39,6 +39,22 @@ export const loginUser = createAsyncThunk(
     }
 );
 
+
+// ---------------- PUSH NOTIFICATION ----------------
+// authSlice.js me add karo
+export const registerPushToken = createAsyncThunk(
+    'auth/registerPushToken',
+    async (pushToken, { rejectWithValue }) => {
+        try {
+            const response = await api.post('/api/auth/save-push-token', { pushToken });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to save push token');
+        }
+    }
+);
+
+
 // baaki poora file (logoutUser, updateProfile, fetchUserProfile, loadAuthFromStorage,
 // aur poora authSlice createSlice block) BILKUL SAME rahega - koi change nahi
 

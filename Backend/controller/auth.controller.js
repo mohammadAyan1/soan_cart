@@ -19,7 +19,36 @@ import { v4 as uuidv4 } from "uuid";
 import geoip from "geoip-lite";
 
 
+// apne existing auth controller me is function ko add kar do
+export const savePushToken = async (req, res) => {
+    try {
+        const userId = req.user.id; // requiredAuth middleware se aa raha hai
+        const { pushToken } = req.body;
 
+        if (!pushToken) {
+            return res.status(400).json({
+                message: "Push token required hai",
+                success: false,
+            });
+        }
+
+        await prisma.pushToken.upsert({
+            where: { token: pushToken },
+            update: { userId },
+            create: { token: pushToken, userId },
+        });
+
+        return res.status(200).json({
+            message: "Push token saved successfully",
+            success: true,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message,
+            success: false,
+        });
+    }
+};
 
 
 export const register = async (req, res) => {

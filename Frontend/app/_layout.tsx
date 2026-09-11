@@ -18,16 +18,32 @@ import { initEventTracker } from "@/utils/eventTracker"; // 👈 NAYA IMPORT
 import axiosInstance from "@/api/api"; // apna existing axios instance
 import useBackTracker from "@/hooks/useBackTracker";
 import { registerForPushNotificationsAsync } from "../utils/notificationService"
+import { registerPushToken } from "@/redux/slices/authSlice";
+import { useDispatch } from 'react-redux';
 
-export default function RootLayout() {
+function RootLayoutContent() {
 
   useBackTracker();
+
+  const dispatch = useDispatch()
 
   // 👇 NAYA - App khulte hi ek baar analytics session start karo aur
   // event tracker ko sessionId de do - isse pehle koi bhi event kaam
   // nahi karega
   useEffect(() => {
-    registerForPushNotificationsAsync()
+    const setupPushNotifications = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        try {
+          await dispatch(registerPushToken(token)).unwrap();
+        } catch (err) {
+          console.log('Push token save failed:', err);
+        }
+      }
+    };
+    setupPushNotifications();
+
+
     const setupAnalytics = async () => {
       try {
         let deviceId = await AsyncStorage.getItem("deviceId");
@@ -58,41 +74,47 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <TabProvider>
-          <ScrollProvider>
-            <SearchProvider>
-              <SafeAreaProvider>
-                <SafeAreaView
-                  style={{ flex: 1, backgroundColor: "#fff" }}
-                  edges={["top"]}
-                >
-                  <StatusBar
-                    style="dark"
-                    backgroundColor="#EF4444"
-                    translucent={false}
-                  />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <TabProvider>
+        <ScrollProvider>
+          <SearchProvider>
+            <SafeAreaProvider>
+              <SafeAreaView
+                style={{ flex: 1, backgroundColor: "#fff" }}
+                edges={["top"]}
+              >
+                <StatusBar
+                  style="dark"
+                  backgroundColor="#EF4444"
+                  translucent={false}
+                />
 
-                  <View style={{ flex: 1 }}>
-                    <Header />
-                    <Stack screenOptions={{ headerShown: false }}>
-                      <Stack.Screen name="(root)/(tabs)" />
-                      <Stack.Screen name="(root)/product/[id]" />
-                      <Stack.Screen name="(root)/product/[id]/[varid]" />
-                      <Stack.Screen name="(root)/product/product-list" />
-                      <Stack.Screen name="(root)/address/addresses" />
-                      <Stack.Screen name="(root)/address/address-form" />
-                      <Stack.Screen name="(root)/orders/[id]" />
-                      <Stack.Screen name="(root)/orders/index" />
-                    </Stack>
-                  </View>
-                </SafeAreaView>
-              </SafeAreaProvider>
-            </SearchProvider>
-          </ScrollProvider>
-        </TabProvider>
-      </GestureHandlerRootView>
+                <View style={{ flex: 1 }}>
+                  <Header />
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(root)/(tabs)" />
+                    <Stack.Screen name="(root)/product/[id]" />
+                    <Stack.Screen name="(root)/product/[id]/[varid]" />
+                    <Stack.Screen name="(root)/product/product-list" />
+                    <Stack.Screen name="(root)/address/addresses" />
+                    <Stack.Screen name="(root)/address/address-form" />
+                    <Stack.Screen name="(root)/orders/[id]" />
+                    <Stack.Screen name="(root)/orders/index" />
+                  </Stack>
+                </View>
+              </SafeAreaView>
+            </SafeAreaProvider>
+          </SearchProvider>
+        </ScrollProvider>
+      </TabProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <Provider store={store}>
+      <RootLayoutContent />
     </Provider>
   );
 }
