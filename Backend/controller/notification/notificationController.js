@@ -5,7 +5,7 @@ import sendPushNotifications from '../../utils/sendPushNotification.js';
 // SAB users ko
 export const sendToAllUsers = async (req, res) => {
     try {
-        const { title, body } = req.body;
+        const { title, body, image, data } = req.body;
 
 
         if (req.user.role !== "ADMIN") {
@@ -26,7 +26,12 @@ export const sendToAllUsers = async (req, res) => {
             return res.status(400).json({ message: 'Koi bhi user push token registered nahi hai' });
         }
 
-        const tickets = await sendPushNotifications(tokenList, title, body);
+        const notificationData = { ...(data || {}) };
+        if (image) {
+            notificationData.image = image;
+        }
+
+        const tickets = await sendPushNotifications(tokenList, title, body, notificationData);
 
         return res.status(200).json({
             message: `Notification ${tokenList.length} users ko bheji gayi`,
@@ -41,7 +46,7 @@ export const sendToAllUsers = async (req, res) => {
 // EK specific user ko
 export const sendToSingleUser = async (req, res) => {
     try {
-        const { userId, title, body } = req.body;
+        const { userId, title, body, image, data } = req.body;
 
         if (req.user.role !== "ADMIN") {
             return res.status(403).json({ success: false, message: "You don't have authority" });
@@ -61,9 +66,26 @@ export const sendToSingleUser = async (req, res) => {
             return res.status(400).json({ message: 'Is user ka koi push token registered nahi hai' });
         }
 
-        const tickets = await sendPushNotifications(tokenList, title, body);
+        // 🔍 TEST KARNE KE LIYE: Dekho yahan console mein kya mil raha hai
+        console.log("Incoming Image URL:", image);
+        console.log("Incoming Data Object:", data);
 
-        return res.status(200).json({ message: 'Notification is user ko bhej di gayi', tickets });
+        // Agar user ne direct "image" field di hai ya "data.image" diya hai, dono handle honge
+        const notificationData = { ...(data || {}) };
+        if (image) {
+            notificationData.image = image;
+        }
+
+
+        // const tickets = await sendPushNotifications(tokenList, title, body);
+        const tickets = await sendPushNotifications(tokenList, title, body, notificationData);
+
+
+        return res.status(200).json({
+            message: 'Notification is user ko bhej di gayi',
+            sentData: notificationData, // Response mein dikhega ki kya data gaya
+            tickets
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Server error' });

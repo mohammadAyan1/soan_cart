@@ -29,7 +29,8 @@
         "android.permission.READ_MEDIA_VIDEO",
         "android.permission.READ_MEDIA_AUDIO"
       ],
-      "package": "com.mohammadayan.Sounkart"
+      "package": "com.mohammadayan.Sounkart",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",

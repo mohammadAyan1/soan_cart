@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "557678679215",
+    "project_id": "sounkart-36da8",
+    "storage_bucket": "sounkart-36da8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:557678679215:android:d655ad687bbb0f253d705a",
+        "android_client_info": {
+          "package_name": "com.mohammadayan.Sounkart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPmlUBXsuK79Ve-mIxbHyUOnlUXoBFUpM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

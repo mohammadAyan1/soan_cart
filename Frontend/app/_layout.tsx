@@ -20,6 +20,7 @@ import useBackTracker from "@/hooks/useBackTracker";
 import { registerForPushNotificationsAsync } from "../utils/notificationService"
 import { registerPushToken } from "@/redux/slices/authSlice";
 import { useDispatch } from 'react-redux';
+import { setupImageNotificationListener } from '../utils/notificationListener'
 
 function RootLayoutContent() {
 
@@ -31,8 +32,13 @@ function RootLayoutContent() {
   // event tracker ko sessionId de do - isse pehle koi bhi event kaam
   // nahi karega
   useEffect(() => {
+
+    setupImageNotificationListener()
+
     const setupPushNotifications = async () => {
       const token = await registerForPushNotificationsAsync();
+      console.log(token, "Token");
+
       if (token) {
         try {
           await dispatch(registerPushToken(token)).unwrap();
