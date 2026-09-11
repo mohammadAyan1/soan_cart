@@ -3,12 +3,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDeviceHeaders } from "@/utils/deviceInfo";
 
 export const api = axios.create({
-    baseURL: process.env.EXPO_PUBLIC_API_URL,
-    timeout: 10000,
+    baseURL: process.env.EXPO_PUBLIC_API_URL || "https://soan-cart-backend.onrender.com",
+    timeout: 40000,
     headers: {
         "Content-Type": "application/json",
     },
 });
+
+console.log("🚀 ~ API Base URL being used:", api.defaults.baseURL);
+console.log("🚀 ~ From ENV file (EXPO_PUBLIC_API_URL):", process.env.EXPO_PUBLIC_API_URL);
 
 // Request Interceptor
 api.interceptors.request.use(
