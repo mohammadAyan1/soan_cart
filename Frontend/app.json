@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Sohn Cart",
+    "name": "Sounkart",
     "slug": "SohnCart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "Sohn Cart",
+    "scheme": "Sounkart",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -29,7 +29,7 @@
         "android.permission.READ_MEDIA_VIDEO",
         "android.permission.READ_MEDIA_AUDIO"
       ],
-      "package": "com.mohammadayan.SohnCart"
+      "package": "com.mohammadayan.Sounkart"
     },
     "web": {
       "output": "static",
