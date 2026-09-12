@@ -473,7 +473,7 @@ export const getAllProductForAdmin = async (req, res) => {
                     category: { select: { id: true, productCategoryName: true } },
                     subCategory: { select: { id: true, productSubCategoryName: true } },
                     variants: {
-                        where: { isDelete: false },
+                        // where: { isDelete: false },
                         include: {
                             images: true,
                             cartItems: {
@@ -632,6 +632,7 @@ export const getAllProductForAdmin = async (req, res) => {
                     id: variant.id,
                     description: variant.description,
                     actualPrice: variant.actualPrice,
+                    isDelete: variant.isDelete,
                     mrp: variant.mrp,
                     showMrp: variant.showMrp,
                     vendorMinPrice: variant.vendorMinPrice,
@@ -1117,13 +1118,21 @@ export const updateProduct = async (req, res) => {
                 if (v.id) {
                     // Existing variant belongs to this product? verify
                     const existingVariant = await tx.productVariant.findFirst({
-                        where: { id: Number(v.id), productId }
+                        where: { id: Number(v.id), productId },
+                        include: {
+                            images: true
+                        }
                     });
+                    console.log(existingVariant, "Existed products");
 
                     if (!existingVariant) {
                         skippedVariantIds.push(v.id); // ownership mismatch, silently skip nahi — track karo
                         continue;
                     }
+
+                    console.log(v.vendorMinPrice);
+                    console.log(existingVariant.vendorMinPrice);
+
 
                     await tx.productVariant.update({
                         where: { id: existingVariant.id },
@@ -1135,7 +1144,9 @@ export const updateProduct = async (req, res) => {
                             vendorMinPrice: v.vendorMinPrice !== undefined ? Number(v.vendorMinPrice) : existingVariant.vendorMinPrice,
                             stock: v.stock !== undefined ? Number(v.stock) : existingVariant.stock,
                             tags: v.tags ?? existingVariant.tags,
-                            attributes: v.attributes ?? existingVariant.attributes
+                            attributes: v.attributes ?? existingVariant.attributes,
+                            isDelete: Number(existingVariant.vendorMinPrice) === Number(v.vendorMinPrice) ? existingVariant.isDelete ? true : false : true,
+                            isDefault: v.isDefault
                         }
                     });
 
@@ -1164,14 +1175,18 @@ export const updateProduct = async (req, res) => {
                     const newVariant = await tx.productVariant.create({
                         data: {
                             description: v.description ?? null,
-                            actualPrice: Number(v.actualPrice),
+                            // actualPrice: Number(v.actualPrice),
+                            actualPrice: v.actualPrice ? Number(v.actualPrice) : 0,
                             mrp: Number(v.mrp),
                             showMrp: v.showMrp ?? true,
                             vendorMinPrice: Number(v.vendorMinPrice),
                             stock: Number(v.stock ?? 0),
                             tags: v.tags ?? null,
                             attributes: v.attributes ?? null,
-                            productId
+                            productId,
+                            isDelete: true,
+                            isDefault: v.isDefault
+
                         }
                     });
 
@@ -1460,110 +1475,6 @@ export const addVariantImage = async (req, res) => {
         });
     }
 };
-
-
-
-// export const getProductsByCategory = async (req, res) => {
-//     try {
-//         const page = Number(req.query.page) || 1;
-//         const limit = Number(req.query.limit) || 10;
-//         const skip = (page - 1) * limit;
-
-//         const { categoryId, subCategoryId } = req.query;
-
-//         if (!categoryId && !subCategoryId) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "categoryId ya subCategoryId me se ek to dena hi padega"
-//             });
-//         }
-
-//         const whereCondition = {
-//             isDelete: false,
-//             variants: {
-//                 some: {
-//                     isDelete: false,
-//                     isDefault: true
-//                 }
-//             },
-//             ...(categoryId && { categoryId: Number(categoryId) }),
-//             ...(subCategoryId && { subCategoryId: Number(subCategoryId) })
-//         };
-
-//         const [products, totalProducts] = await Promise.all([
-//             prisma.product.findMany({
-//                 where: whereCondition,
-//                 orderBy: {
-//                     createdAt: "desc"
-//                 },
-//                 skip,
-//                 take: limit,
-
-//                 select: {
-//                     id: true,
-//                     productName: true,
-//                     description: true,
-
-//                     variants: {
-//                         where: {
-//                             isDelete: false,
-//                             isDefault: true
-//                         },
-//                         take: 1,
-//                         select: {
-//                             id: true,
-//                             actualPrice: true,
-//                             mrp: true,
-//                             showMrp: true,
-
-//                             images: {
-//                                 where: {
-//                                     isPrimary: true
-//                                 },
-//                                 take: 1,
-//                                 select: {
-//                                     imageUrl: true
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }),
-
-//             prisma.product.count({
-//                 where: whereCondition
-//             })
-//         ]);
-
-//         return res.status(200).json({
-//             success: true,
-//             currentPage: page,
-//             perPage: limit,
-//             totalProducts,
-//             totalPages: Math.ceil(totalProducts / limit),
-//             hasNextPage: page < Math.ceil(totalProducts / limit),
-//             hasPreviousPage: page > 1,
-//             products
-//         });
-
-//     } catch (error) {
-
-//         return res.status(500).json({
-//             success: false,
-//             message: error.message
-//         });
-//     }
-// };
-
-
-
-// ==================================================================
-// GET PRODUCT BY ID — VENDOR EDIT VIEW
-// (Public getProductById se alag — isme DELETED variants bhi aayenge,
-// taaki vendor apne deleted variants dekh/restore kar sake)
-// ==================================================================
-
-
 
 
 export const getProductsByCategory = async (req, res) => {

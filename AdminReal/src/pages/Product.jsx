@@ -1,3 +1,5 @@
+
+
 // import React, { useEffect, useState } from 'react';
 // import { useDispatch, useSelector } from "react-redux";
 // import {
@@ -59,6 +61,84 @@
 //     );
 // };
 
+// // ---------------------------------------------------------
+// // 👇 NAYA - Approve karne se pehle product check karta hai ki
+// // kahi default variant ka actualPrice 0 to nahi, ya category/subCategory
+// // "Other" (null) to nahi. Jo bhi reasons fail hote hai, unka array return
+// // hota hai - array khali hua to approve allowed hai.
+// // ---------------------------------------------------------
+// const getApprovalBlockReasons = (product) => {
+//     const reasons = [];
+
+//     const defaultVariant =
+//         product.variants?.find((v) => v.isDefault) || product.variants?.[0];
+
+//     if (!defaultVariant || Number(defaultVariant.actualPrice) === 0) {
+//         reasons.push(
+//             "Default variant ka Actual Price abhi 0 hai — pehle isko update karke actual selling price set karo."
+//         );
+//     }
+
+//     if (!product.category) {
+//         reasons.push(
+//             "Is product ki Category 'Other' hai (koi fixed category assign nahi hui) — pehle vendor/admin se sahi category set karwao."
+//         );
+//     }
+
+//     if (!product.subCategory) {
+//         reasons.push(
+//             "Is product ki Sub Category 'Other' hai (koi fixed sub category assign nahi hui) — pehle vendor/admin se sahi sub category set karwao."
+//         );
+//     }
+
+//     return reasons;
+// };
+
+// // 👇 NAYA - Approve block hone par jo reasons hai unhe dikhane wala modal
+// const ApprovalBlockedModal = ({ product, reasons, onClose }) => {
+//     if (!product) return null;
+
+//     return (
+//         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+//             <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+//                 <div className="mb-3 flex items-start justify-between">
+//                     <div>
+//                         <h3 className="text-base font-semibold text-gray-800">
+//                             Approve nahi kar sakte
+//                         </h3>
+//                         <p className="mt-0.5 text-xs text-gray-500">{product.productName}</p>
+//                     </div>
+//                     <button
+//                         onClick={onClose}
+//                         className="text-gray-400 hover:text-gray-700"
+//                     >
+//                         ✕
+//                     </button>
+//                 </div>
+
+//                 <p className="mb-2 text-sm text-gray-600">
+//                     Is product ko in wajah se abhi approve nahi kiya ja sakta:
+//                 </p>
+
+//                 <ul className="mb-4 list-disc space-y-1.5 pl-5 text-sm text-red-600">
+//                     {reasons.map((r, idx) => (
+//                         <li key={idx}>{r}</li>
+//                     ))}
+//                 </ul>
+
+//                 <div className="flex justify-end">
+//                     <button
+//                         onClick={onClose}
+//                         className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+//                     >
+//                         Theek hai
+//                     </button>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
 // const Product = () => {
 //     const dispatch = useDispatch();
 
@@ -100,6 +180,10 @@
 //     // Local loading state for product approval toggling
 //     const [actionLoading, setActionLoading] = useState(false);
 
+//     // 👇 NAYE - approve block hone par modal ke liye state
+//     const [blockModalProduct, setBlockModalProduct] = useState(null);
+//     const [blockReasons, setBlockReasons] = useState([]);
+
 //     useEffect(() => {
 //         dispatch(fetchAllProductsAdmin({
 //             page, limit: 10, status,
@@ -127,11 +211,24 @@
 //     const toggleVariant = (id) => setExpandedVariantId((prev) => (prev === id ? null : id));
 //     const setTab = (variantId, tab) => setActiveTab((prev) => ({ ...prev, [variantId]: tab }));
 
-//     // 👇 NAYA: Admin Approve / Disapprove Handler
-//     const handleToggleApprove = async (productId) => {
+//     // 👇 UPDATED: Admin Approve / Disapprove Handler
+//     // Ab poora "product" object leta hai (id nahi), taaki approve se pehle
+//     // uske variants/category/subCategory check kiye ja sakein
+//     const handleToggleApprove = async (product) => {
+//         // Disapprove karna (Approved -> Pending) hamesha allowed hai,
+//         // check sirf tab lagta hai jab Pending se Approve karne ki koshish ho
+//         if (!product.isApprove) {
+//             const reasons = getApprovalBlockReasons(product);
+//             if (reasons.length > 0) {
+//                 setBlockReasons(reasons);
+//                 setBlockModalProduct(product);
+//                 return; // 👈 API call hi nahi jayegi
+//             }
+//         }
+
 //         try {
 //             setActionLoading(true);
-//             const res = await api.put(`/api/product/approve/${productId}`);
+//             const res = await api.put(`/api/product/approve/${product.id}`);
 //             if (res.data.success) {
 //                 // Refresh list after successful toggle
 //                 dispatch(fetchAllProductsAdmin({
@@ -388,7 +485,9 @@
 //                                     <div>
 //                                         <p className="font-semibold text-gray-800">{product.productName}</p>
 //                                         <p className="text-xs text-gray-400">
-//                                             {product.category?.productCategoryName} → {product.subCategory?.productSubCategoryName}
+//                                             {product.category?.productCategoryName || `Other (${product.categoryRemark || "-"})`}
+//                                             {" → "}
+//                                             {product.subCategory?.productSubCategoryName || `Other (${product.subCategoryRemark || "-"})`}
 //                                         </p>
 //                                         <div className="flex items-center gap-2 mt-1">
 //                                             <img
@@ -425,11 +524,11 @@
 //                                         <p className="text-[11px] text-gray-400">{product.totalReviews} Reviews</p>
 //                                     </div>
 
-//                                     {/* 👇 NAYA: Admin Action Buttons (Approve Toggle & Update) */}
+//                                     {/* 👇 Admin Action Buttons (Approve Toggle & Update) */}
 //                                     <div className="flex items-center gap-2">
 //                                         <button
 //                                             disabled={actionLoading}
-//                                             onClick={() => handleToggleApprove(product.id)}
+//                                             onClick={() => handleToggleApprove(product)}
 //                                             className={`text-xs px-2.5 py-1 rounded-full font-medium transition ${product.isApprove
 //                                                 ? "bg-green-100 text-green-700 hover:bg-green-200"
 //                                                 : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
@@ -494,9 +593,16 @@
 //                                                             className="w-10 h-10 rounded-md object-cover border border-gray-200"
 //                                                         />
 //                                                         <div>
-//                                                             <p className="text-sm font-medium text-gray-800">{variant.description}</p>
+//                                                             <p className="text-sm font-medium text-gray-800">
+//                                                                 {variant.description}
+//                                                                 {variant.isDefault && (
+//                                                                     <span className="ml-2 text-[10px] font-semibold text-indigo-600">
+//                                                                         (Default)
+//                                                                     </span>
+//                                                                 )}
+//                                                             </p>
 //                                                             <p className="text-xs text-gray-400">
-//                                                                 ₹{variant.actualPrice} • MRP ₹{variant.mrp} • Vendor Min ₹{variant.vendorMinPrice}
+//                                                                 Actual ₹{variant.actualPrice} • MRP ₹{variant.mrp} • Vendor Min ₹{variant.vendorMinPrice}
 //                                                             </p>
 //                                                         </div>
 //                                                     </div>
@@ -759,12 +865,21 @@
 //                     </div>
 //                 </div>
 //             </div>
+
+//             {/* 👇 NAYA - Approve block modal */}
+//             <ApprovalBlockedModal
+//                 product={blockModalProduct}
+//                 reasons={blockReasons}
+//                 onClose={() => {
+//                     setBlockModalProduct(null);
+//                     setBlockReasons([]);
+//                 }}
+//             />
 //         </main>
 //     );
 // };
 
 // export default Product;
-
 
 
 import React, { useEffect, useState } from 'react';
@@ -947,6 +1062,9 @@ const Product = () => {
     // Local loading state for product approval toggling
     const [actionLoading, setActionLoading] = useState(false);
 
+    // 👇 NAYA - variant-level Active/Deactive toggle ke liye per-variant loading state
+    const [variantActionLoading, setVariantActionLoading] = useState(null);
+
     // 👇 NAYE - approve block hone par modal ke liye state
     const [blockModalProduct, setBlockModalProduct] = useState(null);
     const [blockReasons, setBlockReasons] = useState([]);
@@ -1009,6 +1127,28 @@ const Product = () => {
             alert(error.response?.data?.message || "Failed to update product approval status");
         } finally {
             setActionLoading(false);
+        }
+    };
+
+    // 👇 NAYA: Variant Active/Deactive toggle handler
+    // Backend route: PUT /api/product/variant/:variantId/delete
+    // isDelete = false -> Active, isDelete = true -> Deactive
+    const handleToggleVariantDelete = async (variant) => {
+        try {
+            setVariantActionLoading(variant.id);
+            const res = await api.put(`/api/product/variant/${variant.id}/delete`);
+            if (res.data.success) {
+                dispatch(fetchAllProductsAdmin({
+                    page, limit: 10, status,
+                    vendorId, categoryId, subCategoryId, isApprove, fromDate, toDate, sortBy,
+                    hasOrdered, hasCart, hasWishlist, hasReview
+                }));
+            }
+        } catch (error) {
+            console.error("Variant toggle error:", error);
+            alert(error.response?.data?.message || "Failed to update variant status");
+        } finally {
+            setVariantActionLoading(null);
         }
     };
 
@@ -1323,6 +1463,9 @@ const Product = () => {
                                 <div className="border-t border-gray-100 p-4 bg-gray-50 space-y-3">
                                     {product.variants.map((variant) => {
                                         const tab = activeTab[variant.id] || "buyers";
+                                        console.log('====================================');
+                                        console.log(variant);
+                                        console.log('====================================');
 
                                         const selectedBuyerId = buyerFilter[variant.id] || "";
                                         const selectedReviewId = reviewFilter[variant.id] || "";
@@ -1349,9 +1492,12 @@ const Product = () => {
 
                                         return (
                                             <div key={variant.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                                <button
+                                                {/* 👇 UPDATED: pehle ye ek <button> tha, ab <div> hai kyunki
+                                                    andar ek aur (Active/Deactive) button add karna tha aur
+                                                    button-ke-andar-button valid HTML nahi hota */}
+                                                <div
                                                     onClick={() => toggleVariant(variant.id)}
-                                                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition text-left"
+                                                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition text-left cursor-pointer"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <img
@@ -1398,11 +1544,28 @@ const Product = () => {
                                                         <div>
                                                             <Stars rating={variant.avgRating} />
                                                         </div>
+
+                                                        {/* 👇 NAYA - Variant Active/Deactive Toggle Button */}
+                                                        <button
+                                                            disabled={variantActionLoading === variant.id}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleToggleVariantDelete(variant);
+                                                            }}
+                                                            className={`text-[10px] px-2.5 py-1 rounded-full font-medium transition ${!variant.isDelete
+                                                                ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                                : "bg-red-100 text-red-700 hover:bg-red-200"
+                                                                }`}
+                                                            title="Click to toggle variant status"
+                                                        >
+                                                            {!variant.isDelete ? "Active" : "Deactive"}
+                                                        </button>
+
                                                         <span className="text-gray-400 text-xs">
                                                             {expandedVariantId === variant.id ? "▲" : "▼"}
                                                         </span>
                                                     </div>
-                                                </button>
+                                                </div>
 
                                                 {expandedVariantId === variant.id && (
                                                     <div className="border-t border-gray-100 p-3">

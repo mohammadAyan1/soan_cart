@@ -10,9 +10,6 @@ import PriceSection from "./PriceSection";
 import AddToCartButton from "./AddToCartButton";
 import { getDiscountPercent } from "@/utils/priceUtils";
 import { trackEvent, triggerScreenExit } from "@/utils/eventTracker"; // 👈 NAYA IMPORT
-// import { usePageTimeTracker } from "@/hooks/usePageTimeTracker"
-// import { getAnalyticsScreen } from "./Header";
-// import { usePathname } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 36) / 2;

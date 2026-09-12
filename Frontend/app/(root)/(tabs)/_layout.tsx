@@ -40,20 +40,11 @@ function TabsContent() {
 
     const previousIndexRef = useRef(null);
 
-    // console.log("🔥 TABS CONTENT RENDER:", activeIndex);
-
 
     // 👇 NAYA - useFocusEffect ke stable callback ke andar latest tab jaanne ke liye
     const activeIndexRef = useRef(activeIndex);
     useEffect(() => {
 
-        // console.log(
-        //     "🔥 EFFECT:",
-        //     "activeIndex =",
-        //     activeIndex,
-        //     "ref =",
-        //     activeIndexRef.current
-        // );
 
         activeIndexRef.current = activeIndex;
         // console.log(activeIndex);
@@ -100,11 +91,7 @@ function TabsContent() {
                 });
             }
 
-            //         return () => {
-            //             triggerScreenExit();
-            //         };
-            //     }, [])
-            // );
+            
 
 
             // 👇 YAHAN CHANGE KAREIN - Naya Return statement 👇
@@ -148,8 +135,8 @@ function TabsContent() {
 
 export default function TabsLayout() {
     return (
-        // <TabProvider>
+        
         <TabsContent />
-        // </TabProvider>
+        
     );
 }

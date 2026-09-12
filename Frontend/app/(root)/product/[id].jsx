@@ -20,10 +20,8 @@ import { fetchProductById } from "../../../redux/slices/productSlice.js";
 import { useDispatch } from "react-redux";
 import WishlistButton from "../../../components/WishlistButton.js"
 
-// import { usePageTimeTracker } from "../../../hooks/usePageTimeTracker.js";
-// import { getAnalyticsScreen } from "../../../components/Header.js";
+
 import { getCurrentScreen, getPreviousScreen, trackEvent, triggerScreenExit } from "../../../utils/eventTracker.js";
-// import { usePathname } from "expo-router";
 
 const { width } = Dimensions.get("window");
 

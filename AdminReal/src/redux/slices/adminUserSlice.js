@@ -2,23 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/api";
 
 // ---------------- GET ALL USERS ----------------
-// export const fetchAllUsers = createAsyncThunk(
-//     "adminUser/fetchAllUsers",
-//     async ({ page = 1, limit = 10, search = "", role = "" } = {}, { rejectWithValue }) => {
-//         try {
-//             const res = await api.get("/api/admin/users", {
-//                 params: { page, limit, search, role },
-//             });
-
-
-//             return res?.data
-//         } catch (error) {
-//             return rejectWithValue(
-//                 error.response?.data || { message: "Users fetch nahi ho paaye" }
-//             );
-//         }
-//     }
-// );
 
 export const fetchAllUsers = createAsyncThunk(
     "adminUser/fetchAllUsers",

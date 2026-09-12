@@ -25,7 +25,6 @@ export default function ProductListScreen() {
     let refference = getCurrentScreen()
     let previouScreen = getPreviousScreen()
 
-    // usePageTimeTracker(refference)
 
 
     // 👇 Scroll, impression (kaunse products dikhe), scroll-stop tracking
@@ -37,7 +36,7 @@ export default function ProductListScreen() {
             trackEvent({
                 eventType: "SCREEN_VIEW",
                 screen: SCREEN_NAME,
-                // referrerScreen: refference,
+                
             })
         }, [])
     )

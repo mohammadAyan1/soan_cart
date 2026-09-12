@@ -104,23 +104,6 @@ export const toggleVariantDelete = createAsyncThunk(
 
 
 
-// ---------------- ADMIN - saare products full details ke sath ----------------
-// export const fetchAllProductsAdmin = createAsyncThunk(
-//     "product/fetchAllProductsAdmin",
-//     async ({ page = 1, limit = 10, status = false } = {}, { rejectWithValue }) => {
-//         try {
-//             const res = await api.get("/api/product/getall/admin", {
-//                 params: { page, limit, status },
-//             });
-//             return res.data; // { success, message, data, pagination }
-//         } catch (error) {
-//             return rejectWithValue(
-//                 error.response?.data?.message || "Admin products load nahi ho paaye"
-//             );
-//         }
-//     }
-// );
-
 
 
 // ---------------- ADMIN - saare products full details ke sath (naye filters ke sath) ----------------

@@ -18,20 +18,7 @@ export const fetchAllOrderByVendor = createAsyncThunk(
 );
 
 
-// export const fetchAllOrder = createAsyncThunk(
-//     "order/fetchAllOrder", async ({ page = 1, limit = 20, active = false, vendorId = null, status = null } = {}, { rejectWithValue }) => {
-//         try {
-//             const data = await api.get(
-//                 `/api/order/admin/all?page=${page}&limit=${limit}&active=${active}&vendorId=${vendorId}&status=${status}`
-//             );
-//             return data?.data;
-//         } catch (error) {
-//             return rejectWithValue(
-//                 error.response?.data?.message || "Order load nahi ho paaye"
-//             );
-//         }
-//     }
-// );
+
 
 
 // ---------------- ADMIN - saare orders (vendorId/userId/status/date filter ke sath) ----------------

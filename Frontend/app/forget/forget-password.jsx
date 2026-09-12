@@ -13,7 +13,6 @@ import { ChevronLeft, KeyRound, Mail, Eye, EyeOff } from "lucide-react-native";
 import api from "../../api/api.js"; // 👈 apna actual axios instance path daal dena
 
 import { useDispatch, useSelector } from "react-redux";
-// import { resendOtp, forgetPassword } from "@/redux/slices/authSlice";
 import { resendOtp, forgetPassword } from "../../redux/slices/authSlice.js";
 
 
@@ -27,9 +26,6 @@ export default function ForgetPasswordScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // const [sendLoading, setSendLoading] = useState(false);
-    // const [resendLoading, setResendLoading] = useState(false);
-    // const [submitLoading, setSubmitLoading] = useState(false);
 
 
     const dispatch = useDispatch();
@@ -66,7 +62,7 @@ export default function ForgetPasswordScreen() {
                 err?.response?.data?.message || "User is email se nahi mila, dobara try karo"
             );
         } finally {
-            // setSendLoading(false);
+            
         }
     };
 
@@ -75,15 +71,14 @@ export default function ForgetPasswordScreen() {
     // ==========================================================
     const handleResendOtp = async () => {
         try {
-            // setResendLoading(true);
-            // const res = await api.post("/api/auth/resend-otp", { email });
+            
             const result = await dispatch(resendOtp({ email })).unwrap();
 
             Alert.alert("Success", result?.data?.message || "OTP dobara bheja gaya");
         } catch (err) {
             Alert.alert("Error", err?.response?.data?.message || "Resend fail ho gaya");
         } finally {
-            // setResendLoading(false);
+            
         }
     };
 
@@ -127,8 +122,7 @@ export default function ForgetPasswordScreen() {
         if (!validateResetForm()) return;
 
         try {
-            // setSubmitLoading(true);
-            // const res = await api.post("/api/auth/forget-password", { email, password, otp });
+            
             const result = await dispatch(forgetPassword({ email, password, otp })).unwrap();
 
             Alert.alert("Success", result?.data?.message || "Password reset ho gaya", [
