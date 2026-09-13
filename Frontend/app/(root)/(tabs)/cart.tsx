@@ -19,12 +19,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTabContext } from "@/context/TabContext";
 import { trackEvent, triggerScreenExit } from "@/utils/eventTracker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 export default function CartScreen() {
     const dispatch = useDispatch();
     const { items, loading, refreshing, error, cartTotal, totalItems, totalSavings } = useSelector((state) => state.cart);
     const { handleScroll } = useScrollContext();
+    const insets = useSafeAreaInsets();
 
     const { goToTab } = useTabContext();
 
@@ -66,7 +68,7 @@ export default function CartScreen() {
     // 👇 replaced: ActivityIndicator ki jagah skeleton list
     if (loading && items.length === 0) {
         return (
-            <View className="flex-1 bg-gray-50 px-4 pt-4">
+            <View className="flex-1 bg-gray-50 px-4 pt-4" style={{ paddingTop: Math.max(insets.top, 16) }}>
                 <View className="mb-3">
                     <Text className="text-2xl font-bold text-gray-900">My Cart</Text>
                 </View>
@@ -97,7 +99,7 @@ export default function CartScreen() {
 
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
             <FlatList
                 data={items}
                 keyExtractor={(item) => String(item.cartItemId || item.id)}

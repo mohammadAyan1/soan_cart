@@ -8,10 +8,8 @@ import { TAB_BAR_HEIGHT } from "@/context/ScrollContext";
 import ProductCard from "@/components/ProductCard";
 import ProductSkeletonGrid from "@/components/ProductSkeleton";
 import { fetchWishlist } from "@/redux/slices/wishlistSlice";
-// import { usePageTimeTracker } from "../../../hooks/usePageTimeTracker";
 import { useProductListTracker } from "../../../hooks/useProductListTracker"; // 👈 NAYA
-
-
+import Header from "@/components/Header";
 
 const SCREEN_NAME = "home_page";
 
@@ -72,7 +70,9 @@ export default function HomeScreen() {
 
 
     return (
-        <FlatList
+        <View style={{ flex: 1 }}>
+            <Header />
+            <FlatList
             data={items}
             keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => (
@@ -107,5 +107,6 @@ export default function HomeScreen() {
                 ) : null
             }
         />
+        </View>
     );
 }

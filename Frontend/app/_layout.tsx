@@ -1,5 +1,5 @@
 // app/_layout.js
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Stack } from "expo-router";
 import "../global.css";
 import { StatusBar } from "expo-status-bar";
@@ -11,7 +11,7 @@ import * as Device from "expo-device"; // agar nahi installed hai to: npx expo i
 import Header from "@/components/Header";
 import { store } from "../redux/store.js";
 import { ScrollProvider } from "@/context/ScrollContext";
-import { TabProvider } from "@/context/TabContext";
+import { TabProvider, useTabContext } from "@/context/TabContext";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SearchProvider } from "../context/SearchContext";
 import { initEventTracker } from "@/utils/eventTracker"; // 👈 NAYA IMPORT
@@ -21,19 +21,42 @@ import { registerForPushNotificationsAsync } from "../utils/notificationService"
 import { registerPushToken } from "@/redux/slices/authSlice";
 import { useDispatch } from 'react-redux';
 import { setupImageNotificationListener } from '../utils/notificationListener'
+import AnimatedSplashScreen from "../components/AnimatedSplashScreen"
+import * as SplashScreen from 'expo-splash-screen';
+// import { usePathname } from "expo-router";
 
-function RootLayoutContent() {
+SplashScreen.preventAutoHideAsync();
+
+// 👇 Ye component ab TabProvider ke ANDAR render hoga, isliye useTabContext()
+// yaha safely call ho sakta hai. Splash + Stack dono isi ke andar hain.
+function AppContent() {
+  const { activeIndex } = useTabContext();
+  const [appIsReady, setAppIsReady] = useState(false);
+  const [customAnimationDone, setCustomAnimationDone] = useState(false);
+  // const pathname = usePathname();
+
+
+  // const backEnabledRoutes = ["/product", "/search"];
+  // const isChildScreen = backEnabledRoutes.some((route) => pathname?.includes(route));
+
+
+
+  useEffect(() => {
+    console.log('====================================');
+    console.log(activeIndex);
+    console.log('====================================');
+  }, [activeIndex])
 
   useBackTracker();
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
-  // 👇 NAYA - App khulte hi ek baar analytics session start karo aur
+  // 👇 App khulte hi ek baar analytics session start karo aur
   // event tracker ko sessionId de do - isse pehle koi bhi event kaam
   // nahi karega
   useEffect(() => {
 
-    setupImageNotificationListener()
+    setupImageNotificationListener();
 
     const setupPushNotifications = async () => {
       const token = await registerForPushNotificationsAsync();
@@ -73,43 +96,73 @@ function RootLayoutContent() {
         }
       } catch (error) {
         console.warn("Analytics session start fail hua:", error);
+      } finally {
+        setAppIsReady(true);
       }
     };
 
     setupAnalytics();
   }, []);
 
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      // native splash hata do, apna custom animated splash dikhna shuru ho jayega
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  useEffect(() => {
+    onLayoutRootView();
+  }, [onLayoutRootView]);
+
+  if (!appIsReady || !customAnimationDone) {
+    return (
+      <AnimatedSplashScreen
+        onAnimationFinish={() => setCustomAnimationDone(true)}
+      />
+    );
+  }
+
+  return (
+    <SafeAreaProvider>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: "#fff" }}
+        edges={[]}
+      >
+        <StatusBar
+          style={activeIndex > 1 ? "dark" : "light"}
+          backgroundColor="transparent"
+          translucent={true}
+        />
+
+        <View style={{ flex: 1 }}>
+          {/* {isChildScreen && <Header />} */}
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(root)/(tabs)" />
+            <Stack.Screen name="(root)/product/[id]" />
+            <Stack.Screen name="(root)/product/[id]/[varid]" />
+            <Stack.Screen name="(root)/product/product-list" />
+            <Stack.Screen name="(root)/address/addresses" />
+            <Stack.Screen name="(root)/address/address-form" />
+            <Stack.Screen name="(root)/orders/[id]" />
+            <Stack.Screen name="(root)/orders/index" />
+          </Stack>
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
+}
+
+// 👇 Ye outer component sirf providers set karta hai - koi useTabContext()
+// call nahi karta, isliye order ki koi problem nahi
+function RootLayoutContent() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TabProvider>
         <ScrollProvider>
           <SearchProvider>
-            <SafeAreaProvider>
-              <SafeAreaView
-                style={{ flex: 1, backgroundColor: "#fff" }}
-                edges={["top"]}
-              >
-                <StatusBar
-                  style="dark"
-                  backgroundColor="#EF4444"
-                  translucent={false}
-                />
-
-                <View style={{ flex: 1 }}>
-                  <Header />
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="(root)/(tabs)" />
-                    <Stack.Screen name="(root)/product/[id]" />
-                    <Stack.Screen name="(root)/product/[id]/[varid]" />
-                    <Stack.Screen name="(root)/product/product-list" />
-                    <Stack.Screen name="(root)/address/addresses" />
-                    <Stack.Screen name="(root)/address/address-form" />
-                    <Stack.Screen name="(root)/orders/[id]" />
-                    <Stack.Screen name="(root)/orders/index" />
-                  </Stack>
-                </View>
-              </SafeAreaView>
-            </SafeAreaProvider>
+            <AppContent />
           </SearchProvider>
         </ScrollProvider>
       </TabProvider>

@@ -3,7 +3,6 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import {
     View,
     Text,
-    // Image,
     Pressable,
     Animated,
     ScrollView,
@@ -101,8 +100,6 @@ function SidebarItem({ item, isActive, onPress, onMeasure }) {
                     }}
                 >
                     {item.imageUrl ? (
-
-
                         <Image
                             source={item.imageUrl}
                             contentFit="cover"
@@ -191,7 +188,8 @@ export default function CategorySidebar({ categories, activeId, onSelect }) {
 
                 <ScrollView
                     showsVerticalScrollIndicator={false}
-                    style={{ backgroundColor: "#F9FAFB" }}
+                    style={{ flex: 1, backgroundColor: "#F9FAFB" }}
+                    contentContainerStyle={{ paddingBottom: 90 }}
                 >
                     {categories.map((item) => (
                         <SidebarItem

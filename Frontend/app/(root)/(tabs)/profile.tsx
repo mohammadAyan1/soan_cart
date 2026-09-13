@@ -43,6 +43,7 @@ import {
 } from "lucide-react-native";
 import { logoutUser, updateProfile, fetchUserProfile } from "@/redux/slices/authSlice";
 import ProfileSkeleton from "@/components/skeleton/ProfileSkeleton";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, {
@@ -70,6 +71,7 @@ const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 export default function ProfileScreen() {
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
 
     const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
     const user = useSelector((state) => state.auth.user);
@@ -148,8 +150,8 @@ export default function ProfileScreen() {
 
     return (
         <ScrollView
-            className="flex-1 bg-gray-50"
-            contentContainerStyle={{ paddingBottom: 100 }}
+            className="flex-1 bg-white"
+            contentContainerStyle={{ paddingBottom: 100, paddingTop: insets.top }}
             showsVerticalScrollIndicator={false}
             refreshControl={
                 <RefreshControl

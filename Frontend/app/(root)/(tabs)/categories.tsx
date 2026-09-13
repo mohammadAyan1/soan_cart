@@ -1,4 +1,3 @@
-
 // app/(root)/(tabs)/categories.js
 import { useEffect, useState, useRef, useMemo } from "react";
 import {
@@ -16,12 +15,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { trackEvent, triggerScreenExit } from "@/utils/eventTracker"; // 👈 NAYA IMPORT
 
 import CategorySidebar from "@/components/category/CategorySidebar";
+import CategorySidebarSkeleton from "@/components/skeleton/CategorySidebarSkeleton"; // 👈 NAYA IMPORT
 import SubCategoryCard from "@/components/category/SubCategoryCard";
 import { fetchProductsCategory, resetProductsCategory } from "@/redux/slices/productCategory";
+import Header from "@/components/Header";
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabled) {
-    UIManager.setLayoutAnimationEnabled(true);
-}
+// LayoutAnimation has been disabled to prevent Android UI bounce issues
 
 const SWIPE_THRESHOLD = 60;
 const SIDEBAR_WIDTH = 96; // 👈 CategorySidebar ki width ke saath match hona chahiye
@@ -118,7 +117,7 @@ export default function CategoriesScreen({ screenName = "category_tab", source =
 
     // Category switch -> Fade + Slide + Layout animation
     const runSwitchAnimation = (direction = 0) => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); // Disabled to prevent bottom tab bounce issue on Android
 
         contentOpacity.setValue(0);
         contentTranslateX.setValue(direction * 24);
@@ -149,7 +148,6 @@ export default function CategoriesScreen({ screenName = "category_tab", source =
             eventType: "CATEGORY_CLICK",
             screen: screenName,
             categoryId: activeCategory.id,
-            // subCategoryId: sub?.id,
             source: "Side_Category_Click", // kis section se click hua (e.g. "product_grid", "featured_section")
         });
     };
@@ -186,6 +184,7 @@ export default function CategoriesScreen({ screenName = "category_tab", source =
 
     return (
         <View style={{ flex: 1, backgroundColor: "#fff" }}>
+            <Header />
             <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
                 <Text style={{ fontSize: 22, fontWeight: "700", color: "#111827" }}>
                     All Categories
@@ -194,7 +193,21 @@ export default function CategoriesScreen({ screenName = "category_tab", source =
 
             {/* 👇 flexDirection: row hataya, ab position: relative container hai */}
             <View style={{ flex: 1 }}>
-                {tree.length > 0 && (
+                {loading && tree.length === 0 ? (
+                    // 👇 Tree abhi tak aaya hi nahi - sidebar ki jagah bhi skeleton dikhao
+                    <View
+                        style={{
+                            position: "absolute",
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: SIDEBAR_WIDTH,
+                            zIndex: 10,
+                        }}
+                    >
+                        <CategorySidebarSkeleton />
+                    </View>
+                ) : tree.length > 0 ? (
                     // 👇 Sidebar ab overlay hai — layout se width nahi le raha
                     <View
                         style={{
@@ -212,12 +225,12 @@ export default function CategoriesScreen({ screenName = "category_tab", source =
                             onSelect={handleSelectCategory}
                         />
                     </View>
-                )}
+                ) : null}
 
                 {/* 👇 Ye ab poori screen width leta hai — FlatList/RefreshControl isi ke andar center hoga */}
                 <View style={{ flex: 1 }} {...panResponder.panHandlers}>
                     {loading ? (
-                        <SkeletonGrid offsetLeft={tree.length > 0 ? SIDEBAR_WIDTH : 0} />
+                        <SkeletonGrid offsetLeft={SIDEBAR_WIDTH} />
                     ) : error ? (
                         <View
                             style={{
@@ -299,7 +312,7 @@ export default function CategoriesScreen({ screenName = "category_tab", source =
                                 // isi ke center me aayega), sirf CONTENT ko paddingLeft se sidebar
                                 // ke peeche se hata rahe hain
                                 contentContainerStyle={{
-                                    paddingLeft: tree.length > 0 ? SIDEBAR_WIDTH : 0,
+                                    paddingLeft: SIDEBAR_WIDTH,
                                     paddingBottom: 100,
                                 }}
                             />

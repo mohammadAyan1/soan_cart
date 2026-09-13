@@ -17,6 +17,7 @@ import { Image } from "expo-image";
 
 import { router } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Heart, ArrowLeft, Trash2, X, HeartOff } from "lucide-react-native";
 import { fetchWishlist, removeWishlistItem, clearWishlist } from "@/redux/slices/wishlistSlice";
 import WishlistSkeleton from "@/components/skeleton/WishlistSkeleton";
@@ -121,6 +122,7 @@ function WishlistCard({ item }) {
 // ==================================================================
 export default function WishlistScreen() {
     const dispatch = useDispatch();
+    const insets = useSafeAreaInsets();
     const { items, totalItems, loading, refreshing, error } = useSelector((state) => state.wishlist);
 
 
@@ -153,9 +155,9 @@ export default function WishlistScreen() {
     }
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
             {/* Header */}
-            <View className="bg-white px-4 pt-6 pb-4 flex-row items-center justify-between border-b border-gray-100">
+            <View className="bg-white px-4 pt-6 pb-4 flex-row items-center justify-between border-b border-white">
                 {/* <View className="flex-row items-center gap-3">
                     <TouchableOpacity onPress={() => router.back()} className="p-1">
                         <ArrowLeft size={22} color="#111827" />

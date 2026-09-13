@@ -1,6 +1,7 @@
 
 // components/Header.js
 import { View, Text, TextInput, Animated, TouchableOpacity, Platform, FlatList, Image, useWindowDimensions } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
 import { MapPin, Search, ArrowLeft, X } from "lucide-react-native";
 import { usePathname, useRouter } from "expo-router";
@@ -11,6 +12,7 @@ import { useTabContext } from "@/context/TabContext";
 import { Keyboard } from "react-native";
 import { trackEvent, triggerScreenExit, getCurrentScreen } from "@/utils/eventTracker";
 import { fetchProductsCategory } from "@/redux/slices/productCategory";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const getAnalyticsScreen = (pathname) => {
     if (/^\/product\/\d+$/.test(pathname)) {
@@ -34,6 +36,17 @@ export const getAnalyticsScreen = (pathname) => {
 const HEADER_CATEGORY_LIMIT = 10;
 const CIRCLE_SIZE = 42;
 const ADDRESS_BLOCK_HEIGHT = 28;
+
+// 👇 SCREEN_BG yahi color hona chahiye jo _layout.js ke SafeAreaView me hai
+// (abhi "#fff" hai) - taaki header niche jaake screen ke background se
+// seamlessly match ho jaye, koi hard edge na dikhe
+const SCREEN_BG = "#ffffff";
+
+// 👇 Top se orange, phir dheere-dheere dim hote hue screen ke background
+// color tak fade - beech me ek intermediate stop bhi diya taaki
+// transition smooth lage, abrupt na ho
+const HEADER_GRADIENT_COLORS = ["#FFA733", "#FF7A45", SCREEN_BG];
+const HEADER_GRADIENT_LOCATIONS = [0, 0.55, 1]; // 0-55% tak orange rahega, phir 55-100% me fade
 
 function HeaderCategoryStrip({ categories, onCategoryPress, onMorePress, progress }) {
     const { width } = useWindowDimensions();
@@ -83,7 +96,7 @@ function HeaderCategoryStrip({ categories, onCategoryPress, onMorePress, progres
                             </Animated.View>
                             <Text
                                 numberOfLines={1}
-                                style={{ color: "#fff", fontSize: 10, fontWeight: "600" }}
+                                style={{ color: "#000000", fontSize: 10, fontWeight: "600" }}
                             >
                                 More
                             </Text>
@@ -123,7 +136,7 @@ function HeaderCategoryStrip({ categories, onCategoryPress, onMorePress, progres
 
                         <Text
                             numberOfLines={1}
-                            style={{ color: "#fff", fontSize: 10, fontWeight: "600", maxWidth: itemWidth }}
+                            style={{ color: "#000000", fontSize: 10, fontWeight: "600", maxWidth: itemWidth }}
                         >
                             {item.productCategoryName}
                         </Text>
@@ -134,14 +147,36 @@ function HeaderCategoryStrip({ categories, onCategoryPress, onMorePress, progres
     );
 }
 
+// Logo ke "speed lines" se inspired decorative watermark
+function HeaderSpeedLines() {
+    return (
+        <View
+            pointerEvents="none"
+            style={{
+                position: "absolute",
+                right: -10,
+                top: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                opacity: 0.16,
+            }}
+        >
+            <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#fff", marginRight: 4 }} />
+            <View style={{ width: 22, height: 5, borderRadius: 2.5, backgroundColor: "#fff", marginRight: 4 }} />
+            <View style={{ width: 34, height: 5, borderRadius: 2.5, backgroundColor: "#fff", marginRight: 4 }} />
+            <View style={{ width: 46, height: 5, borderRadius: 2.5, backgroundColor: "#fff" }} />
+        </View>
+    );
+}
+
 export default function Header() {
     const { headerHeight, isHidden, showAll, setIsChildMode } = useScrollContext();
     const address = useSelector((state) => state.auth?.user?.address);
     const pathname = usePathname();
     const router = useRouter();
     const dispatch = useDispatch();
-    const { setActiveIndex } = useTabContext();
-
+    const { setActiveIndex, activeIndex } = useTabContext();
+    const insets = useSafeAreaInsets();
 
 
 
@@ -153,6 +188,9 @@ export default function Header() {
             dispatch(fetchProductsCategory());
         }
     }, []);
+
+
+
 
     const headerCategories = categoryTree.slice(0, HEADER_CATEGORY_LIMIT);
 
@@ -241,20 +279,30 @@ export default function Header() {
     };
 
     return (
-        <View
+        <LinearGradient
+            colors={HEADER_GRADIENT_COLORS}
+            locations={HEADER_GRADIENT_LOCATIONS}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
             style={{
-                backgroundColor: "#60A5FA",
                 paddingHorizontal: 20,
-                paddingTop: Platform.OS === "ios" ? 12 : 16,
-                paddingBottom: 10,
-                shadowColor: "#000",
+                paddingTop:
+                    activeIndex > 1
+                        ? (Platform.OS === "ios" ? 12 : 16)
+                        : insets.top + (Platform.OS === "ios" ? 12 : 16),
+                // borderWidth: 0,
+                paddingBottom: 25,
+                // shadowColor: "#000",
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.12,
                 shadowRadius: 8,
                 elevation: 6,
                 zIndex: 100,
+                overflow: "hidden",
             }}
         >
+            <HeaderSpeedLines />
+
             <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Animated.View
                     pointerEvents={isChildScreen ? "auto" : "none"}
@@ -327,39 +375,41 @@ export default function Header() {
                 </Animated.View>
             </View>
 
-            {!isChildScreen && (
-                <View>
-                    <Animated.View
-                        style={{
-                            height: addressHeight,
-                            opacity: localProgress,
-                            overflow: "hidden",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
-                            <MapPin size={14} color="#fff" />
-                            <Text
-                                numberOfLines={1}
-                                style={{ color: "#fff", marginLeft: 6, flex: 1, fontSize: 12 }}
-                            >
-                                {address || "Apna address select karein"}
-                            </Text>
-                        </View>
-                    </Animated.View>
-
-                    {headerCategories.length > 0 && (
-                        <Animated.View style={{ marginTop: categoryMarginTop, marginBottom: 2 }}>
-                            <HeaderCategoryStrip
-                                categories={headerCategories}
-                                onCategoryPress={handleCategoryPress}
-                                onMorePress={handleMorePress}
-                                progress={localProgress}
-                            />
+            {
+                !isChildScreen && (
+                    <View>
+                        <Animated.View
+                            style={{
+                                height: addressHeight,
+                                opacity: localProgress,
+                                overflow: "hidden",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
+                                <MapPin size={14} color="#000000" />
+                                <Text
+                                    numberOfLines={1}
+                                    style={{ color: "#000000", marginLeft: 6, flex: 1, fontSize: 12 }}
+                                >
+                                    {address || "Apna address select karein"}
+                                </Text>
+                            </View>
                         </Animated.View>
-                    )}
-                </View>
-            )}
-        </View>
+
+                        {headerCategories.length > 0 && activeIndex !== 1 && (
+                            <Animated.View style={{ marginTop: categoryMarginTop, marginBottom: 2 }}>
+                                <HeaderCategoryStrip
+                                    categories={headerCategories}
+                                    onCategoryPress={handleCategoryPress}
+                                    onMorePress={handleMorePress}
+                                    progress={localProgress}
+                                />
+                            </Animated.View>
+                        )}
+                    </View>
+                )
+            }
+        </LinearGradient >
     );
 }
