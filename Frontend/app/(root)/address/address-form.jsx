@@ -17,6 +17,7 @@ import { ChevronLeft, LocateFixed } from "lucide-react-native";
 import * as Location from "expo-location";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { createAddress, updateAddress } from "@/redux/slices/addressSlice";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ==========================================================
 // ADD / EDIT ADDRESS FORM
@@ -26,6 +27,9 @@ import { createAddress, updateAddress } from "@/redux/slices/addressSlice";
 export default function AddressFormScreen() {
     const { mode, addressId } = useLocalSearchParams();
     const isEditMode = mode === "edit";
+
+    const insets = useSafeAreaInsets();
+
 
     const dispatch = useDispatch();
     const actionLoading = useSelector((state) => state.address.actionLoading);
@@ -135,7 +139,9 @@ export default function AddressFormScreen() {
     };
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50"
+            style={{ paddingTop: insets.top }}
+        >
             <Stack.Screen options={{ headerShown: false }} />
 
             {/* Header */}

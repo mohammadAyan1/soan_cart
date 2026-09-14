@@ -15,6 +15,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { MapPin, Plus, Pencil, Trash2, ChevronLeft, Star } from "lucide-react-native";
 import { fetchMyAddresses, deleteAddress } from "@/redux/slices/addressSlice";
 import AddressSkeleton from "@/components/skeleton/AddressSkeleton";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ==========================================================
 // SAVED ADDRESSES SCREEN
@@ -22,6 +23,9 @@ import AddressSkeleton from "@/components/skeleton/AddressSkeleton";
 // ==========================================================
 export default function AddressesScreen() {
     const dispatch = useDispatch();
+
+    const insets = useSafeAreaInsets();
+
 
     const addresses = useSelector((state) => state.address.addresses);
     const loading = useSelector((state) => state.address.loading);
@@ -178,20 +182,14 @@ export default function AddressesScreen() {
     const isInitialLoading = loading && !refreshing && addresses.length === 0;
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View 
+            className="flex-1 bg-gray-50"
+            style={{ paddingTop: insets.top }}
+        >
             {/* Header */}
             <Stack.Screen options={{ headerShown: false }} />
             <View className="bg-white px-4 pt-6 pb-4 flex-row items-center gap-3 border-b border-gray-100">
-                {/* <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
-                    activeOpacity={0.7}
-                >
-                    <ChevronLeft size={20} color="#374151" />
-                </TouchableOpacity>
-                <Text className="text-lg font-bold text-gray-900 flex-1">
-                    Saved Addresses
-                </Text> */}
+
                 {addresses.length > 0 && (
                     <TouchableOpacity
                         onPress={handleAddNew}

@@ -24,6 +24,8 @@ import { setupImageNotificationListener } from '../utils/notificationListener'
 import AnimatedSplashScreen from "../components/AnimatedSplashScreen"
 import * as SplashScreen from 'expo-splash-screen';
 import { usePathname } from "expo-router";
+import { getCurrentLocationDetails } from "@/utils/locationService"
+
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,11 +43,6 @@ function AppContent() {
 
 
 
-  useEffect(() => {
-    console.log('====================================');
-    console.log(activeIndex);
-    console.log('====================================');
-  }, [activeIndex])
 
   useBackTracker();
 
@@ -81,12 +78,23 @@ function AppContent() {
           await AsyncStorage.setItem("deviceId", deviceId);
         }
 
+        // 👇 NAYA - session-start call se pehle current location le lo
+        // (permission denied/fail hone par bhi ye null values dega,
+        // API call kabhi block nahi hogi)
+        const { latitude, longitude, city, state, country } =
+          await getCurrentLocationDetails();
+
         const response = await axiosInstance.post("/api/analytics/session/start", {
           deviceId,
           platform: Device.osName === "iOS" ? "IOS" : "ANDROID", // web ke liye "WEB"
           appVersion: "1.0.0", // apna actual app version daalo
           deviceModel: Device.modelName || "Unknown Device",
           osVersion: Device.osVersion || null,
+          country,   // 👈 NAYA
+          state,     // 👈 NAYA
+          city,      // 👈 NAYA
+          latitude,  // 👈 NAYA
+          longitude, // 👈 NAYA
         });
 
 
@@ -137,7 +145,6 @@ function AppContent() {
         />
 
         <View style={{ flex: 1 }}>
-          {/* {isChildScreen && <Header />} */}
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(root)/(tabs)" />
             <Stack.Screen name="(root)/product/[id]" />

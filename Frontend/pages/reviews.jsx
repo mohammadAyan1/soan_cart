@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowLeft, Star, PackageSearch } from "lucide-react-native";
 import { Pressable } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { fetchMyReviews } from "../redux/slices/reviewSlice.js";
 import ReviewSkeleton from "../components/skeleton/ReviewSkeleton.js";
@@ -141,6 +142,7 @@ function EmptyReviews() {
 // ==========================================================
 export default function MyReviewsScreen() {
     const dispatch = useDispatch();
+    const insets = useSafeAreaInsets();
 
     const items = useSelector((state) => state.reviews.items);
     const loading = useSelector((state) => state.reviews.loading);
@@ -157,7 +159,12 @@ export default function MyReviewsScreen() {
     const isInitialLoading = loading && !refreshing && items.length === 0;
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50"
+
+
+            style={{ paddingTop: insets.top }}
+
+        >
             {/* Header */}
             <View className="bg-white flex-row items-center px-4 pt-4 pb-3 border-b border-gray-100">
                 {/* <TouchableOpacity

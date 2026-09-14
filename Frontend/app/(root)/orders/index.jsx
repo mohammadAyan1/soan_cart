@@ -29,6 +29,7 @@ import { fetchMyOrders } from "../../../redux/slices/orderSlice.js";
 import { fetchMyReviews } from "../../../redux/slices/reviewSlice.js";
 import OrderSkeleton from "../../../components/skeleton/Orderskeleton.js";
 import ReviewModal from "../../../components/ReviewModal.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ------------------------------------------------------------------
 // Status ke hisab se color + label
@@ -265,6 +266,7 @@ export default function OrdersScreen() {
     const dispatch = useDispatch();
     const { orders, ordersLoading, ordersError } = useSelector((state) => state.order);
     const reviewedOrderItemIds = useSelector((state) => state.reviews.reviewedOrderItemIds);
+    const insets = useSafeAreaInsets();
 
 
 
@@ -309,6 +311,8 @@ export default function OrdersScreen() {
 
     return (
         <View className="flex-1 bg-gray-50">
+            <View style={{ height: insets.top + 10 }} />
+
             {/* Header */}
             {/* <View className="bg-white px-4 pt-6 pb-4 flex-row items-center gap-3 border-b border-gray-100">
                 <TouchableOpacity onPress={() => router.back()} className="p-1">

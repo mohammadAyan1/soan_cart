@@ -745,7 +745,7 @@ export const login = async (req, res) => {
         });
 
         // 👇 NAYI LINE - session create/update karo
-        const session = await createOrUpdateSession(req, findUser.id);
+        // const session = await createOrUpdateSession(req, findUser.id);
 
 
         // ---------------- 👇 GUEST CART + WISHLIST MERGE (sirf header ho tabhi) ----------------
@@ -786,7 +786,7 @@ export const login = async (req, res) => {
                 imageUrl: findUser?.imageUrl,
             },
             token,
-            sessionId: session?.sessionId || null, // 👈 NAYI LINE
+            // sessionId: session?.sessionId || null, // 👈 NAYI LINE
             guestCartMerged, // 👈 frontend isi flag se decide karega guestId remove karni hai ya nahi (cart)
             guestWishlistMerged, // 👈 same, wishlist ke liye
         });

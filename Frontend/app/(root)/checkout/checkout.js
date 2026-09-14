@@ -9,7 +9,7 @@ import {
     Alert,
     ActivityIndicator,
 } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router, Stack } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { checkoutCart, checkoutDirect, clearLastOrder } from "@/redux/slices/orderSlice";
@@ -18,9 +18,12 @@ import { fetchMyAddresses, createAddress } from "@/redux/slices/addressSlice";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { trackEvent } from "../../../utils/eventTracker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 export default function CheckoutScreen() {
     const dispatch = useDispatch();
     const params = useLocalSearchParams();
+    const insets = useSafeAreaInsets();
 
     const isDirectCheckout = !!params.productId;
 
@@ -184,6 +187,11 @@ export default function CheckoutScreen() {
 
     return (
         <View className="flex-1 bg-gray-50">
+            <Stack.Screen options={{ headerShown: false }} />
+
+            {/* Yeh spacer status bar ke niche pakka jagah banayega */}
+            <View style={{ height: insets.top + 0 }} />
+
             {/* 👇 Yahan bhi KeyboardAvoidingView + ScrollView ki jagah
                 KeyboardAwareScrollView - focused field tak auto scroll karega */}
             <KeyboardAwareScrollView

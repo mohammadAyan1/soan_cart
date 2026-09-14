@@ -24,6 +24,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchMyOrdersById } from "../redux/slices/orderSlice";
 import { Image } from "expo-image";
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -100,6 +103,8 @@ const getOverallOrderStatus = (items) => {
 };
 
 const OrderDetailScreen = () => {
+    const insets = useSafeAreaInsets();
+
     const { id } = useLocalSearchParams();
     const dispatch = useDispatch();
     const router = useRouter();
@@ -450,6 +455,9 @@ const OrderDetailScreen = () => {
                 />
             }
         >
+
+            <View style={{ height: insets.top + 0 }} />
+
             {/* Order Header */}
             <View style={styles.headerCard}>
                 <View style={styles.headerTopRow}>
