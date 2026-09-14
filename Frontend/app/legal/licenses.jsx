@@ -1,8 +1,11 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScrollView, View, Text, TouchableOpacity, Linking } from "react-native";
 import { router } from "expo-router";
 import { ChevronLeft, Award, ExternalLink } from "lucide-react-native";
 
 export default function LicensesScreen() {
+    const insets = useSafeAreaInsets();
+
     const libraries = [
         { name: "React Native", license: "MIT", url: "https://github.com/facebook/react-native" },
         { name: "Expo", license: "MIT", url: "https://github.com/expo/expo" },
@@ -39,7 +42,7 @@ export default function LicensesScreen() {
     );
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
             {/* Header */}
             <View className="bg-white px-4 pt-5 pb-4 flex-row items-center gap-3 border-b border-gray-100">
                 {/* <TouchableOpacity onPress={() => router.back()} className="p-1 -ml-1">

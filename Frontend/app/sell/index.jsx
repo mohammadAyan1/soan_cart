@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState } from "react";
 import {
     View,
@@ -17,6 +18,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { vendorRegister } from "../../redux/slices/authSlice.js";
 import { Image } from "expo-image";
 export default function VendorRegisterScreen() {
+    const insets = useSafeAreaInsets();
+
     const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
@@ -149,7 +152,7 @@ export default function VendorRegisterScreen() {
     };
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
             {/* Header */}
             <View className="bg-white px-4 pt-5 pb-4 flex-row items-center gap-3 border-b border-gray-100">
                 <View className="flex-row items-center gap-2">

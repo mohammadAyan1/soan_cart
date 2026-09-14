@@ -14,6 +14,8 @@ import { trackEvent, triggerScreenExit, getCurrentScreen } from "@/utils/eventTr
 import { fetchProductsCategory } from "@/redux/slices/productCategory";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+
+
 export const getAnalyticsScreen = (pathname) => {
     if (/^\/product\/\d+$/.test(pathname)) {
         return "product_detail_page";
@@ -169,7 +171,7 @@ function HeaderSpeedLines() {
     );
 }
 
-export default function Header() {
+export default function Header({ autoFocus = false }) {
     const { headerHeight, isHidden, showAll, setIsChildMode } = useScrollContext();
     const address = useSelector((state) => state.auth?.user?.address);
     const pathname = usePathname();
@@ -177,6 +179,7 @@ export default function Header() {
     const dispatch = useDispatch();
     const { setActiveIndex, activeIndex } = useTabContext();
     const insets = useSafeAreaInsets();
+    const inputRef = useRef(null);
 
 
 
@@ -190,6 +193,20 @@ export default function Header() {
     }, []);
 
 
+    useEffect(() => {
+        if (pathname !== "/search") {
+            Keyboard.dismiss();
+            inputRef.current?.blur();
+            return;
+        }
+
+        if (autoFocus) {
+            const timer = setTimeout(() => {
+                inputRef.current?.focus();
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [pathname, autoFocus]);
 
 
     const headerCategories = categoryTree.slice(0, HEADER_CATEGORY_LIMIT);
@@ -288,7 +305,7 @@ export default function Header() {
                 paddingHorizontal: 20,
                 paddingTop:
                     activeIndex > 1
-                        ? (Platform.OS === "ios" ? 12 : 16)
+                        ? isChildScreen ? insets.top + (Platform.OS === "ios" ? 12 : 16) : (Platform.OS === "ios" ? 12 : 16)
                         : insets.top + (Platform.OS === "ios" ? 12 : 16),
                 // borderWidth: 0,
                 paddingBottom: 25,
@@ -317,7 +334,8 @@ export default function Header() {
                         onPress={() => {
                             handleClear();
                             handleCallEvent();
-                            isBackNaviagte ? router.push("/") : router.back();
+                            // isBackNaviagte ? router.push("/") : router.back();
+                            router.back()
                             Keyboard.dismiss();
                         }}
                         activeOpacity={0.7}
@@ -351,19 +369,27 @@ export default function Header() {
                         }}
                     >
                         <Search size={17} color="#9CA3AF" />
+
                         <TextInput
+                            ref={inputRef}
                             value={text}
                             onChangeText={handleTextChange}
                             placeholder="Search products..."
                             placeholderTextColor="#9CA3AF"
-                            onFocus={
-                                !isChildScreen
-                                    ? () => {
-                                        router.push("/search");
-                                    }
-                                    : undefined
-                            }
-                            style={{ marginLeft: 8, flex: 1, fontSize: 14 }}
+
+
+                            onPressIn={() => {
+                                if (pathname !== "/search") {
+                                    Keyboard.dismiss();
+                                    router.push("/search");
+                                }
+                            }}
+
+                            style={{
+                                marginLeft: 8,
+                                flex: 1,
+                                fontSize: 14,
+                            }}
                         />
 
                         {text.length > 0 && (

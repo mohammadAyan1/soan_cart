@@ -12,10 +12,12 @@ import { ChevronLeft, MailCheck } from "lucide-react-native";
 import api from "@/api/api"; // 👈 apna actual axios instance path daal dena
 import { useDispatch, useSelector } from "react-redux";
 import { verifyOtp, resendOtp } from "../redux/slices/authSlice";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 
 export default function VendorVerifyOtpScreen() {
+    const insets = useSafeAreaInsets();
     const { email } = useLocalSearchParams();
     const [otp, setOtp] = useState("");
     // const [loading, setLoading] = useState(false);
@@ -65,7 +67,7 @@ export default function VendorVerifyOtpScreen() {
     };
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
             {/* Header */}
             <View className="bg-white px-4 pt-5 pb-4 flex-row items-center gap-3 border-b border-gray-100">
                 <TouchableOpacity onPress={() => router.back()} className="p-1 -ml-1">

@@ -14,6 +14,7 @@ import ProductSkeletonGrid from "@/components/ProductSkeleton";
 import { useScrollContext } from "../../../context/ScrollContext";
 import { trackEvent } from "../../../utils/eventTracker";
 import { useFocusEffect } from "expo-router";
+import Header from "../../../components/Header";
 
 export default function ProductListScreen() {
     const dispatch = useDispatch();
@@ -36,7 +37,7 @@ export default function ProductListScreen() {
             trackEvent({
                 eventType: "SCREEN_VIEW",
                 screen: SCREEN_NAME,
-                
+
             })
         }, [])
     )
@@ -100,6 +101,8 @@ export default function ProductListScreen() {
 
     return (
         <View className="flex-1 bg-white">
+            <Header />
+
             {/* Simple header */}
             <View className="flex-row items-center px-4 py-3 border-b border-gray-100">
                 {/* <TouchableOpacity onPress={() => router.back()} className="mr-3">

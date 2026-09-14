@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useState } from "react";
 import {
     View,
@@ -132,6 +133,8 @@ const FAQ_CATEGORIES = [
 ];
 
 export default function HelpCenterScreen() {
+    const insets = useSafeAreaInsets();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("orders");
     const [expandedFaq, setExpandedFaq] = useState(null);
@@ -208,7 +211,7 @@ export default function HelpCenterScreen() {
     };
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
             {/* Header */}
             <View className="bg-white px-4 pt-5 pb-4 flex-row items-center gap-3 border-b border-gray-100">
                 {/* <TouchableOpacity onPress={() => router.back()} className="p-1 -ml-1">

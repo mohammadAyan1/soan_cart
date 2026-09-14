@@ -19,7 +19,7 @@ import { getDiscountPercent } from "@/utils/priceUtils";
 import { fetchProductById } from "../../../../redux/slices/productSlice.js";
 import { useDispatch } from "react-redux";
 import { trackEvent, triggerScreenExit } from "../../../../utils/eventTracker.js";
-
+import Header from "../../../../components/Header.js"
 const { width } = Dimensions.get("window");
 
 const RAW_BASE = process.env.EXPO_PUBLIC_API_URL || "";
@@ -201,6 +201,7 @@ export default function ProductDetailsScreen() {
 
     return (
         <View className="flex-1 bg-white">
+            <Header />
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}
 
 

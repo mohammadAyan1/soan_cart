@@ -5,7 +5,6 @@ import {
     TextInput,
     TouchableOpacity,
     FlatList,
-    // Image,
     ActivityIndicator,
     Platform,
     Keyboard,
@@ -17,6 +16,7 @@ import { searchProducts, resetSearch, setSearchQuery } from "@/redux/slices/prod
 import { useFocusEffect } from "@react-navigation/native";
 import { useSearchContext } from "@/context/SearchContext";
 import { Image } from "expo-image";
+import Header from "../../components/Header";
 
 
 export default function SearchScreen() {
@@ -39,14 +39,14 @@ export default function SearchScreen() {
     // 👇 Screen focus hote hi keyboard turant khul jaye aur field focus ho.
     // useFocusEffect isliye use kiya kyunki ye navigation animation complete
     // hone ke turant baad reliably fire hota hai (useEffect se zyada consistent)
-    useFocusEffect(
-        useCallback(() => {
-            const timer = setTimeout(() => {
-                inputRef.current?.focus();
-            }, Platform.OS === "android" ? 150 : 300);
-            return () => clearTimeout(timer);
-        }, [])
-    );
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         const timer = setTimeout(() => {
+    //             inputRef.current?.focus();
+    //         }, Platform.OS === "android" ? 150 : 300);
+    //         return () => clearTimeout(timer);
+    //     }, [])
+    // );
 
     // Screen se bahar jaate waqt search state clear kar do
     useEffect(() => {
@@ -168,7 +168,7 @@ export default function SearchScreen() {
         <View className="flex-1 bg-white">
             {/* 👇 Header - EXACT same position/style jaisa Header.js ke search box ka hai,
                 bas ab ye khud ek real editable TextInput hai */}
-
+            <Header autoFocus={true} />
 
 
             {/* Loading indicator jab pehli baar search ho rahi ho */}

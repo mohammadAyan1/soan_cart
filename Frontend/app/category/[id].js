@@ -18,12 +18,16 @@ import {
     resetCategoryProducts,
 } from "@/redux/slices/productSlice";
 import { trackEvent, triggerScreenExit, getCurrentScreen } from "@/utils/eventTracker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 const SCREEN_NAME = "category_detail_page";
 
 export default function CategoryDetailScreen() {
     const { id, title } = useLocalSearchParams();
     const categoryId = Number(id);
+    const insets = useSafeAreaInsets();
+
 
     const dispatch = useDispatch();
     const { width } = useWindowDimensions();
@@ -230,7 +234,10 @@ export default function CategoryDetailScreen() {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: "#fff" }}>
+
+        // <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
+
+        <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}>
             <FlatList
                 data={items}
                 keyExtractor={(item) => String(item.id)}

@@ -23,7 +23,7 @@ import { useDispatch } from 'react-redux';
 import { setupImageNotificationListener } from '../utils/notificationListener'
 import AnimatedSplashScreen from "../components/AnimatedSplashScreen"
 import * as SplashScreen from 'expo-splash-screen';
-// import { usePathname } from "expo-router";
+import { usePathname } from "expo-router";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -33,11 +33,11 @@ function AppContent() {
   const { activeIndex } = useTabContext();
   const [appIsReady, setAppIsReady] = useState(false);
   const [customAnimationDone, setCustomAnimationDone] = useState(false);
-  // const pathname = usePathname();
+  const pathname = usePathname();
 
 
-  // const backEnabledRoutes = ["/product", "/search"];
-  // const isChildScreen = backEnabledRoutes.some((route) => pathname?.includes(route));
+  const backEnabledRoutes = ["/product", "/search", "/category"];
+  const isChildScreen = backEnabledRoutes.some((route) => pathname?.includes(route));
 
 
 
@@ -131,7 +131,7 @@ function AppContent() {
         edges={[]}
       >
         <StatusBar
-          style={activeIndex > 1 ? "dark" : "light"}
+          style={activeIndex > 1 ? isChildScreen ? "light" : "dark" : isChildScreen ? "dark" : "light"}
           backgroundColor="transparent"
           translucent={true}
         />

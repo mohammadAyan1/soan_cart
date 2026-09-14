@@ -19,7 +19,7 @@ import { getDiscountPercent } from "@/utils/priceUtils";
 import { fetchProductById } from "../../../redux/slices/productSlice.js";
 import { useDispatch } from "react-redux";
 import WishlistButton from "../../../components/WishlistButton.js"
-
+import Header from "../../../components/Header.js";
 
 import { getCurrentScreen, getPreviousScreen, trackEvent, triggerScreenExit } from "../../../utils/eventTracker.js";
 
@@ -165,6 +165,7 @@ export default function ProductDetailsScreen() {
 
     return (
         <View className="flex-1 bg-white">
+            <Header />
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}
 
                 refreshControl={

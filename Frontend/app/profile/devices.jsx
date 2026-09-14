@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 import { useEffect, useCallback } from "react";
@@ -41,6 +42,8 @@ function formatDateTime(dateStr) {
 }
 
 export default function ManageDevicesScreen() {
+    const insets = useSafeAreaInsets();
+
     const dispatch = useDispatch();
 
     const sessions = useSelector((state) => state.session.sessions);
@@ -182,7 +185,7 @@ export default function ManageDevicesScreen() {
     };
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
             <Stack.Screen options={{ headerShown: false }} />
 
             <View className="bg-white px-4 pt-6 pb-4 flex-row items-center gap-3 border-b border-gray-100">

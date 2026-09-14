@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, Linking } from "react-native";
 import { router } from "expo-router";
 import {
@@ -10,6 +11,8 @@ import {
 } from "lucide-react-native";
 
 export default function ContactPrivacyScreen() {
+    const insets = useSafeAreaInsets();
+
     const ContactCard = ({ icon: Icon, title, value, onPress }) => (
         <TouchableOpacity
             onPress={onPress}
@@ -34,7 +37,7 @@ export default function ContactPrivacyScreen() {
     );
 
     return (
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
             {/* Header */}
             <View className="bg-white px-4 pt-5 pb-4 flex-row items-center gap-3 border-b border-gray-100">
                 {/* <TouchableOpacity onPress={() => router.back()} className="p-1 -ml-1">
