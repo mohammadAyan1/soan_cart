@@ -73,40 +73,40 @@ export default function HomeScreen() {
         <View style={{ flex: 1 }}>
             <Header />
             <FlatList
-            data={items}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={({ item }) => (
-                <ProductCard item={item} screenName={SCREEN_NAME} source="home_grid" />
-            )}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 12 }}
-            contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_HEIGHT + 20 }}
-            onScroll={combinedOnScroll}
-            scrollEventThrottle={16}
-            onViewableItemsChanged={onViewableItemsChanged} // 👈 NAYA - kaunse products dikhe
-            viewabilityConfig={viewabilityConfig}            // 👈 NAYA
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#16a34a"]} />
-            }
-            ListFooterComponent={
-                loading && !refreshing && items.length > 0 ? (
-                    <View className="py-4">
-                        <Text className="text-center text-gray-400 text-xs">
-                            Loading more...
-                        </Text>
-                    </View>
-                ) : null
-            }
-            ListEmptyComponent={
-                !loading ? (
-                    <View className="items-center mt-20">
-                        <Text className="text-gray-400">Koi product nahi mila</Text>
-                    </View>
-                ) : null
-            }
-        />
+                data={items}
+                keyExtractor={(item) => String(item.id)}
+                renderItem={({ item }) => (
+                    <ProductCard item={item} screenName={SCREEN_NAME} source="home_grid" />
+                )}
+                numColumns={2}
+                columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 12 }}
+                contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_HEIGHT + 20 }}
+                onScroll={combinedOnScroll}
+                scrollEventThrottle={16}
+                onViewableItemsChanged={onViewableItemsChanged} // 👈 NAYA - kaunse products dikhe
+                viewabilityConfig={viewabilityConfig}            // 👈 NAYA
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#16a34a"]} />
+                }
+                ListFooterComponent={
+                    loading && !refreshing && items.length > 0 ? (
+                        <View className="py-4">
+                            <Text className="text-center text-gray-400 text-xs">
+                                Loading more...
+                            </Text>
+                        </View>
+                    ) : null
+                }
+                ListEmptyComponent={
+                    !loading ? (
+                        <View className="items-center mt-20">
+                            <Text className="text-gray-400">Koi product nahi mila</Text>
+                        </View>
+                    ) : null
+                }
+            />
         </View>
     );
 }

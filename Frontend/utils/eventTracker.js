@@ -1,6 +1,7 @@
+
 // utils/eventTracker.js
 
-import { AppState } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 let screenEnterTime = null;
 
@@ -15,7 +16,7 @@ let sessionId = null;
 let currentScreen = null;
 let previousScreen = null;
 
-// 👇 NAYA - sessionId set hone se pehle jitne bhi trackEvent() calls aaye,
+// 👇 sessionId set hone se pehle jitne bhi trackEvent() calls aaye,
 // unhe yaha park karo taaki wo drop na ho
 let pendingQueue = [];
 
@@ -29,12 +30,12 @@ export const setCurrentScreen = (screen) => {
 };
 
 export const initEventTracker = (currentSessionId) => {
-    if (sessionId) return; // 👈 NAYA - dobara init hone se guard (StrictMode/remount safety)
+    if (sessionId) return; // 👈 dobara init hone se guard (StrictMode/remount safety)
 
     sessionId = currentSessionId;
     startFlushTimer();
 
-    // 👇 NAYA - sessionId milte hi pending events ko unke original order mein bhejo
+    // 👇 sessionId milte hi pending events ko unke original order mein bhejo
     if (pendingQueue.length > 0) {
         const pending = [...pendingQueue];
         pendingQueue = [];
@@ -48,11 +49,10 @@ export const initEventTracker = (currentSessionId) => {
         });
     }
 
-    AppState.addEventListener("change", (nextState) => {
-        if (nextState === "background" || nextState === "inactive") {
-            flush();
-        }
-    });
+    // 👇 NAYA - AppState ka background/reopen handling ab _layout.js se
+    // control hoti hai (flushEvents + resetEventTracker ke through),
+    // isliye yaha se AppState listener hata diya - warna dono jagah
+    // se duplicate listeners lag jaate aur deviceId/session state conflict karta
 };
 
 const startFlushTimer = () => {
@@ -60,6 +60,30 @@ const startFlushTimer = () => {
     flushTimer = setInterval(() => {
         if (queue.length > 0) flush();
     }, FLUSH_INTERVAL_MS);
+};
+
+// 👇 NAYA - app background/close hote waqt poora tracker state reset karo,
+// taaki jab user dubara app open kare to bilkul fresh session ban sake
+// (initEventTracker ka `if (sessionId) return;` guard tabhi naya session
+// banne dega jab sessionId yaha se null ho chuka ho)
+export const resetEventTracker = () => {
+    if (flushTimer) {
+        clearInterval(flushTimer);
+        flushTimer = null;
+    }
+
+    queue = [];
+    pendingQueue = [];
+    sessionId = null;
+    currentScreen = null;
+    previousScreen = null;
+    screenEnterTime = null;
+};
+
+// 👇 NAYA - _layout.js se background jaate waqt pending events flush
+// karne ke liye export kar diya (pehle flush() sirf internal tha)
+export const flushEvents = () => {
+    flush();
 };
 
 export const triggerScreenExit = (extra = {}) => {
@@ -89,7 +113,7 @@ export const triggerScreenExit = (extra = {}) => {
 
 export const trackEvent = (eventData) => {
     if (!sessionId) {
-        pendingQueue.push(eventData); // 👈 FIX - drop nahi, queue mein park karo
+        pendingQueue.push(eventData); // 👈 drop nahi, queue mein park karo
         return;
     }
 

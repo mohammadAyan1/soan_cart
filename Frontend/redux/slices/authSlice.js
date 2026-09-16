@@ -46,7 +46,7 @@ export const registerPushToken = createAsyncThunk(
     'auth/registerPushToken',
     async (pushToken, { rejectWithValue }) => {
         try {
-            console.log(pushToken, "PushToken");
+            // console.log(pushToken, "PushToken");
 
             const response = await api.post('/api/auth/save-push-token', { pushToken });
             return response.data;

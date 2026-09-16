@@ -82,7 +82,7 @@ export default function ProductDetailsScreen() {
                 setError(result.error || "Product not mila");
             }
         } catch (err) {
-            console.log("Error aaya:", err.message);
+            // console.log("Error aaya:", err.message);
             if (err.code === "ECONNABORTED") {
                 setError("Request timeout ho gaya - server check karo");
             } else if (!err.response) {

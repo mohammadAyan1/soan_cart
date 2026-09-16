@@ -16,8 +16,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import {
     fetchProductsByCategory,
     resetCategoryProducts,
-} from "@/redux/slices/productSlice";
-import { trackEvent, triggerScreenExit, getCurrentScreen } from "@/utils/eventTracker";
+} from "../../redux/slices/productSlice";
+import { trackEvent, triggerScreenExit, getCurrentScreen } from "../../utils/eventTracker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
@@ -49,7 +49,7 @@ export default function CategoryDetailScreen() {
             trackEvent({
                 eventType: "SCREEN_VIEW",
                 screen: SCREEN_NAME,
-                referrerScreen: getCurrentScreen(),
+                // referrerScreen: getCurrentScreen(),
                 source: "category_navigation",
             });
 

@@ -1,10 +1,52 @@
 import sessionService from "../../services/analytics/session.service.js";
-
+import { v4 as uuidv4 } from "uuid";
+import prisma from "../../config/prisma.js";
 export const startSession = async (req, res) => {
     try {
+
+        let guestId;
+
+        console.log('====================================');
+        console.log(req?.user?.id, "ASDFGH");
+        console.log(req.headers["x-guest-id"]);
+        console.log('====================================');
+
+
+
+
+        if (!req.user?.id) {
+            guestId = req.headers["x-guest-id"];
+
+            while (true) {
+                // Agar guestId nahi hai to naya generate karo
+                if (!guestId) {
+                    guestId = uuidv4();
+                }
+
+                const cart = await prisma.cart.findUnique({
+                    where: { guestId }
+                });
+
+                console.log("ASDFG", guestId);
+
+
+                // Agar guestId available hai
+                if (!cart) {
+                    break;
+                }
+
+                // Already exist karta hai, isliye naya UUID generate karo
+                guestId = uuidv4();
+
+                console.log('====================================');
+                console.log(guestId);
+                console.log('====================================');
+            }
+        }
+
         const result = await sessionService.startSession({
             userId: req.user?.id || null,
-            guestId: req.headers["x-guest-id"] || null,
+            guestId: req.headers["x-guest-id"] || guestId,
             deviceId: req.body.deviceId,
             platform: req.body.platform,
             appVersion: req.body.appVersion,
@@ -27,7 +69,9 @@ export const startSession = async (req, res) => {
             data: {
                 sessionId: result.session.sessionId,
                 isActive: result.session.isActive,
-                startedAt: result.session.startedAt
+                startedAt: result.session.startedAt,
+                guestId: result.session.guestId,
+                number: result.session.id
             }
         });
 

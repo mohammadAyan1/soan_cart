@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import {
     View,
@@ -168,6 +166,6 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
-        </KeyboardAwareScrollView >
+        </KeyboardAwareScrollView>
     );
 }

@@ -757,6 +757,24 @@ export const login = async (req, res) => {
             const context = getRequestContext(req);
 
             try {
+
+
+                const result = await prisma.userSession.updateMany({
+                    where: {
+                        guestId: guestId,
+                    },
+                    data: {
+                        userId: Number(findUser?.id)
+                    }
+                });
+
+                if (result) {
+                    console.log('====================================');
+                    console.log(`success fully change the user session jo user ${findUser?.fullName}`);
+                    console.log('====================================');
+                }
+
+
                 const cartMergeResult = await mergeGuestCartIntoUser(findUser.id, guestId, context, "AUTO");
                 guestCartMerged = cartMergeResult.merged;
             } catch (mergeError) {

@@ -92,9 +92,9 @@ export default function ProductCard({ item, screenName = "home_page", source = "
                 android_ripple={{ color: "#F3F4F6" }}
             >
                 <View className="w-full h-[140px] bg-gray-100">
-                    <View 
-                        className="absolute inset-0 bg-gray-100" 
-                        style={{ opacity: imageLoaded ? 0 : 1 }} 
+                    <View
+                        className="absolute inset-0 bg-gray-100"
+                        style={{ opacity: imageLoaded ? 0 : 1 }}
                     />
                     <Animated.Image
                         source={{ uri: imageUrl }}

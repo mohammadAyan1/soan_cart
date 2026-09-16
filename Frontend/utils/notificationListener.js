@@ -9,7 +9,7 @@ export function setupImageNotificationListener() {
         const targetPath = data?.path;
 
         if (targetPath) {
-            console.log("Notification clicked, navigating to:", targetPath);
+            // console.log("Notification clicked, navigating to:", targetPath);
             router.push(targetPath);
         }
     });
@@ -17,6 +17,6 @@ export function setupImageNotificationListener() {
     // 2. Foreground / Background me notification aane par receive handler
     Notifications.addNotificationReceivedListener((notification) => {
         const data = notification.request.content.data;
-        console.log("Notification received with data:", data);
+        // console.log("Notification received with data:", data);
     });
 }

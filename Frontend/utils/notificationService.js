@@ -17,7 +17,7 @@ export async function registerForPushNotificationsAsync() {
     let token;
 
     if (!Device.isDevice) {
-        console.log('Push notifications only work on physical devices, emulator me nahi.');
+        // console.log('Push notifications only work on physical devices, emulator me nahi.');
         return null;
     }
 
@@ -30,7 +30,7 @@ export async function registerForPushNotificationsAsync() {
     }
 
     if (finalStatus !== 'granted') {
-        console.log('User ne notification permission deny kar di.');
+        // console.log('User ne notification permission deny kar di.');
         return null;
     }
 

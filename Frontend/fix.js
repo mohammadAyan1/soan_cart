@@ -18,14 +18,14 @@ const files = [
 files.forEach(file => {
     const fullPath = path.join('d:/onlineMarket/Frontend', file);
     if (!fs.existsSync(fullPath)) {
-        console.log('Skipping ' + file + ' - not found');
+        // console.log('Skipping ' + file + ' - not found');
         return;
     }
     
     let content = fs.readFileSync(fullPath, 'utf8');
     
     if (content.includes('useSafeAreaInsets')) {
-        console.log('Skipping ' + file + ' - already has useSafeAreaInsets');
+        // console.log('Skipping ' + file + ' - already has useSafeAreaInsets');
         return;
     }
 
@@ -46,7 +46,7 @@ files.forEach(file => {
             const insertIndex = returnMatch.index + returnMatch[0].length;
             content = content.slice(0, insertIndex) + ' style={{ paddingTop: insets.top }}' + content.slice(insertIndex);
         } else {
-             console.log('Could not find return View flex-1 in ' + file);
+            //  console.log('Could not find return View flex-1 in ' + file);
              
              // Try to find the generic outermost view returning
              const returnGeneric = /return\s*\(\s*<View/;
@@ -57,9 +57,9 @@ files.forEach(file => {
              }
         }
     } else {
-        console.log('Could not find function definition in ' + file);
+        // console.log('Could not find function definition in ' + file);
     }
     
     fs.writeFileSync(fullPath, content);
-    console.log('Updated ' + file);
+    // console.log('Updated ' + file);
 });

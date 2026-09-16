@@ -10,8 +10,8 @@ export const api = axios.create({
     },
 });
 
-console.log("🚀 ~ API Base URL being used:", api.defaults.baseURL);
-console.log("🚀 ~ From ENV file (EXPO_PUBLIC_API_URL):", process.env.EXPO_PUBLIC_API_URL);
+// console.log("🚀 ~ API Base URL being used:", api.defaults.baseURL);
+// console.log("🚀 ~ From ENV file (EXPO_PUBLIC_API_URL):", process.env.EXPO_PUBLIC_API_URL);
 
 // Request Interceptor
 api.interceptors.request.use(

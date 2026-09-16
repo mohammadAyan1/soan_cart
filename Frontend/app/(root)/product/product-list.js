@@ -37,7 +37,6 @@ export default function ProductListScreen() {
             trackEvent({
                 eventType: "SCREEN_VIEW",
                 screen: SCREEN_NAME,
-
             })
         }, [])
     )

@@ -514,8 +514,8 @@ function EditProfileModal({ visible, onClose, user }) {
                                                 }}
                                                 contentFit="cover"
                                                 cachePolicy="memory-disk"
-                                                onLoad={() => console.log("Image Loaded")}
-                                                onError={(e) => console.log("Image Error:", e.nativeEvent)}
+                                                // onLoad={() => console.log("Image Loaded")}
+                                                // onError={(e) => console.log("Image Error:", e.nativeEvent)}
                                                 className="w-16 h-16 rounded-full bg-gray-200"
                                             />
                                             <View className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-green-600 items-center justify-center border-2 border-white">
