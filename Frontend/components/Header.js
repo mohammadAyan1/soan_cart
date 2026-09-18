@@ -13,7 +13,7 @@ import { Keyboard } from "react-native";
 import { trackEvent, triggerScreenExit, getCurrentScreen } from "@/utils/eventTracker";
 import { fetchProductsCategory } from "@/redux/slices/productCategory";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import HeaderSkeleton from "@/components/skeleton/HeaderSkeleton"; // 👈 Yahan import karein
 
 
 export const getAnalyticsScreen = (pathname) => {
@@ -172,6 +172,9 @@ function HeaderSpeedLines() {
 }
 
 export default function Header({ autoFocus = false }) {
+
+
+
     const { headerHeight, isHidden, showAll, setIsChildMode } = useScrollContext();
     const address = useSelector((state) => state.auth?.user?.address);
     const pathname = usePathname();
@@ -295,6 +298,19 @@ export default function Header({ autoFocus = false }) {
         router.push("/");
     };
 
+
+    useEffect(() => {
+        console.log("categoryTree", categoryTree);
+
+    }, [categoryTree])
+
+
+
+    // 👇 Yahan sirf ye check karo ki jab tak categoryTree khali hai, tab tak HeaderSkeleton dikhao!
+    // Jaise hi API data laakar tree me daal degi, tree.length > 0 ho jayegi aur real Header dikhne lagega.
+    if (categoryTree.length === 0) {
+        return <HeaderSkeleton />;
+    }
     return (
         <LinearGradient
             colors={HEADER_GRADIENT_COLORS}

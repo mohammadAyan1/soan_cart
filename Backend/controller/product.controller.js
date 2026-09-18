@@ -318,6 +318,7 @@ export const getAllProduct = async (req, res) => {
 
         const whereCondition = {
             isDelete: false,
+            isApprove: true,
             variants: {
                 some: {
                     isDelete: false,
