@@ -134,7 +134,17 @@ const productSlice = createSlice({
             })
             .addCase(fetchProducts.fulfilled, (state, action) => {
                 const { products, hasNextPage, currentPage } = action.payload;
-                state.items = currentPage === 1 ? products : [...state.items, ...products];
+
+                const combined =
+                    currentPage === 1 ? products : [...state.items, ...products];
+
+                // duplicate id wale products hata do (id ke hisaab se unique)
+                const uniqueItems = Array.from(
+                    new Map(combined.map((item) => [item.id, item])).values()
+                );
+
+                state.items = uniqueItems
+                // state.items = currentPage === 1 ? products : [...state.items, ...products];
                 state.hasNextPage = hasNextPage;
                 state.page = currentPage;
                 state.loading = false;

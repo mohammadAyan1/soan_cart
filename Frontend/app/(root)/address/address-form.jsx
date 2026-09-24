@@ -322,6 +322,7 @@ import * as Location from "expo-location";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { createAddress, updateAddress } from "@/redux/slices/addressSlice";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { triggerScreenExit, trackEvent } from "../../../utils/eventTracker.js";
 
 // ==========================================================
 // ADD / EDIT ADDRESS FORM
@@ -338,6 +339,14 @@ export default function AddressFormScreen() {
     const dispatch = useDispatch();
     const actionLoading = useSelector((state) => state.address.actionLoading);
     const addresses = useSelector((state) => state.address.addresses);
+
+
+    useEffect(() => {
+        trackEvent({
+            eventType: "SCREEN_VIEW",
+            screen: "address_form",
+        });
+    }, [])
 
     // Edit mode me existing address list se data prefill karo
     const existingAddress = isEditMode
@@ -451,7 +460,7 @@ export default function AddressFormScreen() {
             {/* Header */}
             <View className="bg-white px-4 pt-6 pb-4 flex-row items-center gap-3 border-b border-gray-100">
                 <TouchableOpacity
-                    onPress={() => router.back()}
+                    onPress={() => { triggerScreenExit({ source: "header_back_click" }), router.back() }}
                     className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
                     activeOpacity={0.7}
                 >

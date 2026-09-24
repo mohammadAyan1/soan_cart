@@ -40,11 +40,21 @@ export default function HomeScreen() {
         loadData();
     }, [dispatch]);
 
+    // const loadMore = useCallback(() => {
+    //     if (!loading && !refreshing && hasNextPage) {
+    //         dispatch(fetchProducts({ page: page + 1 }));
+    //     }
+    // }, [loading, refreshing, hasNextPage, page]);
+
+
+
     const loadMore = useCallback(() => {
-        if (!loading && !refreshing && hasNextPage) {
+        if (!loading && !refreshing && hasNextPage && items.length > 0) {
             dispatch(fetchProducts({ page: page + 1 }));
         }
-    }, [loading, refreshing, hasNextPage, page]);
+    }, [loading, refreshing, hasNextPage, page, items.length]);
+
+
 
     const onRefresh = useCallback(() => {
         dispatch(resetProducts());
