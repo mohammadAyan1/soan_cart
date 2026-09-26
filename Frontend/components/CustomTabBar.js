@@ -58,7 +58,7 @@ export default function CustomTabBar({ routes, activeIndex, onTabPress }) {
                     <TouchableOpacity
                         key={route.key}
                         onPress={() => onTabPress(i)}
-                        className="flex-1 items-center justify-center"
+                        className="flex-1 items-center justify-center pb-5 pt-3"
                     >
                         {/* Icon wrapper with badge */}
                         <View className="relative">

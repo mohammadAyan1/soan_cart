@@ -17,6 +17,7 @@ import {
    searchProducts,
    getAllProductForAdmin,
    toggleProductApprove,
+   adminChangeProductOrderAllow,
 } from "../controller/product.controller.js";
 
 const productRouter = express.Router();
@@ -55,6 +56,8 @@ productRouter.put("/delete/:id", requiredAuth, deletProduct);
 ============================ */
 
 // 👇 NAYA — single variant soft delete / restore
+productRouter.put("/variant/:variantId/vendorallow", requiredAuth, adminChangeProductOrderAllow);
+
 productRouter.put("/variant/:variantId/delete", requiredAuth, toggleVariantDelete);
 
 productRouter.post("/variant/:variantId/images", requiredAuth, upload.any(), addVariantImage);

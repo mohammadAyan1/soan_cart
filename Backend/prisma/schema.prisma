@@ -195,6 +195,7 @@ model ProductVariant {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   isDefault      Boolean        @default(false)
+  VendorAllow         Boolean             @default(true)
   cartItems      CartItem[]
   orderItems     OrderItem[]
   images         ProductImage[]
@@ -294,6 +295,7 @@ model OrderItem {
   createdAt            DateTime                 @default(now())
   updatedAt            DateTime                 @updatedAt
   fromWishlist         Boolean                  @default(false)
+  allowVendorToSee     Int?                  
   order                Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product              Product                  @relation(fields: [productId], references: [id])
   variant              ProductVariant           @relation(fields: [variantId], references: [id])
@@ -700,4 +702,16 @@ model PushToken {
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+}
+
+
+
+model orderItemVendorChange {
+  id                  Int      @id @default(autoincrement())
+  userSelectVendor    Int
+  AdminSelectedVendor Int
+  createdAt           DateTime @default(now())
+
+  userSelectedVendor  User @relation("UserSelectedVendor", fields: [userSelectVendor], references: [id])
+  adminSelectedVendor User @relation("AdminSelectedVendor", fields: [AdminSelectedVendor], references: [id])
 }

@@ -83,6 +83,7 @@ export default function CartItemCard({ item }) {
 
     return (
         // 👇 View ki jagah Pressable
+
         <Pressable
             onPress={() => { CartProductClick({ cart, cartItemId }) }}
             className="flex-row bg-white p-3 rounded-2xl mb-3 border border-gray-100"
@@ -209,5 +210,7 @@ export default function CartItemCard({ item }) {
                 </View>
             </View>
         </Pressable>
+
+
     );
 }

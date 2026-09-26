@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCart, resetCart } from "@/redux/slices/cartSlice";
+import { fetchCart, resetCart, clearCart } from "@/redux/slices/cartSlice";
 import { useFocusEffect } from "@react-navigation/native";
 import { useScrollContext, TAB_BAR_HEIGHT } from "@/context/ScrollContext";
 import CartItemCard from "@/components/CartItemCard";
@@ -29,6 +29,11 @@ export default function CartScreen() {
     const insets = useSafeAreaInsets();
 
     const { goToTab } = useTabContext();
+
+
+    const handleEraseAllCartItem = () => {
+        dispatch(clearCart())
+    }
 
     let result = {}
     useEffect(() => {
@@ -72,6 +77,7 @@ export default function CartScreen() {
                 <View className="mb-3">
                     <Text className="text-2xl font-bold text-gray-900">My Cart</Text>
                 </View>
+
                 {Array.from({ length: 5 }).map((_, i) => (
                     <CartItemSkeleton key={i} />
                 ))}
@@ -100,15 +106,27 @@ export default function CartScreen() {
 
     return (
         <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+
+
             <FlatList
                 data={items}
                 keyExtractor={(item) => String(item.cartItemId || item.id)}
                 renderItem={({ item }) => <CartItemCard item={item} />}
                 ListHeaderComponent={
                     items.length > 0 ? (
-                        <View className="mb-3">
-                            <Text className="text-2xl font-bold text-gray-900">My Cart</Text>
-                        </View>
+                        <>
+                            <View className="mb-3">
+                                <Text className="text-2xl font-bold text-gray-900">My Cart</Text>
+                            </View>
+
+                            <TouchableOpacity
+                                onPress={() => handleEraseAllCartItem()}
+                                className="mb-5"
+                            >
+                                <Text className="text-red-600 font-semibold">Clean Cart</Text>
+                            </TouchableOpacity>
+                        </>
+
                     ) : null
                 }
                 contentContainerStyle={{
@@ -119,7 +137,7 @@ export default function CartScreen() {
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
                 refreshControl={
-                    <RefreshControl
+                    < RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
                         colors={["#16a34a"]}
@@ -156,54 +174,56 @@ export default function CartScreen() {
             />
 
             {/* Sticky bottom summary bar */}
-            {items.length > 0 && (
-                <View
-                    className="absolute bottom-0 left-0 right-0 bg-white px-4 pt-3 border-t border-gray-100"
-                    style={{
-                        paddingBottom: TAB_BAR_HEIGHT + 12,
-                        shadowColor: "#000",
-                        shadowOffset: { width: 0, height: -2 },
-                        shadowOpacity: 0.06,
-                        shadowRadius: 8,
-                        elevation: 10,
-                    }}
-                >
-                    {totalSavings > 0 && (
-                        <View className="flex-row justify-between items-center mb-2">
-                            <View className="flex-row">
-                                <Ionicons name="pricetag" size={13} color="#16a34a" />
-                                <Text className="text-green-600 text-xs font-medium ml-1">
-                                    You're saving ₹{totalSavings} on this order
+            {
+                items.length > 0 && (
+                    <View
+                        className="absolute bottom-0 left-0 right-0 bg-white px-4 pt-3 border-t border-gray-100"
+                        style={{
+                            paddingBottom: TAB_BAR_HEIGHT + 12,
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: -2 },
+                            shadowOpacity: 0.06,
+                            shadowRadius: 8,
+                            elevation: 10,
+                        }}
+                    >
+                        {totalSavings > 0 && (
+                            <View className="flex-row justify-between items-center mb-2">
+                                <View className="flex-row">
+                                    <Ionicons name="pricetag" size={13} color="#16a34a" />
+                                    <Text className="text-green-600 text-xs font-medium ml-1">
+                                        You're saving ₹{totalSavings} on this order
+                                    </Text>
+                                </View>
+
+
+                                <Text className="text-sm text-gray-400 mt-0.5">
+                                    {totalItems} {totalItems === 1 ? "item" : "items"}
                                 </Text>
                             </View>
-
-
-                            <Text className="text-sm text-gray-400 mt-0.5">
-                                {totalItems} {totalItems === 1 ? "item" : "items"}
-                            </Text>
+                        )}
+                        <View className="flex-row items-center justify-between">
+                            <View>
+                                <Text className="text-gray-400 text-xs">Total Amount</Text>
+                                <Text className="text-gray-900 text-xl font-bold">
+                                    {/* ₹{totalAmount} */}
+                                    {cartTotal}
+                                </Text>
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => { router.push("/(root)/checkout/checkout"), handleEventCall("CART_CHECKOUT_BTN_CLICK", result), triggerScreenExit() }}
+                                className="bg-green-600 px-8 py-3.5 rounded-full flex-row items-center"
+                                activeOpacity={0.85}
+                            >
+                                <Text className="text-white font-semibold text-base mr-1">
+                                    Checkout
+                                </Text>
+                                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                            </TouchableOpacity>
                         </View>
-                    )}
-                    <View className="flex-row items-center justify-between">
-                        <View>
-                            <Text className="text-gray-400 text-xs">Total Amount</Text>
-                            <Text className="text-gray-900 text-xl font-bold">
-                                {/* ₹{totalAmount} */}
-                                {cartTotal}
-                            </Text>
-                        </View>
-                        <TouchableOpacity
-                            onPress={() => { router.push("/(root)/checkout/checkout"), handleEventCall("CART_CHECKOUT_BTN_CLICK", result), triggerScreenExit() }}
-                            className="bg-green-600 px-8 py-3.5 rounded-full flex-row items-center"
-                            activeOpacity={0.85}
-                        >
-                            <Text className="text-white font-semibold text-base mr-1">
-                                Checkout
-                            </Text>
-                            <Ionicons name="arrow-forward" size={18} color="#fff" />
-                        </TouchableOpacity>
                     </View>
-                </View>
-            )}
-        </View>
+                )
+            }
+        </View >
     );
 }

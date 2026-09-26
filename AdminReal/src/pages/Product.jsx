@@ -291,6 +291,31 @@ const Product = () => {
         }
     };
 
+
+
+
+
+    const handleToggleAllowVendorToSeeOrder = async (variant) => {
+        try {
+            setVariantActionLoading(variant.id);
+            const res = await api.put(`/api/product/variant/${variant.id}/vendorallow`);
+            if (res.data.success) {
+                dispatch(fetchAllProductsAdmin({
+                    page, limit: 10, status,
+                    vendorId, categoryId, subCategoryId, isApprove, fromDate, toDate, sortBy,
+                    hasOrdered, hasCart, hasWishlist, hasReview
+                }));
+            }
+        } catch (error) {
+            console.error("Variant toggle error:", error);
+            alert(error.response?.data?.message || "Failed to update variant status");
+        } finally {
+            setVariantActionLoading(null);
+        }
+    };
+
+
+
     // 👇 NAYA: Update Product Handler (Navigate to update page or open modal)
     const handleUpdateProduct = (productId) => {
         // Aap apne router ke hisab se path adjust kar sakte hain (e.g., navigate(`/admin/product/update/${productId}`))
@@ -711,6 +736,24 @@ const Product = () => {
                                                         >
                                                             {!variant.isDelete ? "Active" : "Deactive"}
                                                         </button>
+
+
+
+                                                        <button
+                                                            disabled={variantActionLoading === variant.id}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleToggleAllowVendorToSeeOrder(variant);
+                                                            }}
+                                                            className={`text-[10px] px-2.5 py-1 rounded-full font-medium transition ${!variant.VendorAllow
+                                                                ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                                : "bg-red-100 text-red-700 hover:bg-red-200"
+                                                                }`}
+                                                            title="Click to toggle variant status"
+                                                        >
+                                                            {!variant.VendorAllow ? "Allow Vendor" : "Not Allow Vendor"}
+                                                        </button>
+
 
                                                         <span className="text-gray-400 text-xs">
                                                             {expandedVariantId === variant.id ? "▲" : "▼"}

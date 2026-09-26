@@ -634,6 +634,7 @@ export const getAllProductForAdmin = async (req, res) => {
                     description: variant.description,
                     actualPrice: variant.actualPrice,
                     isDelete: variant.isDelete,
+                    VendorAllow: variant.VendorAllow,
                     mrp: variant.mrp,
                     showMrp: variant.showMrp,
                     vendorMinPrice: variant.vendorMinPrice,
@@ -1651,12 +1652,17 @@ export const toggleVariantDelete = async (req, res) => {
         const { id: userId, role } = req.user;
         const variantId = Number(req.params.variantId);
 
+
         if (!variantId) {
             return res.status(400).json({
                 success: false,
                 message: "Variant id is required."
             });
         }
+
+
+
+
 
         if (role !== "ADMIN" && role !== "VENDOR") {
             return res.status(403).json({
@@ -1735,12 +1741,77 @@ export const toggleVariantDelete = async (req, res) => {
 };
 
 
+
+export const adminChangeProductOrderAllow = async (req, res) => {
+
+    try {
+        const { role } = req.user;
+        const variantId = Number(req.params.variantId);
+
+
+        if (!variantId) {
+            return res.status(400).json({
+                success: false,
+                message: "Variant id is required."
+            });
+        }
+
+        if (role !== "ADMIN") {
+            return res.status(403).json({
+                success: false,
+                message: "You don't have authority."
+            });
+        }
+
+        const variant = await prisma.productVariant.findUnique({
+            where: { id: variantId },
+            include: { product: true }
+        });
+
+        if (!variant) {
+            return res.status(404).json({
+                success: false,
+                message: "Variant not found."
+            });
+        }
+
+        const toggleVendorAllowOrder = !variant.VendorAllow;
+
+
+        await prisma.$transaction(async (tx) => {
+            await tx.productVariant.update({
+                where: { id: variantId },
+                data: { VendorAllow: toggleVendorAllowOrder }
+            });
+
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: toggleVendorAllowOrder
+                ? "Vendor allow"
+                : "Vendor Not allow"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    };
+
+}
+
 //TOGGLE APPRIVE OR DISAPPROVE PRODUCT BY ADMIN
 export const toggleProductApprove = async (req, res) => {
     try {
 
         const { role } = req.user;
         const productId = Number(req.params.productId);
+
+
+
 
         if (!productId) {
             return res.status(400).json({
@@ -1767,6 +1838,8 @@ export const toggleProductApprove = async (req, res) => {
                 message: "product not found."
             });
         }
+
+
 
         const toggledStatus = !product.isApprove;
         await prisma.product.update({

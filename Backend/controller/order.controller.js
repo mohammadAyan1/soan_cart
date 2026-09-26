@@ -110,6 +110,8 @@ export const checkoutFromCart = async (req, res) => {
                         price: item.variant.actualPrice,
                         deliveryStatus: DeliveryStatus.PENDING,
                         fromWishlist: wasInWishlist, // 👈 NAYA
+                        allowVendorToSee: Number(variant?.VendorAllow)
+
                     },
                 });
 
@@ -276,6 +278,7 @@ export const checkoutSingleProduct = async (req, res) => {
                     price: variant.actualPrice,
                     deliveryStatus: DeliveryStatus.PENDING,
                     fromWishlist: wasInWishlist, // 👈 NAYA
+                    allowVendorToSee: Number(variant?.VendorAllow)
                 },
             });
 
@@ -913,6 +916,7 @@ export const getVendorOrders = async (req, res) => {
 
         const whereClause = {
             vendorId,
+            allowVendorToSee: 1,
             ...(status && { deliveryStatus: status }),
         };
 
@@ -951,5 +955,80 @@ export const getVendorOrders = async (req, res) => {
     } catch (error) {
         console.error("getVendorOrders error:", error);
         return res.status(500).json({ success: false, message: "Orders fetch karne me error aaya" });
+    }
+};
+
+
+export const changeVendor = async (req, res) => {
+    try {
+        const { role } = req.user;
+
+        const orderItemId = Number(req.params.orderItemId);
+        const adminVendorId = Number(req.params.adminVendorId);
+
+        // Only ADMIN
+        if (role !== "ADMIN") {
+            return res.status(403).json({
+                success: false,
+                message: "Only admin can change vendor",
+            });
+        }
+
+        if (!orderItemId || !adminVendorId) {
+            return res.status(400).json({
+                success: false,
+                message: "Both order ID and vendor selection are required",
+            });
+        }
+
+        const orderItem = await prisma.orderItem.findUnique({
+            where: {
+                id: orderItemId,
+            },
+        });
+
+        if (!orderItem) {
+            return res.status(404).json({
+                success: false,
+                message: "Order item not found",
+            });
+        }
+
+        const oldVendorId = orderItem.vendorId;
+
+        const updatedData = await prisma.orderItem.update({
+            where: {
+                id: orderItemId,
+            },
+            data: {
+                vendorId: adminVendorId,
+            },
+        });
+
+        const vendorChange =
+            await prisma.orderItemVendorChange.create({
+                data: {
+                    userSelectVendor: oldVendorId,
+                    AdminSelectedVendor: adminVendorId,
+                },
+            });
+
+        return res.status(200).json({
+            success: true,
+            message: "Vendor changed successfully",
+            data: {
+                orderItem: updatedData,
+                vendorChange,
+            },
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+            error: error.message,
+        });
     }
 };

@@ -1,6 +1,6 @@
 // app/product/[id].jsx
 import ProductDetailsSkeleton from "@/components/ProductDetailsSkeleton";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
     View,
     Text,
@@ -10,6 +10,8 @@ import {
     Dimensions,
     Pressable,
     FlatList,
+    Modal,
+    StatusBar,
 } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -20,13 +22,24 @@ import { fetchProductById } from "../../../../redux/slices/productSlice.js";
 import { useDispatch } from "react-redux";
 import { trackEvent, triggerScreenExit } from "../../../../utils/eventTracker.js";
 import Header from "../../../../components/Header.js"
-const { width } = Dimensions.get("window");
+// const { width } = Dimensions.get("window");
 
-const RAW_BASE = process.env.EXPO_PUBLIC_API_URL || "";
-const API_BASE_URL = `${RAW_BASE.replace(/\/$/, "")}/api`;
+
+
 
 export default function ProductDetailsScreen() {
     const dispatch = useDispatch();
+
+
+
+    // 👇 NAYA — full-screen image viewer ke liye
+    const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+    const [viewerIndex, setViewerIndex] = useState(0);
+    const viewerListRef = useRef(null);
+    const { width, height } = Dimensions.get("window");
+    // 👇 NAYA — main (bada) image area ko khud swipeable banane ke liye
+    const mainImageListRef = useRef(null);
+
 
     const { id, varid } = useLocalSearchParams();
     const router = useRouter();
@@ -42,6 +55,39 @@ export default function ProductDetailsScreen() {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     let images = []
+
+
+    // 👇 NAYA — viewer ke andar swipe karne pe current index track karna
+    const handleViewerScrollEnd = (e) => {
+        const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
+        setViewerIndex(newIndex);
+    };
+
+
+
+    // 👇 NAYA — main image ya thumbnail pe tap karke full-screen viewer kholna
+    const openImageViewer = (index) => {
+        setViewerIndex(index);
+        setIsImageViewerVisible(true);
+    };
+
+
+
+    // 👇 NAYA — viewer band karte waqt jo image dikh rahi thi wahi
+    // thumbnail strip aur main image area me bhi select ho jaye (sync)
+    const closeImageViewer = () => {
+        setSelectedImageIndex(viewerIndex);
+        mainImageListRef.current?.scrollToIndex({ index: viewerIndex, animated: false });
+        setIsImageViewerVisible(false);
+    };
+
+    // 👇 NAYA — user jab main image ko khud swipe kare, tab selectedImageIndex
+    // (aur isliye active thumbnail border) automatically update ho
+    const handleMainImageScrollEnd = (e) => {
+        const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
+        setSelectedImageIndex(newIndex);
+    };
+
 
     useEffect(() => {
         if (!id) {
@@ -209,34 +255,39 @@ export default function ProductDetailsScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#16a34a"]} />
                 }
             >
-                {/* ---------- Back Button ---------- */}
-                {/* <Pressable
-                    onPress={() => router.back()}
-                    className="absolute top-12 left-4 z-10 bg-white/90 rounded-full p-2"
-                    style={{
-                        shadowColor: "#000",
-                        shadowOpacity: 0.15,
-                        shadowRadius: 4,
-                        elevation: 4,
-                    }}
-                >
-                    <Ionicons name="arrow-back" size={22} color="#111" />
-                </Pressable> */}
 
-                {/* ---------- Main Image ---------- */}
-                {/* <Image
-                    source={{ uri: images[selectedImageIndex]?.imageUrl }}
-                    style={{ width, height: 340 }}
-                    resizeMode="cover"
-                /> */}
 
-                <Image
-                    source={images[selectedImageIndex]?.imageUrl}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    style={{ width, height: 340 }}
-                    resizeMode="cover"
+                <FlatList
+                    ref={mainImageListRef}
+                    data={images}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={(img) => `main-${img.id}`}
+                    initialScrollIndex={selectedImageIndex}
+                    getItemLayout={(_, index) => ({
+                        length: width,
+                        offset: width * index,
+                        index,
+                    })}
+                    onMomentumScrollEnd={handleMainImageScrollEnd}
+                    renderItem={({ item: img, index }) => (
+
+
+
+                        <Pressable onPress={() => openImageViewer(selectedImageIndex)}>
+
+                            <Image
+                                source={images[selectedImageIndex]?.imageUrl}
+                                contentFit="cover"
+                                cachePolicy="memory-disk"
+                                style={{ width, height: 340 }}
+                                resizeMode="cover"
+                            />
+                        </Pressable>
+                    )}
                 />
+
                 {/* ---------- Thumbnail Strip (sirf selected variant ki images) ---------- */}
                 {images.length > 1 && (
                     <FlatList
@@ -257,11 +308,7 @@ export default function ProductDetailsScreen() {
                                         className={`rounded-xl overflow-hidden ${isActive ? "border-2 border-black" : "border border-gray-200"
                                             }`}
                                     >
-                                        {/* <Image
-                                            source={{ uri: img.imageUrl }}
-                                            style={{ width: 64, height: 64 }}
-                                            resizeMode="cover"
-                                        /> */}
+
                                         <Image
                                             source={img.imageUrl}
                                             contentFit="cover"
@@ -436,7 +483,7 @@ export default function ProductDetailsScreen() {
 
             {/* ---------- Bottom Fixed Bar: Add to Cart (half) + Buy Now (half) ---------- */}
             <View
-                className="flex-row items-center px-4 py-3 bg-white border-t border-gray-100"
+                className="flex-row items-center px-4 py-3 pb-8 bg-white border-t border-gray-100"
                 style={{
                     shadowColor: "#000",
                     shadowOffset: { width: 0, height: -2 },
@@ -462,12 +509,69 @@ export default function ProductDetailsScreen() {
                     onPress={handleBuyNow}
 
                     disabled={selectedVariant.stock === 0}
-                    className={`flex-1 ml-2 rounded-full py-3 items-center justify-center ${selectedVariant.stock === 0 ? "bg-gray-300" : "bg-black"
+                    className={`flex-1 ml-2 mt-2.5 rounded-xl py-2.5 items-center justify-center ${selectedVariant.stock === 0 ? "bg-gray-300" : "bg-black"
                         }`}
                 >
                     <Text className="text-white font-semibold text-[14px]">Buy Now</Text>
                 </Pressable>
             </View>
+
+
+
+            <Modal
+                visible={isImageViewerVisible}
+                transparent={true}
+                animationType="fade"
+                statusBarTranslucent={true}
+                onRequestClose={closeImageViewer}
+            >
+                <StatusBar hidden={true} />
+                <View className="flex-1 bg-black">
+                    {/* Close button */}
+                    <Pressable
+                        onPress={closeImageViewer}
+                        className="absolute top-14 right-4 z-10 bg-white/20 rounded-full p-2"
+                    >
+                        <Ionicons name="close" size={26} color="#fff" />
+                    </Pressable>
+
+                    {/* Counter, e.g. "2 / 5" */}
+                    {images.length > 1 && (
+                        <View className="absolute top-14 left-4 z-10 bg-white/20 rounded-full px-3 py-1.5">
+                            <Text className="text-white text-[13px] font-medium">
+                                {viewerIndex + 1} / {images.length}
+                            </Text>
+                        </View>
+                    )}
+
+                    <FlatList
+                        ref={viewerListRef}
+                        data={images}
+                        horizontal
+                        pagingEnabled
+                        showsHorizontalScrollIndicator={false}
+                        keyExtractor={(img) => `viewer-${img.id}`}
+                        initialScrollIndex={viewerIndex}
+                        getItemLayout={(_, index) => ({
+                            length: width,
+                            offset: width * index,
+                            index,
+                        })}
+                        onMomentumScrollEnd={handleViewerScrollEnd}
+                        renderItem={({ item: img }) => (
+                            <View style={{ width, height }} className="items-center justify-center">
+                                <Image
+                                    source={img.imageUrl}
+                                    contentFit="contain"
+                                    cachePolicy="memory-disk"
+                                    style={{ width, height }}
+                                />
+                            </View>
+                        )}
+                    />
+                </View>
+            </Modal>
+
         </View>
     );
 }

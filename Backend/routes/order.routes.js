@@ -1,6 +1,6 @@
 
 import express from "express";
-import { checkoutFromCart, checkoutSingleProduct, confirmReturned, getAllOrdersAdmin, getMyOrderById, getMyOrders, getVendorOrders, getVendorSalesStatsAdmin, requestReturn, respondToReturn, updateOrderItemStatus } from "../controller/order.controller.js";
+import { changeVendor, checkoutFromCart, checkoutSingleProduct, confirmReturned, getAllOrdersAdmin, getMyOrderById, getMyOrders, getVendorOrders, getVendorSalesStatsAdmin, requestReturn, respondToReturn, updateOrderItemStatus } from "../controller/order.controller.js";
 const orderRoutes = express.Router();
 import { requiredAuth } from "../middleware/auth.middleware.js";
 
@@ -11,6 +11,9 @@ orderRoutes.post("/checkout/direct", requiredAuth, checkoutSingleProduct);
 orderRoutes.get("/my-orders", requiredAuth, getMyOrders);
 orderRoutes.get("/my-orders/:orderId", requiredAuth, getMyOrderById);
 orderRoutes.patch("/items/:orderItemId/return-request", requiredAuth, requestReturn);
+
+
+
 
 // ---------------- VENDOR / ADMIN shared routes ----------------
 orderRoutes.patch("/items/:orderItemId/status", requiredAuth, updateOrderItemStatus);
@@ -23,6 +26,7 @@ orderRoutes.get("/vendor/my-orders", requiredAuth, getVendorOrders);
 // ---------------- ADMIN only ----------------
 orderRoutes.get("/admin/all", requiredAuth, getAllOrdersAdmin);
 orderRoutes.get("/admin/vendor-stats", requiredAuth, getVendorSalesStatsAdmin);
+orderRoutes.patch("/items/:orderItemId/:adminVendorId/changeVendor", requiredAuth, changeVendor);
 
 // module.exports = router;
 export default orderRoutes
