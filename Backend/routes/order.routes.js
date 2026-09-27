@@ -1,6 +1,6 @@
 
 import express from "express";
-import { changeVendor, checkoutFromCart, checkoutSingleProduct, confirmReturned, getAllOrdersAdmin, getMyOrderById, getMyOrders, getVendorOrders, getVendorSalesStatsAdmin, requestReturn, respondToReturn, updateOrderItemStatus } from "../controller/order.controller.js";
+import { changeVendor, checkoutFromCart, checkoutSingleProduct, confirmReturned, getAllOrdersAdmin, getMyOrderById, getMyOrders, getVendorOrders, getVendorSalesStatsAdmin, requestReturn, respondToReturn, toggleVendor, updateOrderItemStatus } from "../controller/order.controller.js";
 const orderRoutes = express.Router();
 import { requiredAuth } from "../middleware/auth.middleware.js";
 
@@ -27,6 +27,7 @@ orderRoutes.get("/vendor/my-orders", requiredAuth, getVendorOrders);
 orderRoutes.get("/admin/all", requiredAuth, getAllOrdersAdmin);
 orderRoutes.get("/admin/vendor-stats", requiredAuth, getVendorSalesStatsAdmin);
 orderRoutes.patch("/items/:orderItemId/:adminVendorId/changeVendor", requiredAuth, changeVendor);
+orderRoutes.patch("/items/:orderItemId/toggleVendor", requiredAuth, toggleVendor);
 
 // module.exports = router;
 export default orderRoutes

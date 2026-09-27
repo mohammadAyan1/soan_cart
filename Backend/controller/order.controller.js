@@ -697,7 +697,13 @@ export const getAllOrdersAdmin = async (req, res) => {
                         where: hasItemsFilter ? itemsFilter : undefined,
                         include: {
                             product: { select: { id: true, productName: true } },
-                            variant: true,
+                            // variant: true,
+                            variant: {
+                                include: {
+                                    images: true,
+                                },
+                            },
+
                             vendor: { select: { id: true, fullName: true } },
                             statusHistory: { orderBy: { changedAt: "asc" } },
                         },
@@ -1005,13 +1011,13 @@ export const changeVendor = async (req, res) => {
             },
         });
 
-        const vendorChange =
-            await prisma.orderItemVendorChange.create({
-                data: {
-                    userSelectVendor: oldVendorId,
-                    AdminSelectedVendor: adminVendorId,
-                },
-            });
+        const vendorChange = await prisma.orderItemVendorChange.create({
+            data: {
+                orderItemId: orderItemId,
+                userSelectVendor: oldVendorId,
+                AdminSelectedVendor: adminVendorId,
+            },
+        });
 
         return res.status(200).json({
             success: true,
@@ -1019,6 +1025,76 @@ export const changeVendor = async (req, res) => {
             data: {
                 orderItem: updatedData,
                 vendorChange,
+            },
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+            error: error.message,
+        });
+    }
+};
+
+
+export const toggleVendor = async (req, res) => {
+    try {
+        const { role } = req.user;
+        const orderItemId = Number(req.params.orderItemId);
+
+
+        // Only ADMIN
+        if (role !== "ADMIN") {
+            return res.status(403).json({
+                success: false,
+                message: "Only admin can change vendor",
+            });
+        }
+
+        if (!orderItemId) {
+            return res.status(400).json({
+                success: false,
+                message: "Both order ID and vendor selection are required",
+            });
+        }
+
+        const orderItem = await prisma.orderItem.findUnique({
+            where: {
+                id: orderItemId,
+            },
+        });
+
+        if (!orderItem) {
+            return res.status(404).json({
+                success: false,
+                message: "Order item not found",
+            });
+        }
+        let toggleAllowVendor;
+        if (orderItem?.allowVendorToSee == 1) {
+            toggleAllowVendor = 0
+        } else {
+            toggleAllowVendor = 1
+        }
+
+        const updatedData = await prisma.orderItem.update({
+            where: {
+                id: orderItemId,
+            },
+            data: {
+                allowVendorToSee: toggleAllowVendor,
+            },
+        });
+
+
+        return res.status(200).json({
+            success: true,
+            message: orderItem?.allowVendorToSee ? "Vendor can See order " : "Vendor can not see order",
+            data: {
+                orderItem: updatedData,
             },
         });
 

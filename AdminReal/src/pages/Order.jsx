@@ -8,6 +8,10 @@ import {
 import {
     fetchAllUsers
 } from '../redux/slices/adminUserSlice';
+import api from '../api/api';
+
+
+import ImagePreviewModal from '../components/imagePreview/ImagePreviewModal';
 
 const DELIVERY_STATUSES = [
     "PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY",
@@ -49,6 +53,41 @@ const Order = () => {
     const [filterVendorsLoading, setFilterVendorsLoading] = useState(true)
     const [filterUsers, setFilterUsers] = useState([])
     const [filterUsersLoading, setFilterUsersLoading] = useState(true)
+    const [selectedVendor, setSelectedVendor] = useState("");
+
+
+
+
+    const handleVendorChange = async (e, id) => {
+        const vendorId = Number(e.target.value);
+
+        const vendor = filterVendors.find(
+            (item) => item.id === vendorId
+        );
+
+        setSelectedVendor(vendor || null);
+
+        try {
+            const res = await api.patch(`/api/order/items/${id}/${vendor?.id}/changeVendor`);
+
+            if (res.data?.success) {
+                console.log("Vendor change successfully:", res.data);
+                dispatch(fetchAllOrder({ page, limit: 20, active, vendorId, userId, status, fromDate, toDate }));
+
+                // yahan apni list refresh/update kar sakte ho
+            }
+        } catch (error) {
+            console.error(
+                "Failed to change vendor allow:",
+                error?.response?.data || error.message
+            );
+        }
+
+        console.log("Selected Vendor:", vendor);
+
+        // Yahan apna API/function bhi call kar sakte ho
+        // handleChangeVendor(vendorId);
+    };
 
     // ---------- Filters ----------
     const [page, setPage] = useState(1);
@@ -62,6 +101,8 @@ const Order = () => {
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [statusDraft, setStatusDraft] = useState({}); // { [itemId]: newStatus }
     const [noteDraft, setNoteDraft] = useState({}); // { [itemId]: note }
+    const [showImage, setShowImage] = useState(false); // { [itemId]: note }
+    const [imageUrl, setImageUrl] = useState(""); // { [itemId]: note }
 
     // ---------- Vendors & Users dropdown (ek baar load - hasOrders=true wale hi aayenge) ----------
     useEffect(() => {
@@ -121,8 +162,38 @@ const Order = () => {
         }
     };
 
+    const handleOpenModel = (imageModel) => {
+        setShowImage(true)
+        setImageUrl(imageModel)
+    }
+
+    const handleCloseImagePreview = () => {
+        setShowImage(false)
+    }
+
+
+
+    const handleChnageVendorAllow = async (id) => {
+        try {
+            const res = await api.patch(`/api/order/items/${id}/toggleVendor`);
+
+            if (res.data?.success) {
+                console.log("Vendor allow updated:", res.data);
+                dispatch(fetchAllOrder({ page, limit: 20, active, vendorId, userId, status, fromDate, toDate }));
+
+                // yahan apni list refresh/update kar sakte ho
+            }
+        } catch (error) {
+            console.error(
+                "Failed to change vendor allow:",
+                error?.response?.data || error.message
+            );
+        }
+    };
+
     return (
         <main className="p-6 bg-gray-50 min-h-screen">
+            {showImage && <ImagePreviewModal image={imageUrl} onClose={handleCloseImagePreview} />}
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -369,6 +440,89 @@ const Order = () => {
                                                 </div>
                                             )}
 
+
+                                            {item?.variant && (
+                                                <div className="mt-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                                                        {/* Variant Details */}
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
+                                                                Variant
+                                                            </p>
+
+                                                            <h3 className="text-sm font-semibold text-gray-800">
+                                                                {item?.variant?.description || "No description available"}
+                                                            </h3>
+
+                                                            {/* Optional price/details */}
+                                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                                {item?.variant?.actualPrice && (
+                                                                    <span className="rounded-md bg-green-50 px-2 py-1 text-xs font-semibold text-green-700">
+                                                                        ₹{item.variant.actualPrice}
+                                                                    </span>
+                                                                )}
+
+                                                                {item?.variant?.stock !== undefined && (
+                                                                    <span className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                                                                        Stock: {item.variant.stock}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Images */}
+                                                        {item?.variant?.images?.length > 0 && (
+                                                            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                                                                {item.variant.images.map((img, index) => (
+                                                                    <div
+                                                                        key={img?.id || img?.imageId || index}
+                                                                        className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                                                                    >
+                                                                        <img
+                                                                            src={
+                                                                                img?.imageUrl ||
+                                                                                "https://via.placeholder.com/64"
+                                                                            }
+                                                                            alt={`Variant image ${index + 1}`}
+                                                                            onClick={() => handleOpenModel(img?.imageUrl)}
+                                                                            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-110"
+                                                                        />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <button className={`cursor-pointer rounded-2xl p-3 mt-1 text-white ${!item?.allowVendorToSee == 1 ? "bg-green-600" : "bg-red-600"}`} onClick={() => handleChnageVendorAllow(item?.id)}> {!item?.allowVendorToSee == 1 ? "Allow vendor" : "Not Allow Vendor"} </button>
+
+                                                    <div className="w-full max-w-sm">
+                                                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                                                            Select Vendor
+                                                        </label>
+
+                                                        <select
+                                                            value={selectedVendor}
+                                                            // onChange={(e) => setSelectedVendor(e.target.value)}
+                                                            onChange={(e) => handleVendorChange(e, item?.id)}
+
+                                                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                                        >
+                                                            <option value="">
+                                                                Select a vendor
+                                                            </option>
+
+                                                            {filterVendors?.map((vendor) => (
+                                                                <option key={vendor.id} value={vendor.id}>
+                                                                    {vendor.fullName}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+
+                                                </div>
+                                            )}
+
                                             {/* Status change controls */}
                                             <div className="flex flex-wrap items-center gap-2 mt-3">
                                                 <select
@@ -470,7 +624,7 @@ const Order = () => {
                 </div>
             </div>
         </main>
-    )
+    );
 }
 
 export default Order
