@@ -30,6 +30,7 @@ import adminUserRoutes from "./routes/admin/adminUser.routes.js";
 import notificationRouter from "./routes/notification/notificationRoutes.js";
 import vegetableRoutes from "./routes/vegetable.routes.js";
 import unitsRoutes from "./routes/units.routes.js";
+import shareRoutes from "./routes/share.routes.js";
 
 
 const app = express();
@@ -87,6 +88,9 @@ app.use("/api/analytics/session", sessionRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/units', unitsRoutes);
+
+// Share & App Links Landing Pages
+app.use("/", shareRoutes);
 
 
 

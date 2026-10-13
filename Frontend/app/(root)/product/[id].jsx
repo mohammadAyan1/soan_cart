@@ -238,10 +238,15 @@ export default function ProductDetailsScreen() {
                 return;
             }
 
-            const productLink = `sounkart://product/${product.id}`;
+            // Dynamic base URL: Abhi Render URL chalega, domain renew hone par sounkart.in
+            const shareBaseUrl =
+                process.env.EXPO_PUBLIC_SHARE_URL || "https://soan-cart-backend.onrender.com";
+
+            const productLink = `${shareBaseUrl}/product/${product.id}`;
+            const priceText = selectedVariant?.actualPrice ? ` for just ₹${selectedVariant.actualPrice}` : "";
 
             await Share.share({
-                message: `Check out ${product.productName}!\n\n${productLink}`,
+                message: `Check out ${product.productName}${priceText} on Sounkart!\n\n${productLink}`,
                 title: `Share ${product.productName}`,
             });
 
