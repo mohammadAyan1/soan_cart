@@ -210,15 +210,18 @@ shareRoutes.get("/product/:id", async (req, res) => {
                 <p class="desc">${escapeHtml(description)}</p>
 
                 <div class="cta-group">
-                    <a id="openAppBtn" href="${customSchemeUrl}" class="btn-primary" onclick="handleOpenApp(event)">
+                    <a id="openAppBtn" href="${androidIntentUrl}" class="btn-primary">
                         ⚡ Open in Sounkart App
+                    </a>
+                    <a href="${customSchemeUrl}" class="btn-secondary" style="font-size: 13px; color: #15803d; border-color: #86efac; background: #f0fdf4;">
+                        📲 Alternative: Open via App Scheme
                     </a>
                     <a href="${playStoreUrl}" class="btn-secondary">
                         🛍️ Get App on Google Play
                     </a>
                 </div>
 
-                <p class="redirect-notice" id="redirectNotice">Redirecting to Sounkart App...</p>
+                <p class="redirect-notice" id="redirectNotice">Opening Sounkart App...</p>
             </div>
         </div>
 
@@ -236,29 +239,38 @@ shareRoutes.get("/product/:id", async (req, res) => {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        function handleOpenApp(e) {
+        const openBtn = document.getElementById("openAppBtn");
+        if (openBtn) {
             if (isAndroid) {
-                if (e) e.preventDefault();
-                window.location.href = androidIntentUrl;
+                openBtn.href = androidIntentUrl;
             } else if (isIOS) {
-                if (e) e.preventDefault();
-                window.location.href = customSchemeUrl;
+                openBtn.href = customSchemeUrl;
+            } else {
+                openBtn.href = customSchemeUrl;
             }
         }
 
-        // Auto redirect if user opened via mobile browser
+        // Auto attempt navigation
         window.addEventListener("DOMContentLoaded", () => {
             if (isAndroid || isIOS) {
                 setTimeout(() => {
-                    handleOpenApp();
-                }, 400);
+                    try {
+                        if (isAndroid) {
+                            window.location.href = androidIntentUrl;
+                        } else {
+                            window.location.href = customSchemeUrl;
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }, 300);
 
                 setTimeout(() => {
                     const notice = document.getElementById("redirectNotice");
                     if (notice) {
-                        notice.textContent = "Tap 'Open in Sounkart App' if app didn't launch automatically.";
+                        notice.textContent = "Agar app open nahi hui toh upar '⚡ Open in Sounkart App' par click karein.";
                     }
-                }, 2500);
+                }, 2000);
             } else {
                 const notice = document.getElementById("redirectNotice");
                 if (notice) notice.style.display = "none";
