@@ -350,9 +350,12 @@ export default function Header({ autoFocus = false }) {
                         onPress={() => {
                             handleClear();
                             handleCallEvent();
-                            // isBackNaviagte ? router.push("/") : router.back();
-                            router.back()
                             Keyboard.dismiss();
+                            if (router.canGoBack()) {
+                                router.back();
+                            } else {
+                                router.replace("/(root)/(tabs)");
+                            }
                         }}
                         activeOpacity={0.7}
                         style={{

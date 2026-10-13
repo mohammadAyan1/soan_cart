@@ -24,7 +24,8 @@ import { Ionicons } from "@expo/vector-icons";
 import AddToCartButton from "../../../components/AddToCartButton";
 import { getDiscountPercent } from "../../../utils/priceUtils.js";
 import { fetchProductById } from "../../../redux/slices/productSlice.js";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import WishlistButton from "../../../components/WishlistButton.js"
 import Header from "../../../components/Header.js";
 
@@ -35,9 +36,9 @@ const { width, height } = Dimensions.get("window");
 
 export default function ProductDetailsScreen() {
     const dispatch = useDispatch();
+    const currentUser = useSelector((state) => state.auth?.user);
 
-
-    const { id } = useLocalSearchParams();
+    const { id, sharedBy, sharedByGuest, source } = useLocalSearchParams();
     const router = useRouter();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -65,16 +66,38 @@ export default function ProductDetailsScreen() {
 
 
     useEffect(() => {
-        // let previousScreen = getPreviousScreen()
-        // let currentScreen = getCurrentScreen()
+        const isFromShare = source === "share_link" || Boolean(sharedBy) || Boolean(sharedByGuest);
 
+        // Screen view event (with arrival source & sharer metadata)
         trackEvent({
             eventType: "SCREEN_VIEW",
             screen: "product_detail_page",
-            payload: { productId: id, }
-            // referrerScreen: previousScreen, // 👈 explicitly bhej diya
+            source: isFromShare ? "share_link" : "in_app",
+            productId: Number(id),
+            payload: {
+                productId: Number(id),
+                trafficSource: isFromShare ? "share_link" : "direct",
+                sharedByUserId: sharedBy ? Number(sharedBy) : null,
+                sharedByGuestId: sharedByGuest || null,
+            }
         });
-    }, []);
+
+        // Agar user share link pe click karke aaya hai, toh explicit PRODUCT_VIEW event trigger karo
+        if (isFromShare) {
+            trackEvent({
+                eventType: "PRODUCT_VIEW",
+                screen: "product_detail_page",
+                source: "share_link",
+                productId: Number(id),
+                payload: {
+                    productId: Number(id),
+                    sharedByUserId: sharedBy ? Number(sharedBy) : null,
+                    sharedByGuestId: sharedByGuest || null,
+                    arrivalChannel: "share_link",
+                }
+            });
+        }
+    }, [id, sharedBy, sharedByGuest, source]);
 
 
     const fetchProductDetails = async () => {
@@ -238,11 +261,38 @@ export default function ProductDetailsScreen() {
                 return;
             }
 
+            // Sharer Details: Logged-in user ka ID ya Guest user ka guestId
+            let sharerParam = "";
+            let sharerGuestId = null;
+
+            if (currentUser?.id) {
+                sharerParam = `sharedBy=${currentUser.id}`;
+            } else {
+                sharerGuestId = await AsyncStorage.getItem("guestId");
+                if (sharerGuestId) {
+                    sharerParam = `sharedByGuest=${encodeURIComponent(sharerGuestId)}`;
+                }
+            }
+
+            // Sharer ka event track karo
+            trackEvent({
+                eventType: "PRODUCT_SHARE",
+                screen: "product_detail_page",
+                productId: Number(product.id),
+                variantId: selectedVariant?.id ? Number(selectedVariant.id) : null,
+                source: "in_app_share",
+                payload: {
+                    sharerUserId: currentUser?.id || null,
+                    sharerGuestId: sharerGuestId || null,
+                }
+            });
+
             // Dynamic base URL: Abhi Render URL chalega, domain renew hone par sounkart.in
             const shareBaseUrl =
                 process.env.EXPO_PUBLIC_SHARE_URL || "https://soan-cart-backend.onrender.com";
 
-            const productLink = `${shareBaseUrl}/product/${product.id}`;
+            const queryParts = [sharerParam, "source=share_link"].filter(Boolean).join("&");
+            const productLink = `${shareBaseUrl}/product/${product.id}${queryParts ? `?${queryParts}` : ""}`;
             const priceText = selectedVariant?.actualPrice ? ` for just ₹${selectedVariant.actualPrice}` : "";
 
             await Share.share({

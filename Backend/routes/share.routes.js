@@ -116,9 +116,12 @@ shareRoutes.get("/product/:id", async (req, res) => {
         const pageUrl = `${protocol}://${currentHost}/product/${productId}`;
         const playStoreUrl = "https://play.google.com/store/apps/details?id=com.mohammadayan.Sounkart";
 
-        // Custom scheme & Android Intent link
-        const customSchemeUrl = `sounkart://product/${productId}`;
-        const androidIntentUrl = `intent://product/${productId}#Intent;scheme=sounkart;package=com.mohammadayan.Sounkart;end`;
+        const queryParams = new URLSearchParams(req.query).toString();
+        const querySuffix = queryParams ? `?${queryParams}` : "";
+
+        // Custom scheme & Android Intent link (with query params for referral tracking)
+        const customSchemeUrl = `sounkart://product/${productId}${querySuffix}`;
+        const androidIntentUrl = `intent://product/${productId}${querySuffix}#Intent;scheme=sounkart;package=com.mohammadayan.Sounkart;end`;
 
         const html = `
 <!DOCTYPE html>

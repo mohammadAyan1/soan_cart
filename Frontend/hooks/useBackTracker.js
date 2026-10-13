@@ -3,11 +3,11 @@ import { BackHandler } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { triggerScreenExit } from "@/utils/eventTracker";
 import { getAnalyticsScreen } from "@/components/Header"
-import { usePathname } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 
 export default function useBackTracker() {
     const pathname = usePathname();
-
+    const router = useRouter();
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -15,8 +15,6 @@ export default function useBackTracker() {
         const unsubscribeGesture = navigation.addListener(
             "gestureEnd",
             () => {
-
-                // useBackTracker.js
                 triggerScreenExit({
                     screen: getAnalyticsScreen(pathname),
                     source: "swipe_back",
@@ -28,13 +26,24 @@ export default function useBackTracker() {
         const hardwareSubscription = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
-
-
                 triggerScreenExit({
                     screen: getAnalyticsScreen(pathname),
                     source: "hardware_back",
                 });
-                return false; // back ko continue hone do
+
+                if (router.canGoBack()) {
+                    router.back();
+                    return true; // handled
+                }
+
+                // Agar app direct deep link se open hui hai aur history stack empty hai
+                const isHomeScreen = pathname === "/" || pathname === "/(root)/(tabs)" || pathname === "/index";
+                if (!isHomeScreen) {
+                    router.replace("/(root)/(tabs)");
+                    return true; // handled: navigates to home instead of crashing
+                }
+
+                return false; // Already on home screen, let Android exit normally
             }
         );
 
@@ -42,5 +51,5 @@ export default function useBackTracker() {
             unsubscribeGesture();
             hardwareSubscription.remove();
         };
-    }, [navigation]);
+    }, [navigation, pathname, router]);
 }

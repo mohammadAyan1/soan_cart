@@ -320,7 +320,7 @@ export default function WishlistScreen() {
             {/* Header */}
             <View className="bg-white px-4 py-3 flex-row items-center justify-between border-b border-gray-100">
                 <View className="flex-row items-center gap-3">
-                    <TouchableOpacity onPress={() => router.back()} className="p-1" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(root)/(tabs)")} className="p-1" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <ArrowLeft size={22} color="#111827" />
                     </TouchableOpacity>
                     <Text className="text-lg font-bold text-gray-900">

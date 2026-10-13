@@ -535,7 +535,7 @@ export default function CategoryDetailScreen() {
                 borderBottomWidth: 1,
                 borderBottomColor: '#EEF1F4'
             }}>
-                <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace("/(root)/(tabs)")} style={{ padding: 4 }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Ionicons name="chevron-back" size={24} color="#1A1D23" />
                 </TouchableOpacity>
                 <Text style={{ fontSize: 17, fontWeight: '700', color: '#1A1D23' }}>
