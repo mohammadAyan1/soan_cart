@@ -117,7 +117,8 @@ export const mergeGuestWishlist = createAsyncThunk(
         try {
             const headers = await getHeaders();
             await api.post("/api/wishlist/merge", {}, { headers });
-            await AsyncStorage.removeItem("guestId");
+            // guestId ko permanent rakha gaya hai - phone se delete nahi karna
+            // await AsyncStorage.removeItem("guestId");
             return await fetchWishlistData();
         } catch (error) {
             return rejectWithValue(

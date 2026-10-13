@@ -28,9 +28,10 @@ export const loginUser = createAsyncThunk(
                 await AsyncStorage.setItem("sessionId", res.data.sessionId);
             }
 
-            if (res.data.guestCartMerged) {
-                await AsyncStorage.removeItem("guestId");
-            }
+            // guestId ko permanent rakha gaya hai - jab tak user app cache/storage clear na kare tab tak delete nahi hoga
+            // if (res.data.guestCartMerged) {
+            //     await AsyncStorage.removeItem("guestId");
+            // }
 
             return res.data;
         } catch (error) {

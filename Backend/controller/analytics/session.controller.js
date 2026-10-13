@@ -15,33 +15,9 @@ export const startSession = async (req, res) => {
 
 
         if (!req.user?.id) {
-            guestId = req.headers["x-guest-id"];
-
-            while (true) {
-                // Agar guestId nahi hai to naya generate karo
-                if (!guestId) {
-                    guestId = uuidv4();
-                }
-
-                const cart = await prisma.cart.findUnique({
-                    where: { guestId }
-                });
-
-                console.log("ASDFG", guestId);
-
-
-                // Agar guestId available hai
-                if (!cart) {
-                    break;
-                }
-
-                // Already exist karta hai, isliye naya UUID generate karo
-                guestId = uuidv4();
-
-                console.log('====================================');
-                console.log(guestId);
-                console.log('====================================');
-            }
+            // Agar client ke paas pehle se guestId hai toh hamesha wahi reuse karo
+            // Sirf tab naya generate karo jab client ne header me na bheja ho
+            guestId = req.headers["x-guest-id"] || uuidv4();
         }
 
         const result = await sessionService.startSession({

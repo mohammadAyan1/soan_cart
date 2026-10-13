@@ -138,9 +138,9 @@ export const mergeGuestCart = createAsyncThunk(
         try {
             const headers = await getHeaders();
             await api.post("/api/cartItem/merge", {}, { headers });
-            // After merge, remove guestId and fetch the merged cart
-            await AsyncStorage.removeItem("guestId");
-            return await fetchCartData(); // will not send guestId
+            // guestId ko permanent rakha gaya hai - phone se delete nahi karna
+            // await AsyncStorage.removeItem("guestId");
+            return await fetchCartData();
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message || "Failed to merge guest cart"
