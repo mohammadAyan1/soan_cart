@@ -472,10 +472,10 @@ export default function ProductDetailsScreen() {
                     {/* ---------- Seller info ---------- */}
                     {product.user && (
                         <View className="flex-row items-center mt-4 mb-24">
-                            <Ionicons name="storefront-outline" size={16} color="#6B7280" />
-                            <Text className="text-[12px] text-gray-500 ml-1.5">
+                            {/* <Ionicons name="storefront-outline" size={16} color="#6B7280" /> */}
+                            {/* <Text className="text-[12px] text-gray-500 ml-1.5">
                                 Sold by {product.user.fullName}
-                            </Text>
+                            </Text> */}
                         </View>
                     )}
                 </View>

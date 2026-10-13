@@ -7,6 +7,8 @@ import categorySlice from "./slices/categorySlice"
 import subCategorySlice from "./slices/subCategorySlice"
 import orderSlice from "./slices/orderSlice"
 import dashboardSlice from "./slices/dashboardSlice"
+import unitSlice from "./slices/unitSlice"
+import vegetableReducer from "./slices/vegetableSlice"
 export const store = configureStore({
     reducer: {
         auth: authReducer,
@@ -15,6 +17,8 @@ export const store = configureStore({
         category: categorySlice,
         subCategory: subCategorySlice,
         order: orderSlice,
-        dashboard: dashboardSlice
+        dashboard: dashboardSlice,
+        unit: unitSlice,
+        vegetable: vegetableReducer
     },
 });

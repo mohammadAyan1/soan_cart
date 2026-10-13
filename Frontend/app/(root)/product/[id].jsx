@@ -14,6 +14,9 @@ import {
     RefreshControl,
     Modal,
     StatusBar,
+    Share,
+    TouchableOpacity,
+    Alert
 } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -24,6 +27,7 @@ import { fetchProductById } from "../../../redux/slices/productSlice.js";
 import { useDispatch } from "react-redux";
 import WishlistButton from "../../../components/WishlistButton.js"
 import Header from "../../../components/Header.js";
+
 
 import { trackEvent, triggerScreenExit } from "../../../utils/eventTracker.js";
 
@@ -227,6 +231,26 @@ export default function ProductDetailsScreen() {
 
 
 
+    const handleShare = async () => {
+        try {
+            if (!product?.id) {
+                Alert.alert("Error", "Product not found");
+                return;
+            }
+
+            const productLink = `sounkart://product/${product.id}`;
+
+            await Share.share({
+                message: `Check out ${product.productName}!\n\n${productLink}`,
+                title: `Share ${product.productName}`,
+            });
+
+        } catch (error) {
+            console.error("Share error:", error);
+            Alert.alert("Error", "Unable to share this product.");
+        }
+    };
+
     return (
         <View className="flex-1 bg-white">
             <Header />
@@ -238,6 +262,38 @@ export default function ProductDetailsScreen() {
                 }
             >
                 <WishlistButton productId={product?.id} variantId={selectedVariant?.id} />
+
+
+
+
+                <Pressable
+                    onPress={handleShare}
+                    style={{
+                        position: "absolute",
+                        top: 50,
+                        right: 8,
+                        zIndex: 10,
+                        width: 30,
+                        height: 30,
+                        borderRadius: 21,
+                        backgroundColor: "#FFFFFF",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        elevation: 4,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.15,
+                        shadowRadius: 4,
+                    }}
+                >
+                    <Ionicons
+                        name="share-social-outline"
+                        size={23}
+                        color="#111827"
+                    />
+                </Pressable>
+
+
                 {/* <Image
                     source={{ uri: images[selectedImageIndex]?.imageUrl }}
                     style={{ width, height: 340 }}
@@ -254,7 +310,7 @@ export default function ProductDetailsScreen() {
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
-                    keyExtractor={(img) => `main-${img.id}`}
+                    keyExtractor={(img) => `main - ${img.id} `}
                     initialScrollIndex={selectedImageIndex}
                     getItemLayout={(_, index) => ({
                         length: width,
@@ -294,7 +350,7 @@ export default function ProductDetailsScreen() {
                                 >
                                     <View
                                         className={`rounded-xl overflow-hidden ${isActive ? "border-2 border-green-600" : "border border-gray-200"
-                                            }`}
+                                            } `}
                                     >
                                         {/* 👆 UPDATED — active thumbnail ka border ab distinct
                                             green color ka hai (pehle black tha), taaki user ko
@@ -324,7 +380,7 @@ export default function ProductDetailsScreen() {
                         <Text className="text-[11px] text-gray-400 uppercase tracking-wide mb-1">
                             {product.category.productCategoryName}
                             {product.subCategory
-                                ? ` • ${product.subCategory.productSubCategoryName}`
+                                ? ` • ${product.subCategory.productSubCategoryName} `
                                 : ""}
                         </Text>
                     )}
@@ -359,10 +415,10 @@ export default function ProductDetailsScreen() {
 
                     <Text
                         className={`text-[12px] mt-1 font-medium ${selectedVariant.stock > 0 ? "text-green-600" : "text-red-500"
-                            }`}
+                            } `}
                     >
                         {selectedVariant.stock > 0
-                            ? `In Stock (${selectedVariant.stock} available)`
+                            ? `In Stock(${selectedVariant.stock} available)`
                             : "Out of Stock"}
                     </Text>
 
@@ -373,7 +429,7 @@ export default function ProductDetailsScreen() {
                             <Text className="text-[13px] font-semibold text-gray-800 mb-2">
                                 Select Variant
                                 {selectedVariant.attributes?.color
-                                    ? `: ${selectedVariant.attributes.color}`
+                                    ? `: ${selectedVariant.attributes.color} `
                                     : ""}
                             </Text>
 
@@ -390,7 +446,7 @@ export default function ProductDetailsScreen() {
                                             className={`rounded-xl overflow-hidden ${isSelected
                                                 ? "border-2 border-black"
                                                 : "border border-gray-200"
-                                                }`}
+                                                } `}
                                         >
                                             {/* <Image
                                                 source={{ uri: thumb }}
@@ -425,18 +481,18 @@ export default function ProductDetailsScreen() {
                                     const label =
                                         variant.attributes?.color ||
                                         variant.description ||
-                                        `Variant ${variant.id}`;
+                                        `Variant ${variant.id} `;
 
                                     return (
                                         <Pressable
                                             key={variant.id}
                                             onPress={() => handleVariantSelect(variant)}
                                             className={`px-3 py-1.5 rounded-full ${isSelected ? "bg-black" : "bg-gray-100"
-                                                }`}
+                                                } `}
                                         >
                                             <Text
                                                 className={`text-[12px] font-medium ${isSelected ? "text-white" : "text-gray-700"
-                                                    }`}
+                                                    } `}
                                             >
                                                 {label}
                                             </Text>
@@ -458,10 +514,10 @@ export default function ProductDetailsScreen() {
 
                     {product.user && (
                         <View className="flex-row items-center mt-4 mb-24">
-                            <Ionicons name="storefront-outline" size={16} color="#6B7280" />
-                            <Text className="text-[12px] text-gray-500 ml-1.5">
+                            {/* <Ionicons name="storefront-outline" size={16} color="#6B7280" /> */}
+                            {/* <Text className="text-[12px] text-gray-500 ml-1.5">
                                 Sold by {product.user.fullName}
-                            </Text>
+                            </Text> */}
                         </View>
                     )}
                 </View>
@@ -490,7 +546,7 @@ export default function ProductDetailsScreen() {
                     onPress={handleBuyNow}
                     disabled={selectedVariant.stock === 0}
                     className={`flex-1 ml-2 mt-2.5 rounded-xl py-2.5 items-center justify-center ${selectedVariant.stock === 0 ? "bg-gray-300" : "bg-black"
-                        }`}
+                        } `}
                 >
                     <Text className="text-white font-semibold text-[14px]">Buy Now</Text>
                 </Pressable>
@@ -529,7 +585,7 @@ export default function ProductDetailsScreen() {
                         horizontal
                         pagingEnabled
                         showsHorizontalScrollIndicator={false}
-                        keyExtractor={(img) => `viewer-${img.id}`}
+                        keyExtractor={(img) => `viewer - ${img.id} `}
                         initialScrollIndex={viewerIndex}
                         getItemLayout={(_, index) => ({
                             length: width,

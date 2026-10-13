@@ -131,6 +131,7 @@ model ProductCategory {
   products            Product[]
   user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   subCategories       ProductSubCategory[]
+  vegetableProducts   VegetableProduct[]
 
   @@index([userId], map: "ProductCategory_userId_fkey")
 }
@@ -149,6 +150,8 @@ model ProductSubCategory {
   products               Product[]
   category               ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  vegetableProducts VegetableProduct[]
 
   @@unique([categoryId, productSubCategoryName])
   @@index([userId], map: "ProductSubCategory_userId_fkey")
@@ -306,7 +309,7 @@ model OrderItem {
   vendor               User                     @relation("VendorOrderItems", fields: [vendorId], references: [id])
   statusHistory        OrderItemStatusHistory[]
   review               Review?
-  vendorChanges        orderItemVendorChange[]   // 👈 naya opposite relation
+  vendorChanges        orderItemVendorChange[] // 👈 naya opposite relation
 
   @@index([orderId], map: "OrderItem_orderId_fkey")
   @@index([productId], map: "OrderItem_productId_fkey")
@@ -500,7 +503,7 @@ model GuestConversion {
   userCartId                Int?
   userWishlistId            Int?
   triggerType               MergeTriggerType @default(AUTO)
-  mergeReason                String?          @db.Text
+  mergeReason               String?          @db.Text
   cartItemsMergedCount      Int              @default(0)
   cartItemsSkippedCount     Int              @default(0)
   wishlistItemsMergedCount  Int              @default(0)
@@ -720,4 +723,55 @@ model orderItemVendorChange {
   adminSelectedVendor User      @relation("AdminSelectedVendor", fields: [AdminSelectedVendor], references: [id])
 
   @@index([orderItemId], map: "orderItemVendorChange_orderItemId_fkey")
+}
+
+model Unit {
+  id        Int    @id @default(autoincrement())
+  name      String @unique
+  shortName String @unique
+
+  isDelete Boolean @default(false)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vegetableProducts VegetableProduct[]
+
+  @@index([isDelete])
+  @@index([isActive])
+}
+
+model VegetableProduct {
+  id          Int    @id @default(autoincrement())
+  productName String
+
+  description String? @db.Text
+  tags        Json?
+
+  categoryId    Int
+  subCategoryId Int
+  unitId        Int
+
+  imageUrl String? @db.Text
+  imageId  String?
+
+  price Decimal @db.Decimal(10, 2)
+
+  isDelete Boolean @default(false)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  category    ProductCategory    @relation(fields: [categoryId], references: [id])
+  subCategory ProductSubCategory @relation(fields: [subCategoryId], references: [id])
+  unit        Unit               @relation(fields: [unitId], references: [id])
+
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([unitId])
+  @@index([isDelete])
+  @@index([isActive])
 }

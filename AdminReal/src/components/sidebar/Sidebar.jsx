@@ -6,7 +6,9 @@ import {
     LayoutDashboard,
     Users,
     FolderTree,
-    Tags
+    Tags,
+    Carrot,
+    Weight
 } from "lucide-react";
 
 function DashboardLayout() {
@@ -135,6 +137,35 @@ function DashboardLayout() {
                             </span>
                         )}
                     </Link>
+
+
+                    <Link
+                        to="/vegetable"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+                    >
+                        <Carrot size={20} />
+
+                        {isOpen && (
+                            <span>
+                                Vegetable
+                            </span>
+                        )}
+                    </Link>
+
+
+                    <Link
+                        to="/unit"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+                    >
+                        <Weight size={20} />
+
+                        {isOpen && (
+                            <span>
+                                Unit
+                            </span>
+                        )}
+                    </Link>
+
 
                 </nav>
 

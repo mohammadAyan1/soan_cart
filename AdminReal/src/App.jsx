@@ -10,6 +10,8 @@ import Product from "./pages/Product";
 import UpdateProduct from "./pages/UpdateProduct";
 import Category from "./pages/Category";
 import SubCategory from "./pages/SubCategory";
+import VegetableProduct from "./pages/VegetableProduct";
+import Unit from "./pages/Unit";
 
 function App() {
 
@@ -55,6 +57,20 @@ function App() {
           path="login"
           element={<Login />}
         />
+
+
+
+        <Route
+          path="vegetable"
+          element={<VegetableProduct />}
+        />
+
+
+        <Route
+          path="unit"
+          element={<Unit />}
+        />
+
       </Route>
     </Routes>
 

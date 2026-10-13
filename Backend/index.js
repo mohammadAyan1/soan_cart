@@ -28,6 +28,8 @@ import adminUserRoutes from "./routes/admin/adminUser.routes.js";
 
 
 import notificationRouter from "./routes/notification/notificationRoutes.js";
+import vegetableRoutes from "./routes/vegetable.routes.js";
+import unitsRoutes from "./routes/units.routes.js";
 
 
 const app = express();
@@ -71,6 +73,7 @@ app.use("/api/admin", adminUserRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes); // 👈 NAYA
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productRouter);
+app.use('/api/vegetable', vegetableRoutes);
 app.use("/api/product-category", productCategoryRoutes);
 app.use("/api/product-sub-category", productSubCategoryRoutes);
 app.use("/api/cartItem", cartRoutes);
@@ -83,6 +86,7 @@ app.use("/api/sessions", sessionDeviceRoutes);
 app.use("/api/analytics/session", sessionRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use('/api/notifications', notificationRouter);
+app.use('/api/units', unitsRoutes);
 
 
 
