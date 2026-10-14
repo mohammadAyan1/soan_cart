@@ -82,7 +82,7 @@ function DashboardLayout() {
                         )}
                     </Link>
 
-
+{/* 
                     <Link
                         to="/orders"
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
@@ -94,7 +94,7 @@ function DashboardLayout() {
                                 Orders
                             </span>
                         )}
-                    </Link>
+                    </Link> */}
 
 
                     <Link
@@ -139,7 +139,7 @@ function DashboardLayout() {
                     </Link>
 
 
-                    <Link
+                    {/* <Link
                         to="/vegetable"
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
                     >
@@ -150,10 +150,10 @@ function DashboardLayout() {
                                 Vegetable
                             </span>
                         )}
-                    </Link>
+                    </Link> */}
 
 
-                    <Link
+                    {/* <Link
                         to="/unit"
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
                     >
@@ -164,7 +164,7 @@ function DashboardLayout() {
                                 Unit
                             </span>
                         )}
-                    </Link>
+                    </Link> */}
 
 
                 </nav>
