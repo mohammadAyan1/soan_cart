@@ -70,7 +70,7 @@ export default function SearchScreen() {
     // ==========================================================
     const ProductCard = ({ item }) => {
         const variant = item.variants?.[0];
-        const image = variant?.images?.[0]?.imageUrl;
+        const image = variant?.images?.[0]?.imageUrl || item.imageUrl;
 
         return (
             <TouchableOpacity

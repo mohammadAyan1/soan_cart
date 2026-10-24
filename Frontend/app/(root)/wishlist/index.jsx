@@ -199,17 +199,31 @@ import {
     Text,
     FlatList,
     TouchableOpacity,
+    Image,
     RefreshControl,
     ActivityIndicator,
     Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
+import { useFocusEffect } from "@react-navigation/native";
 import { Heart, ArrowLeft, Trash2, X, HeartOff } from "lucide-react-native";
 import { fetchWishlist, removeWishlistItem, clearWishlist } from "@/redux/slices/wishlistSlice";
 import WishlistSkeleton from "@/components/skeleton/WishlistSkeleton";
-import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const getCleanImageUrl = (url) => {
+    if (!url || typeof url !== "string") return null;
+    let clean = url.trim();
+    if (!clean) return null;
+    if (clean.startsWith("http://")) {
+        clean = clean.replace("http://", "https://");
+    }
+    if (clean.includes("cloudinary.com") && clean.endsWith(".avif")) {
+        clean = clean.replace(/\.avif$/, ".jpg");
+    }
+    return clean;
+};
 
 // ==================================================================
 // Ek product card
@@ -218,6 +232,14 @@ function WishlistCard({ item }) {
     const dispatch = useDispatch();
     const removingVariantId = useSelector((state) => state.wishlist.removingVariantId);
     const isRemoving = removingVariantId === item.variantId;
+    const [imageError, setImageError] = useState(false);
+
+    const rawUrl = item?.productImage || item?.variant?.images?.[0]?.imageUrl || item?.product?.imageUrl;
+    const validImageUrl = getCleanImageUrl(rawUrl);
+
+    useEffect(() => {
+        setImageError(false);
+    }, [validImageUrl]);
 
     const handleRemove = () => {
         dispatch(removeWishlistItem(item.variantId));
@@ -225,14 +247,20 @@ function WishlistCard({ item }) {
 
     return (
         <View className="w-[48%] bg-white rounded-xl overflow-hidden mb-3">
-            <View className="w-full aspect-square bg-gray-100">
-                <Image
-                    source={item.productImage}
-                    className="w-full h-full"
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    resizeMode="cover"
-                />
+            <View className="w-full aspect-square bg-gray-100 overflow-hidden items-center justify-center">
+                {validImageUrl && !imageError ? (
+                    <Image
+                        source={{ uri: validImageUrl }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                        onError={() => setImageError(true)}
+                    />
+                ) : (
+                    <View className="w-full h-full items-center justify-center bg-gray-50">
+                        <HeartOff size={28} color="#D1D5DB" />
+                        <Text className="text-[10px] text-gray-400 mt-1 font-medium">No Image</Text>
+                    </View>
+                )}
 
                 {/* Remove button */}
                 <TouchableOpacity

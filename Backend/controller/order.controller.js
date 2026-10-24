@@ -79,9 +79,17 @@ export const checkoutFromCart = async (req, res) => {
         );
 
         const order = await prisma.$transaction(async (tx) => {
+            const maxInvoiceOrder = await tx.order.findFirst({
+                where: { invoiceNumber: { not: null } },
+                orderBy: { invoiceNumber: "desc" },
+                select: { invoiceNumber: true },
+            });
+            const nextInvoiceNumber = (maxInvoiceOrder?.invoiceNumber || 0) + 1;
+
             const newOrder = await tx.order.create({
                 data: {
                     orderNumber: generateOrderNumber(),
+                    invoiceNumber: nextInvoiceNumber,
                     userId,
                     totalAmount,
                     paymentStatus: PaymentStatus.PENDING,
@@ -250,9 +258,17 @@ export const checkoutSingleProduct = async (req, res) => {
         const order = await prisma.$transaction(async (tx) => {
             const wasInWishlist = await checkWasInWishlist(tx, userId, variant.id);
 
+            const maxInvoiceOrder = await tx.order.findFirst({
+                where: { invoiceNumber: { not: null } },
+                orderBy: { invoiceNumber: "desc" },
+                select: { invoiceNumber: true },
+            });
+            const nextInvoiceNumber = (maxInvoiceOrder?.invoiceNumber || 0) + 1;
+
             const newOrder = await tx.order.create({
                 data: {
                     orderNumber: generateOrderNumber(),
+                    invoiceNumber: nextInvoiceNumber,
                     userId,
                     totalAmount,
                     paymentStatus: PaymentStatus.PENDING,
@@ -764,6 +780,7 @@ export const getAllOrdersAdmin = async (req, res) => {
 
             return {
                 ...order,
+                invoiceNumber: order.invoiceNumber || order.id,
                 items: itemsWithProfit,
                 orderSummary: {
                     actualTotal: Number(orderActualTotal.toFixed(2)),
@@ -1108,3 +1125,53 @@ export const toggleVendor = async (req, res) => {
         });
     }
 };
+
+export const toggleOrderDeleteAdmin = async (req, res) => {
+    try {
+        const { role } = req.user;
+        if (role !== "ADMIN") {
+            return res.status(403).json({
+                success: false,
+                message: "Only admin can update order status",
+            });
+        }
+
+        const orderId = Number(req.params.orderId);
+        if (!orderId || isNaN(orderId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Valid order ID is required",
+            });
+        }
+
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+
+        const newStatus = !order.isDelete;
+        const updatedOrder = await prisma.order.update({
+            where: { id: orderId },
+            data: { isDelete: newStatus },
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: newStatus ? "Order successfully marked as Inactive (Deleted)" : "Order successfully Restored (Active)",
+            data: updatedOrder,
+        });
+    } catch (error) {
+        console.error("toggleOrderDeleteAdmin error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+            error: error.message,
+        });
+    }
+};

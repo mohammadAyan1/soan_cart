@@ -220,9 +220,12 @@ export default function ProductDetailsScreen() {
     }
 
     const variants = product.variants || [];
-    const images = selectedVariant.images?.length
+    const rawImages = selectedVariant?.images?.length
         ? selectedVariant.images
-        : [{ id: "placeholder", imageUrl: product.imageUrl }];
+        : (product.imageUrl ? [{ id: "prod_img", imageUrl: product.imageUrl }] : []);
+    const images = rawImages.length > 0
+        ? rawImages
+        : [{ id: "placeholder", imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600" }];
 
     const discount = getDiscountPercent(
         selectedVariant.mrp,
@@ -440,11 +443,17 @@ export default function ProductDetailsScreen() {
                         </Text>
                     )}
 
-                    <Text className="text-[19px] font-bold text-gray-900 leading-6">
+                    {/* <Text className="text-[19px] font-bold text-gray-900 leading-6">
                         {product.productName}
                     </Text>
 
                     <Text className="text-[13px] text-gray-500 mt-1">
+                        {selectedVariant.description}
+                    </Text> */}
+
+
+
+                    <Text className="text-[19px] font-bold text-gray-900 leading-6">
                         {selectedVariant.description}
                     </Text>
 
@@ -555,8 +564,9 @@ export default function ProductDetailsScreen() {
                                     );
                                 })}
                             </View>
-                        </View>
-                    )}
+                        </View >
+                    )
+                    }
 
                     <View className="h-[1px] bg-gray-100 mb-4" />
 
@@ -567,16 +577,18 @@ export default function ProductDetailsScreen() {
                         {product.description}
                     </Text>
 
-                    {product.user && (
-                        <View className="flex-row items-center mt-4 mb-24">
-                            {/* <Ionicons name="storefront-outline" size={16} color="#6B7280" /> */}
-                            {/* <Text className="text-[12px] text-gray-500 ml-1.5">
+                    {
+                        product.user && (
+                            <View className="flex-row items-center mt-4 mb-24">
+                                {/* <Ionicons name="storefront-outline" size={16} color="#6B7280" /> */}
+                                {/* <Text className="text-[12px] text-gray-500 ml-1.5">
                                 Sold by {product.user.fullName}
                             </Text> */}
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
+                            </View>
+                        )
+                    }
+                </View >
+            </ScrollView >
 
             <View
                 className="flex-row items-center px-4 py-3 pb-8 bg-white border-t border-gray-100"
@@ -661,6 +673,6 @@ export default function ProductDetailsScreen() {
                     />
                 </View>
             </Modal>
-        </View>
+        </View >
     );
 }

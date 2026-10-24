@@ -335,14 +335,21 @@ export default function ProductDetailsScreen() {
                     )}
 
                     {/* ---------- Product Name ---------- */}
-                    <Text className="text-[19px] font-bold text-gray-900 leading-6">
+                    {/* <Text className="text-[19px] font-bold text-gray-900 leading-6">
                         {product.productName}
-                    </Text>
+                    </Text> */}
 
                     {/* ---------- Selected Variant Description ---------- */}
-                    <Text className="text-[13px] text-gray-500 mt-1">
+                    {/* <Text className="text-[13px] text-gray-500 mt-1">
+                        {selectedVariant.description}
+                    </Text> */}
+
+
+
+                    <Text className="text-[19px] font-bold text-gray-900 leading-6">
                         {selectedVariant.description}
                     </Text>
+
 
                     {/* ---------- Price Section (selected variant ke hisab se) ---------- */}
                     <View className="flex-row items-center mt-3 flex-wrap gap-2">

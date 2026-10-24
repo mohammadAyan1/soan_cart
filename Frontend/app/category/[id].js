@@ -453,7 +453,7 @@ export default function CategoryDetailScreen() {
 
     const renderProductCard = ({ item }) => {
         const variant = item.variants?.[0];
-        const image = variant?.images?.[0]?.imageUrl;
+        const image = variant?.images?.[0]?.imageUrl || item.imageUrl;
 
         return (
             <TouchableOpacity

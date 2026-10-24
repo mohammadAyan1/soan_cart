@@ -1,7 +1,8 @@
 
 // components/CartItemCard.jsx
 
-import { View, Text, TouchableOpacity, Pressable, Image } from "react-native"; // 👈 Pressable import karo
+import { useState } from "react";
+import { View, Text, TouchableOpacity, Pressable, Image } from "react-native";
 import { useDispatch } from "react-redux";
 import {
     increaseQuantity,
@@ -11,16 +12,16 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { trackEvent, triggerScreenExit } from "@/utils/eventTracker";
-// import { Image } from "expo-image";
+
 export default function CartItemCard({ item }) {
     const dispatch = useDispatch();
     const router = useRouter();
+    const [imageError, setImageError] = useState(false);
 
     const {
         productId,
         variantId,
         productName = "Product",
-        productImage = "https://via.placeholder.com/100",
         quantity = 1,
         actualPrice = 0,
         mrp = 0,
@@ -31,6 +32,11 @@ export default function CartItemCard({ item }) {
         cart,
         cartItemId
     } = item;
+
+    const rawUrl = item.productImage || item.variant?.images?.[0]?.imageUrl || item.product?.imageUrl;
+    const validImageUrl = rawUrl
+        ? (rawUrl.startsWith("http://") ? rawUrl.replace("http://", "https://") : rawUrl)
+        : null;
 
     const totalMrp = mrp * quantity;
     const hasDiscount = showMrp && mrp > actualPrice;
@@ -96,13 +102,20 @@ export default function CartItemCard({ item }) {
             }}
         >
             {/* Product image */}
-            <View className="relative">
-                <Image
-                    source={{ uri: productImage }}
-                    className="w-24 h-24 rounded-xl bg-gray-100"
-                    resizeMode="cover"
-                />
-
+            <View className="relative w-24 h-24 rounded-xl bg-gray-100 overflow-hidden items-center justify-center">
+                {validImageUrl && !imageError ? (
+                    <Image
+                        source={{ uri: validImageUrl }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                        onError={() => setImageError(true)}
+                    />
+                ) : (
+                    <View className="w-full h-full items-center justify-center bg-gray-50">
+                        <Ionicons name="cart-outline" size={30} color="#D1D5DB" />
+                        <Text className="text-[9px] text-gray-400 mt-1 font-medium">No Image</Text>
+                    </View>
+                )}
 
                 {discountPercent > 0 && (
                     <View className="absolute top-1 left-1 bg-green-600 px-1.5 py-0.5 rounded-md">

@@ -12,6 +12,7 @@ import api from '../api/api';
 
 
 import ImagePreviewModal from '../components/imagePreview/ImagePreviewModal';
+import OrderInvoiceModal from '../components/invoice/OrderInvoiceModal';
 
 const DELIVERY_STATUSES = [
     "PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "OUT_FOR_DELIVERY",
@@ -103,6 +104,7 @@ const Order = () => {
     const [noteDraft, setNoteDraft] = useState({}); // { [itemId]: note }
     const [showImage, setShowImage] = useState(false); // { [itemId]: note }
     const [imageUrl, setImageUrl] = useState(""); // { [itemId]: note }
+    const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState(null);
 
     // ---------- Vendors & Users dropdown (ek baar load - hasOrders=true wale hi aayenge) ----------
     useEffect(() => {
@@ -191,9 +193,33 @@ const Order = () => {
         }
     };
 
+    const handleToggleOrderDelete = async (orderId, currentIsDelete) => {
+        const confirmMessage = currentIsDelete
+            ? "Kya aap is order ko wapas ACTIVE karna chahte hain?"
+            : "Kya aap is order ko INACTIVE (Delete) karna chahte hain?";
+
+        if (!window.confirm(confirmMessage)) return;
+
+        try {
+            const res = await api.patch(`/api/order/admin/${orderId}/toggle-delete`);
+            if (res.data?.success) {
+                refetchOrders();
+            }
+        } catch (error) {
+            console.error("Failed to toggle order active status:", error);
+            alert(error?.response?.data?.message || "Order status change karne me error aaya");
+        }
+    };
+
     return (
         <main className="p-6 bg-gray-50 min-h-screen">
             {showImage && <ImagePreviewModal image={imageUrl} onClose={handleCloseImagePreview} />}
+            {selectedInvoiceOrder && (
+                <OrderInvoiceModal
+                    order={selectedInvoiceOrder}
+                    onClose={() => setSelectedInvoiceOrder(null)}
+                />
+            )}
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -345,13 +371,18 @@ const Order = () => {
                     {!loading && orders?.map((order) => (
                         <div key={order.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
                             {/* Order summary row */}
-                            <button
+                            <div
                                 onClick={() => toggleExpand(order.id)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition text-left"
+                                className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition text-left cursor-pointer"
                             >
                                 <div className="flex items-center gap-4">
                                     <div>
-                                        <p className="font-semibold text-gray-800">#{order.orderNumber}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-gray-800">#{order.orderNumber}</p>
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold border border-gray-200">
+                                                Inv #{order.invoiceNumber || order.id}
+                                            </span>
+                                        </div>
                                         <p className="text-xs text-gray-400">
                                             {new Date(order.createdAt).toLocaleDateString("en-IN", {
                                                 day: "2-digit", month: "short", year: "numeric",
@@ -364,7 +395,7 @@ const Order = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3">
                                     {/* 👇 NAYA - is order ka profit, price ke bagal me */}
                                     <div className="text-right">
                                         <span className="text-sm font-semibold text-gray-800">₹{order.totalAmount}</span>
@@ -380,17 +411,60 @@ const Order = () => {
                                     <span className="text-xs text-gray-400">
                                         {order.items?.length || 0} item(s)
                                     </span>
-                                    <span className="text-gray-400">
+
+                                    {/* 👇 Print Bill Button */}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedInvoiceOrder(order);
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition active:scale-95 shadow-xs"
+                                        title="Print Tax Invoice / Bill"
+                                    >
+                                        <span>🧾</span>
+                                        <span>Print Bill</span>
+                                    </button>
+
+                                    {/* 👇 Inactive / Active Toggle Button */}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleToggleOrderDelete(order.id, order.isDelete);
+                                        }}
+                                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition border active:scale-95 ${
+                                            order.isDelete
+                                                ? "bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                                                : "bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                                        }`}
+                                        title={order.isDelete ? "Order ko wapas Active karo" : "Order ko Inactive (Delete) karo"}
+                                    >
+                                        <span>{order.isDelete ? "♻️" : "🗑️"}</span>
+                                        <span>{order.isDelete ? "Active" : "Inactive"}</span>
+                                    </button>
+
+                                    <span className="text-gray-400 pl-1">
                                         {expandedOrderId === order.id ? "▲" : "▼"}
                                     </span>
                                 </div>
-                            </button>
+                            </div>
 
                             {/* Expanded items */}
                             {expandedOrderId === order.id && (
                                 <div className="border-t border-gray-100 p-4 bg-gray-50 space-y-3">
-                                    <div className="text-xs text-gray-500 mb-2">
-                                        Delivery: {order.addressLine}, {order.city}, {order.state} - {order.pincode}
+                                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 mb-2">
+                                        <div>
+                                            Delivery: {order.addressLine}, {order.city}, {order.state} - {order.pincode}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedInvoiceOrder(order)}
+                                            className="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-gray-100 border border-gray-300 rounded-md text-xs font-semibold text-gray-700 transition shadow-xs"
+                                        >
+                                            <span>🧾</span>
+                                            <span>View Full Tax Invoice</span>
+                                        </button>
                                     </div>
 
                                     {order.items?.map((item) => (

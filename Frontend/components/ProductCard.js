@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { View, Text, Pressable, Animated, Dimensions } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import DiscountBadge from "./DiscountBadge";
 import WishlistButton from "./WishlistButton";
 import Rating from "./Rating";
@@ -26,9 +27,14 @@ export default function ProductCard({ item, screenName = "home_page", source = "
     const imageOpacity = useRef(new Animated.Value(0)).current;
 
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [hasError, setHasError] = useState(false);
 
     const variant = item?.variants?.[0];
-    const imageUrl = variant?.images?.[0]?.imageUrl;
+    const rawUrl = variant?.images?.[0]?.imageUrl || item?.imageUrl;
+    const imageUrl = rawUrl
+        ? (rawUrl.startsWith("http://") ? rawUrl.replace("http://", "https://") : rawUrl)
+        : null;
+
     const discount = variant
         ? getDiscountPercent(variant.mrp, variant.actualPrice)
         : 0;
@@ -55,6 +61,11 @@ export default function ProductCard({ item, screenName = "home_page", source = "
             duration: 350,
             useNativeDriver: true,
         }).start();
+    };
+
+    const handleImageError = () => {
+        setHasError(true);
+        setImageLoaded(true);
     };
 
     // 👇 Card click hote hi PRODUCT_CLICK event track karo, phir navigate karo
@@ -91,18 +102,28 @@ export default function ProductCard({ item, screenName = "home_page", source = "
                 onPressOut={handlePressOut}
                 android_ripple={{ color: "#F3F4F6" }}
             >
-                <View className="w-full h-[140px] bg-gray-100">
-                    <View
-                        className="absolute inset-0 bg-gray-100"
-                        style={{ opacity: imageLoaded ? 0 : 1 }}
-                    />
-                    <Animated.Image
-                        source={{ uri: imageUrl }}
-                        className="w-full h-full"
-                        style={{ opacity: imageOpacity }}
-                        resizeMode="cover"
-                        onLoad={handleImageLoad}
-                    />
+                <View className="w-full h-[140px] bg-gray-100 overflow-hidden items-center justify-center">
+                    {imageUrl && !hasError ? (
+                        <>
+                            <View
+                                className="absolute inset-0 bg-gray-100"
+                                style={{ opacity: imageLoaded ? 0 : 1 }}
+                            />
+                            <Animated.Image
+                                source={{ uri: imageUrl }}
+                                className="w-full h-full"
+                                style={{ opacity: imageOpacity }}
+                                resizeMode="cover"
+                                onLoad={handleImageLoad}
+                                onError={handleImageError}
+                            />
+                        </>
+                    ) : (
+                        <View className="w-full h-full items-center justify-center bg-gray-50">
+                            <Ionicons name="image-outline" size={32} color="#D1D5DB" />
+                            <Text className="text-[10px] text-gray-400 mt-1 font-medium">No Image</Text>
+                        </View>
+                    )}
                     <DiscountBadge discount={variant.showMrp ? discount : 0} />
 
                     <WishlistButton productId={item.id} variantId={variant.id} />

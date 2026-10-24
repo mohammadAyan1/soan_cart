@@ -58,13 +58,10 @@ function App() {
           element={<Login />}
         />
 
-
-
         <Route
           path="vegetable"
           element={<VegetableProduct />}
         />
-
 
         <Route
           path="unit"

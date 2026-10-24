@@ -7,24 +7,21 @@ import {
     Text,
     FlatList,
     TouchableOpacity,
-    // Image,
+    Image,
     RefreshControl,
     ActivityIndicator,
     Alert,
+    Pressable,
 } from "react-native";
-
-import { Image } from "expo-image";
 
 import { router } from "expo-router";
 import { useSelector, useDispatch } from "react-redux";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import { Heart, ArrowLeft, Trash2, X, HeartOff } from "lucide-react-native";
 import { fetchWishlist, removeWishlistItem, clearWishlist } from "@/redux/slices/wishlistSlice";
 import WishlistSkeleton from "@/components/skeleton/WishlistSkeleton";
-import { Pressable } from "react-native";
 import { trackEvent, triggerScreenExit, getCurrentScreen } from "@/utils/eventTracker";
-import { EventTypes } from "react-native-gesture-handler/lib/typescript/web/interfaces";
-
 
 const handleEventCall = (eventType, variantId) => {
     trackEvent({
@@ -34,6 +31,20 @@ const handleEventCall = (eventType, variantId) => {
     })
 }
 
+const getCleanImageUrl = (url) => {
+    if (!url || typeof url !== "string") return null;
+    let clean = url.trim();
+    if (!clean) return null;
+    if (clean.startsWith("http://")) {
+        clean = clean.replace("http://", "https://");
+    }
+    // Cloudinary .avif ko .jpg me convert karo taaki Android pe decode fail na ho
+    if (clean.includes("cloudinary.com") && clean.endsWith(".avif")) {
+        clean = clean.replace(/\.avif$/, ".jpg");
+    }
+    return clean;
+};
+
 // ==================================================================
 // Ek product card
 // ==================================================================
@@ -41,16 +52,19 @@ function WishlistCard({ item }) {
     const dispatch = useDispatch();
     const removingVariantId = useSelector((state) => state.wishlist.removingVariantId);
     const isRemoving = removingVariantId === item.variantId;
+    const [imageError, setImageError] = useState(false);
 
+    const rawUrl = item?.productImage || item?.variant?.images?.[0]?.imageUrl || item?.product?.imageUrl;
+    const validImageUrl = getCleanImageUrl(rawUrl);
 
+    useEffect(() => {
+        setImageError(false);
+    }, [validImageUrl]);
 
     const handleRemove = () => {
         dispatch(removeWishlistItem(item.variantId));
         handleEventCall("REMOVE_PRODUCT_FROM_WISHLIST", item?.variantId)
     };
-
-
-
 
     return (
         <Pressable onPress={() => {
@@ -58,18 +72,20 @@ function WishlistCard({ item }) {
             triggerScreenExit()
             router.push(`/product/${item?.productId}/${item?.variantId}`)
         }} className="w-[48%] bg-white rounded-xl overflow-hidden mb-3">
-            <View className="w-full aspect-square bg-gray-100">
-                {/* <Image
-                    source={{ uri: item.productImage }}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                /> */}
-                <Image
-                    source={item?.productImage}
-                    className="w-full h-full"
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                />
+            <View className="w-full aspect-square bg-gray-100 overflow-hidden items-center justify-center">
+                {validImageUrl && !imageError ? (
+                    <Image
+                        source={{ uri: validImageUrl }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                        onError={() => setImageError(true)}
+                    />
+                ) : (
+                    <View className="w-full h-full items-center justify-center bg-gray-50">
+                        <HeartOff size={28} color="#D1D5DB" />
+                        <Text className="text-[10px] text-gray-400 mt-1 font-medium">No Image</Text>
+                    </View>
+                )}
 
                 {/* Remove button */}
                 <TouchableOpacity
@@ -125,11 +141,21 @@ export default function WishlistScreen() {
     const insets = useSafeAreaInsets();
     const { items, totalItems, loading, refreshing, error } = useSelector((state) => state.wishlist);
 
+    // Page mount hote hi wishlist fetch karo
+    useEffect(() => {
+        dispatch(fetchWishlist({}));
+    }, [dispatch]);
 
+    // Tab pe focus aate hi latest wishlist fetch karo
+    useFocusEffect(
+        useCallback(() => {
+            dispatch(fetchWishlist({ isRefresh: true }));
+        }, [dispatch])
+    );
 
     const onRefresh = useCallback(() => {
         dispatch(fetchWishlist({ isRefresh: true }));
-    }, []);
+    }, [dispatch]);
 
     const handleClearAll = () => {
 

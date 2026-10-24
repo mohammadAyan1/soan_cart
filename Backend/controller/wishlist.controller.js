@@ -27,7 +27,7 @@ export const addToWishlist = async (req, res) => {
                 productId: Number(productId),
                 isDelete: false,
             },
-            include: { product: true, images: { where: { isPrimary: true }, take: 1 } },
+            include: { product: true, images: { orderBy: { isPrimary: "desc" }, take: 1 } },
         });
 
         if (!variant) {
@@ -113,7 +113,7 @@ export const getWishlist = async (req, res) => {
             where: { wishlistId: wishlist.id },
             include: {
                 product: {
-                    select: { id: true, productName: true, description: true },
+                    select: { id: true, productName: true, description: true, imageUrl: true },
                 },
                 variant: {
                     select: {
@@ -125,7 +125,7 @@ export const getWishlist = async (req, res) => {
                         stock: true,
                         attributes: true,
                         images: {
-                            where: { isPrimary: true },
+                            orderBy: { isPrimary: "desc" },
                             select: { imageUrl: true },
                             take: 1,
                         },
@@ -149,7 +149,9 @@ export const getWishlist = async (req, res) => {
             inStock: item.variant.stock > 0,
 
             productImage:
-                item.variant.images.length > 0 ? item.variant.images[0].imageUrl : null,
+                item.variant?.images?.length > 0
+                    ? item.variant.images[0].imageUrl
+                    : (item.product?.imageUrl || null),
 
             actualPrice: Number(item.variant.actualPrice),
             mrp: Number(item.variant.mrp),

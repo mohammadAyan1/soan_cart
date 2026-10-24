@@ -105,14 +105,21 @@ shareRoutes.get("/product/:id", async (req, res) => {
             imageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80";
         }
 
+        // Optimize image for WhatsApp OpenGraph preview (Fast download, under 100KB, JPG, 600x600)
+        let ogImageUrl = imageUrl;
+        if (ogImageUrl.includes("res.cloudinary.com") && ogImageUrl.includes("/image/upload/")) {
+            ogImageUrl = ogImageUrl.replace("/image/upload/", "/image/upload/w_600,h_600,c_fill,q_auto,f_jpg/");
+            ogImageUrl = ogImageUrl.replace(/\.(avif|webp|png)$/i, ".jpg");
+        }
+
         const title = product.productName || "Product on Sounkart";
         const description = (product.description || `Buy ${title} at the best price on Sounkart. Free Delivery & Easy Returns!`)
             .replace(/\s+/g, " ")
             .trim()
             .slice(0, 160);
 
-        const currentHost = req.get("host") || "sounkart.in";
-        const protocol = req.protocol || "https";
+        const currentHost = req.get("host") || "soan-cart-backend.onrender.com";
+        const protocol = req.headers["x-forwarded-proto"] || "https";
         const pageUrl = `${protocol}://${currentHost}/product/${productId}`;
         const playStoreUrl = "https://play.google.com/store/apps/details?id=com.mohammadayan.Sounkart";
 
@@ -132,18 +139,22 @@ shareRoutes.get("/product/:id", async (req, res) => {
     <title>${escapeHtml(title)} - Sounkart</title>
 
     <!-- Open Graph / WhatsApp Preview Meta Tags -->
-    <meta property="og:type" content="product" />
+    <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Sounkart" />
     <meta property="og:title" content="${escapeHtml(title)} - ₹${price}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
-    <meta property="og:image" content="${imageUrl}" />
+    <meta property="og:image" content="${ogImageUrl}" />
+    <meta property="og:image:secure_url" content="${ogImageUrl}" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="600" />
+    <meta property="og:image:height" content="600" />
     <meta property="og:url" content="${pageUrl}" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(title)} - ₹${price}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
-    <meta name="twitter:image" content="${imageUrl}" />
+    <meta name="twitter:image" content="${ogImageUrl}" />
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }

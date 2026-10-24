@@ -266,6 +266,7 @@ model CartItem {
 model Order {
   id               Int               @id @default(autoincrement())
   orderNumber      String            @unique
+  invoiceNumber    Int?              @unique
   userId           Int
   totalAmount      Decimal           @db.Decimal(10, 2)
   paymentStatus    PaymentStatus     @default(PENDING)

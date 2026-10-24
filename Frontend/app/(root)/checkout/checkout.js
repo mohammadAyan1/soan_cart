@@ -668,7 +668,7 @@ export default function CheckoutScreen() {
                             /> */}
 
                             <Image
-                                source={params.productImage}
+                                source={params.productImage || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200"}
                                 contentFit="cover"
                                 cachePolicy="memory-disk"
                                 className="w-16 h-16 rounded-xl bg-gray-100"

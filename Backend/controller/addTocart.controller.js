@@ -38,7 +38,7 @@ export const addToCart = async (req, res) => {
             },
             include: {
                 product: true,
-                images: { where: { isPrimary: true }, take: 1 },
+                images: { orderBy: { isPrimary: "desc" }, take: 1 },
             }
         });
 
@@ -178,6 +178,7 @@ export const getCart = async (req, res) => {
                         id: true,
                         productName: true,
                         description: true,
+                        imageUrl: true,
                     }
                 },
                 variant: {
@@ -189,8 +190,8 @@ export const getCart = async (req, res) => {
                         showMrp: true,
                         attributes: true,
                         images: {
-                            where: {
-                                isPrimary: true
+                            orderBy: {
+                                isPrimary: "desc"
                             },
                             select: {
                                 imageUrl: true
@@ -217,9 +218,9 @@ export const getCart = async (req, res) => {
             variantAttributes: item.variant.attributes,
 
             productImage:
-                item.variant.images.length > 0
+                item.variant?.images?.length > 0
                     ? item.variant.images[0].imageUrl
-                    : null,
+                    : (item.product?.imageUrl || null),
 
             quantity: item.quantity,
 
@@ -269,7 +270,7 @@ export const increaseQuantity = async (req, res) => {
             where: {
                 cartId_variantId: { cartId: cart.id, variantId }
             },
-            include: { variant: { include: { product: true, images: { where: { isPrimary: true }, take: 1 } } } }
+            include: { variant: { include: { product: true, images: { orderBy: { isPrimary: "desc" }, take: 1 } } } }
         });
 
         if (!item) {
@@ -345,7 +346,7 @@ export const decreaseQuantity = async (req, res) => {
             where: {
                 cartId_variantId: { cartId: cart.id, variantId }
             },
-            include: { variant: { include: { product: true, images: { where: { isPrimary: true }, take: 1 } } } }
+            include: { variant: { include: { product: true, images: { orderBy: { isPrimary: "desc" }, take: 1 } } } }
         });
 
         if (!item) {
@@ -444,7 +445,7 @@ export const removeCartItem = async (req, res) => {
             where: {
                 cartId_variantId: { cartId: cart.id, variantId }
             },
-            include: { variant: { include: { product: true, images: { where: { isPrimary: true }, take: 1 } } } }
+            include: { variant: { include: { product: true, images: { orderBy: { isPrimary: "desc" }, take: 1 } } } }
         });
 
         if (!item) {
@@ -501,7 +502,7 @@ export const clearCart = async (req, res) => {
 
         const items = await prisma.cartItem.findMany({
             where: { cartId: cart.id },
-            include: { variant: { include: { product: true, images: { where: { isPrimary: true }, take: 1 } } } }
+            include: { variant: { include: { product: true, images: { orderBy: { isPrimary: "desc" }, take: 1 } } } }
         });
 
         if (items.length === 0) {

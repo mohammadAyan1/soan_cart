@@ -340,6 +340,7 @@ export const getAllProduct = async (req, res) => {
                     id: true,
                     productName: true,
                     description: true,
+                    imageUrl: true,
 
                     variants: {
                         where: {
@@ -354,10 +355,10 @@ export const getAllProduct = async (req, res) => {
                             showMrp: true,
 
                             images: {
-                                where: {
-                                    isPrimary: true
-                                },
                                 take: 1,
+                                orderBy: {
+                                    isPrimary: "desc"
+                                },
                                 select: {
                                     imageUrl: true
                                 }
@@ -824,6 +825,7 @@ export const searchProducts = async (req, res) => {
                     id: true,
                     productName: true,
                     description: true,
+                    imageUrl: true,
 
                     variants: {
                         where: {
@@ -838,10 +840,10 @@ export const searchProducts = async (req, res) => {
                             showMrp: true,
 
                             images: {
-                                where: {
-                                    isPrimary: true
-                                },
                                 take: 1,
+                                orderBy: {
+                                    isPrimary: "desc"
+                                },
                                 select: {
                                     imageUrl: true
                                 }
@@ -1519,6 +1521,7 @@ export const getProductsByCategory = async (req, res) => {
                     id: true,
                     productName: true,
                     description: true,
+                    imageUrl: true,
 
                     variants: {
                         where: {
@@ -1533,10 +1536,10 @@ export const getProductsByCategory = async (req, res) => {
                             showMrp: true,
 
                             images: {
-                                where: {
-                                    isPrimary: true
-                                },
                                 take: 1,
+                                orderBy: {
+                                    isPrimary: "desc"
+                                },
                                 select: {
                                     imageUrl: true
                                 }
