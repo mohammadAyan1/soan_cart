@@ -610,7 +610,7 @@ export const mergeGuestCart = async (req, res) => {
             items: result.items,
         });
     } catch (error) {
-        console.error("Error in mergeGuestCart:", error);
+
         return res.status(500).json({
             success: false,
             message: "Cart merge karte waqt error aaya",

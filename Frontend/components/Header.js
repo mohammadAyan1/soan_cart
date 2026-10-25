@@ -299,10 +299,6 @@ export default function Header({ autoFocus = false }) {
     };
 
 
-    useEffect(() => {
-        console.log("categoryTree", categoryTree);
-
-    }, [categoryTree])
 
 
 

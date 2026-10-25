@@ -111,7 +111,7 @@ export const createProductSubCategory = async (req, res) => {
             }
 
         } catch (cleanupError) {
-            console.error("Cleanup Error:", cleanupError);
+
         }
 
         return res.status(500).json({
@@ -237,7 +237,7 @@ export const getAllProductSubCategoryByCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error in get-by-category:", error);
+
         return res.status(500).json({
             success: false,
             message: error.message

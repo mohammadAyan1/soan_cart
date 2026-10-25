@@ -1,6 +1,6 @@
 
 
-///////////////////////////////////////////////////////
+
 // app/_layout.js
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Stack } from "expo-router";
@@ -68,7 +68,7 @@ function AppContent() {
       // const { latitude, longitude, city, state, country } =
       //   await getCurrentLocationDetails();
       const latitude = null, longitude = null, city = null, state = null, country = null;
-      // console.log("TEMP DEBUG: location fetch skipped for testing");
+
 
 
       const response = await axiosInstance.post("/api/analytics/session/start", {
@@ -85,9 +85,6 @@ function AppContent() {
       });
 
 
-      console.log('====================================');
-      console.log(response?.data, "response");
-      console.log('====================================');
 
       const sessionId = response.data?.data?.sessionId;
 
@@ -98,7 +95,7 @@ function AppContent() {
         initEventTracker(sessionId); // 👈 YEHI SABSE ZAROORI LINE HAI
       }
     } catch (error) {
-      console.warn("Analytics session start fail hua:", error);
+
     } finally {
       setAppIsReady(true);
     }
@@ -113,13 +110,13 @@ function AppContent() {
 
     const setupPushNotifications = async () => {
       const token = await registerForPushNotificationsAsync();
-      // console.log(token, "Token");
+
 
       if (token) {
         try {
           await dispatch(registerPushToken(token)).unwrap();
         } catch (err) {
-          // console.log('Push token save failed:', err);
+
         }
       }
     };
@@ -142,10 +139,10 @@ function AppContent() {
   // AppState khud "inactive"/"background" fire kar raha tha aur
   // pehle infinite loop ban raha tha.
   useEffect(() => {
-    // console.log("AppState listener MOUNTED, current state:", AppState.currentState);
+
 
     const handleAppStateChange = async (nextState) => {
-      // console.log("RAW AppState event ->", nextState);
+
 
       const prevState = appStateRef.current;
       // 👇 turant update karo - agla event (jo milliseconds baad hi
@@ -158,9 +155,6 @@ function AppContent() {
         prevState === "active" &&
         (nextState === "background" || nextState === "inactive")
       ) {
-        console.log('====================================');
-        console.log("close");
-        console.log('====================================');
 
         flushEvents();
         resetEventTracker(); // sessionId, queue, currentScreen sab reset
@@ -169,15 +163,12 @@ function AppContent() {
           await AsyncStorage.removeItem("deviceId");
           await AsyncStorage.removeItem("sessionId");
         } catch (err) {
-          console.warn("deviceId clear fail hua:", err);
+
         }
       } else if (
         (prevState === "background" || prevState === "inactive") &&
         nextState === "active"
       ) {
-        console.log('====================================');
-        console.log("reopen");
-        console.log('====================================');
 
         // 👇 setAppIsReady(false) jaan-bujh kar NAHI kiya
         setupAnalytics();

@@ -36,17 +36,7 @@ export default function SearchScreen() {
         error,
     } = useSelector((state) => state.products.search);
 
-    // 👇 Screen focus hote hi keyboard turant khul jaye aur field focus ho.
-    // useFocusEffect isliye use kiya kyunki ye navigation animation complete
-    // hone ke turant baad reliably fire hota hai (useEffect se zyada consistent)
-    // useFocusEffect(
-    //     useCallback(() => {
-    //         const timer = setTimeout(() => {
-    //             inputRef.current?.focus();
-    //         }, Platform.OS === "android" ? 150 : 300);
-    //         return () => clearTimeout(timer);
-    //     }, [])
-    // );
+
 
     // Screen se bahar jaate waqt search state clear kar do
     useEffect(() => {

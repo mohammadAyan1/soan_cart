@@ -84,7 +84,7 @@ export const getAllUsers = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("getAllUsers error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Users fetch karte waqt error aaya",
@@ -137,7 +137,7 @@ export const getUserById = async (req, res) => {
             data: user,
         });
     } catch (error) {
-        console.error("getUserById error:", error);
+
         return res.status(500).json({
             success: false,
             message: "User detail fetch karte waqt error aaya",
@@ -202,7 +202,7 @@ export const updateUserRole = async (req, res) => {
             data: updatedUser,
         });
     } catch (error) {
-        console.error("updateUserRole error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Role update karte waqt error aaya",
@@ -246,8 +246,6 @@ export const toggleUserStatus = async (req, res) => {
             });
         }
 
-        // isActive = true -> isDelete = false (user active hai)
-        // isActive = false -> isDelete = true (user deactivate/blocked hai)
         const updatedUser = await prisma.user.update({
             where: { id: Number(userId) },
             data: { isDelete: !isActive },
@@ -267,7 +265,7 @@ export const toggleUserStatus = async (req, res) => {
             data: updatedUser,
         });
     } catch (error) {
-        console.error("toggleUserStatus error:", error);
+
         return res.status(500).json({
             success: false,
             message: "User status update karte waqt error aaya",
@@ -312,7 +310,7 @@ export const getUserPassword = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("getUserPassword error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Password fetch karte waqt error aaya",

@@ -38,7 +38,7 @@ export const sendToAllUsers = async (req, res) => {
             tickets,
         });
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({ message: 'Server error' });
     }
 };
@@ -66,9 +66,6 @@ export const sendToSingleUser = async (req, res) => {
             return res.status(400).json({ message: 'Is user ka koi push token registered nahi hai' });
         }
 
-        // 🔍 TEST KARNE KE LIYE: Dekho yahan console mein kya mil raha hai
-        console.log("Incoming Image URL:", image);
-        console.log("Incoming Data Object:", data);
 
         // Agar user ne direct "image" field di hai ya "data.image" diya hai, dono handle honge
         const notificationData = { ...(data || {}) };
@@ -87,7 +84,7 @@ export const sendToSingleUser = async (req, res) => {
             tickets
         });
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({ message: 'Server error' });
     }
 };

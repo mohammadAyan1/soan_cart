@@ -15,7 +15,7 @@ export const getCurrentLocationDetails = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
 
         if (status !== "granted") {
-            console.warn("Location permission denied by user");
+            
             return {
                 latitude: null,
                 longitude: null,
@@ -49,12 +49,12 @@ export const getCurrentLocationDetails = async () => {
                 country = place.country || null;
             }
         } catch (geoErr) {
-            console.warn("Reverse geocoding failed:", geoErr);
+            
         }
 
         return { latitude, longitude, city, state, country };
     } catch (error) {
-        console.warn("getCurrentLocationDetails failed:", error);
+        
         return {
             latitude: null,
             longitude: null,

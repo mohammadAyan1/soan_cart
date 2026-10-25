@@ -78,13 +78,13 @@ const Order = ({ Role }) => {
                 // Agar thunk updated item ka pura data return karta hai (fulfillWithValue se),
                 // to yaha uska use kar sakte hain. Filhaal safe side lene ke liye
                 // list ko bhi refresh kar dete hain taaki naya status/timeline turant dikhe.
-                console.log('Status update ka response:', updatedData);
+                
                 dispatch(fetchAllOrderByVendor({ page, limit }));
                 // Note field ko clear kar dete hain us item ke liye
                 setNotes((prev) => ({ ...prev, [item.id]: '' }));
             })
             .catch((err) => {
-                console.error('Status change fail ho gaya:', err);
+                
             });
     };
 

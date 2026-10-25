@@ -83,7 +83,7 @@ export const createProductCategory = async (req, res) => {
                 });
             }
         } catch (cleanupError) {
-            console.error("Cleanup Error:", cleanupError);
+
         }
 
         return res.status(500).json({

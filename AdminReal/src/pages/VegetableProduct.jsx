@@ -90,7 +90,7 @@ const VegetableProduct = () => {
     }
 
     const handleVegetableStatusToggle = async (id) => {
-        console.log(id, "QWERTYU");
+
 
         dispatch(toggleVegetableStatus(id)).then((res) => {
             // dispatch(fetchVegetable())
@@ -285,7 +285,7 @@ const VegetableProduct = () => {
 
         if (isUpdate) {
             dispatch(updateVegetable(data)).then((res) => {
-                console.log(res, "ASDFAYAN");
+
 
                 // dispatch(fetchVegetable())
                 dispatch(fetchVegetable({ isDelete: false }))
@@ -307,7 +307,7 @@ const VegetableProduct = () => {
             })
         } else {
             dispatch(createVegetable(data)).then((res) => {
-                // dispatch(fetchVegetable())
+                
                 dispatch(fetchVegetable({ isDelete: false }))
 
                 setFormData({

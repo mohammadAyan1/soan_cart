@@ -62,7 +62,7 @@ export const getAllActiveDevices = async (req, res) => {
 
         return res.status(200).json({ success: true, totalActive: data.length, data });
     } catch (error) {
-        console.error("getAllActiveDevices error:", error);
+
         return res.status(500).json({ success: false, message: "Devices fetch karne me error aaya" });
     }
 };
@@ -101,7 +101,7 @@ export const getUserDevices = async (req, res) => {
             data: sessions.map(serializeSession),
         });
     } catch (error) {
-        console.error("getUserDevices error:", error);
+
         return res.status(500).json({ success: false, message: "User devices fetch karne me error aaya" });
     }
 };
@@ -178,7 +178,7 @@ export const getUserActivityTimeline = async (req, res) => {
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });
     } catch (error) {
-        console.error("getUserActivityTimeline error:", error);
+
         return res.status(500).json({ success: false, message: "User timeline fetch karne me error aaya" });
     }
 };
@@ -267,7 +267,7 @@ export const getSessionJourney = async (req, res) => {
             journey,
         });
     } catch (error) {
-        console.error("getSessionJourney error:", error);
+
         return res.status(500).json({ success: false, message: "Session journey fetch karne me error aaya" });
     }
 };
@@ -329,7 +329,7 @@ export const getUserTimeSummary = async (req, res) => {
             perScreen: formatted,
         });
     } catch (error) {
-        console.error("getUserTimeSummary error:", error);
+
         return res.status(500).json({ success: false, message: "Time summary fetch karne me error aaya" });
     }
 };
@@ -462,7 +462,7 @@ export const getAdminDashboardSummary = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("getAdminDashboardSummary error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Something went wrong",

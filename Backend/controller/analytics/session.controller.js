@@ -6,11 +6,6 @@ export const startSession = async (req, res) => {
 
         let guestId;
 
-        console.log('====================================');
-        console.log(req?.user?.id, "ASDFGH");
-        console.log(req.headers["x-guest-id"]);
-        console.log('====================================');
-
 
 
 
@@ -52,7 +47,7 @@ export const startSession = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: "Unable to start session."

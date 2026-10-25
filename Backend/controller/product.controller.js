@@ -295,7 +295,7 @@ export const createProduct = async (req, res) => {
 
     } catch (error) {
 
-        console.error(error);
+
 
         return res.status(500).json({
             success: false,
@@ -720,7 +720,7 @@ export const getAllProductForAdmin = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("getAllProductForAdmin error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Something went wrong while fetching products",
@@ -870,7 +870,7 @@ export const searchProducts = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -1127,15 +1127,13 @@ export const updateProduct = async (req, res) => {
                             images: true
                         }
                     });
-                    console.log(existingVariant, "Existed products");
+
 
                     if (!existingVariant) {
                         skippedVariantIds.push(v.id); // ownership mismatch, silently skip nahi — track karo
                         continue;
                     }
 
-                    console.log(v.vendorMinPrice);
-                    console.log(existingVariant.vendorMinPrice);
 
 
                     await tx.productVariant.update({
@@ -1387,7 +1385,7 @@ export const deleteVariantImage = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -1472,7 +1470,7 @@ export const addVariantImage = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message

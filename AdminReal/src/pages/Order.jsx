@@ -72,19 +72,16 @@ const Order = () => {
             const res = await api.patch(`/api/order/items/${id}/${vendor?.id}/changeVendor`);
 
             if (res.data?.success) {
-                console.log("Vendor change successfully:", res.data);
+
                 dispatch(fetchAllOrder({ page, limit: 20, active, vendorId, userId, status, fromDate, toDate }));
 
                 // yahan apni list refresh/update kar sakte ho
             }
         } catch (error) {
-            console.error(
-                "Failed to change vendor allow:",
-                error?.response?.data || error.message
-            );
+
         }
 
-        console.log("Selected Vendor:", vendor);
+
 
         // Yahan apna API/function bhi call kar sakte ho
         // handleChangeVendor(vendorId);
@@ -114,7 +111,7 @@ const Order = () => {
                 setFilterVendors(res?.data)
             })
             .catch((error) => {
-                console.error("Failed to fetch users:", error);
+
             }).finally(() => {
                 setFilterVendorsLoading(false)
             });
@@ -123,7 +120,7 @@ const Order = () => {
                 setFilterUsers(res?.data)
             })
             .catch((error) => {
-                console.error("Failed to fetch users:", error);
+
             }).finally(() => {
                 setFilterUsersLoading(false)
             });
@@ -180,16 +177,13 @@ const Order = () => {
             const res = await api.patch(`/api/order/items/${id}/toggleVendor`);
 
             if (res.data?.success) {
-                console.log("Vendor allow updated:", res.data);
+
                 dispatch(fetchAllOrder({ page, limit: 20, active, vendorId, userId, status, fromDate, toDate }));
 
                 // yahan apni list refresh/update kar sakte ho
             }
         } catch (error) {
-            console.error(
-                "Failed to change vendor allow:",
-                error?.response?.data || error.message
-            );
+
         }
     };
 
@@ -206,7 +200,7 @@ const Order = () => {
                 refetchOrders();
             }
         } catch (error) {
-            console.error("Failed to toggle order active status:", error);
+
             alert(error?.response?.data?.message || "Order status change karne me error aaya");
         }
     };
@@ -433,11 +427,10 @@ const Order = () => {
                                             e.stopPropagation();
                                             handleToggleOrderDelete(order.id, order.isDelete);
                                         }}
-                                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition border active:scale-95 ${
-                                            order.isDelete
-                                                ? "bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
-                                                : "bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-                                        }`}
+                                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition border active:scale-95 ${order.isDelete
+                                            ? "bg-green-50 text-green-700 hover:bg-green-100 border-green-200"
+                                            : "bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                                            }`}
                                         title={order.isDelete ? "Order ko wapas Active karo" : "Order ko Inactive (Delete) karo"}
                                     >
                                         <span>{order.isDelete ? "♻️" : "🗑️"}</span>

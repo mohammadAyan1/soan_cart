@@ -16,7 +16,8 @@ import {
     StatusBar,
     Share,
     TouchableOpacity,
-    Alert
+    Alert,
+    ActivityIndicator,
 } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -28,6 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import WishlistButton from "../../../components/WishlistButton.js"
 import Header from "../../../components/Header.js";
+import api from "@/api/api";
 
 
 import { trackEvent, triggerScreenExit } from "../../../utils/eventTracker.js";
@@ -46,6 +48,7 @@ export default function ProductDetailsScreen() {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [refreshing, setRefreshing] = useState(false);
+    const [buyingNow, setBuyingNow] = useState(false);
 
     // 👇 NAYA — full-screen image viewer ke liye
     const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -121,7 +124,7 @@ export default function ProductDetailsScreen() {
                 setError(result.error || "Product not mila");
             }
         } catch (err) {
-            // console.log("Error aaya:", err.message);
+
             if (err.code === "ECONNABORTED") {
                 setError("Request timeout ho gaya - server check karo");
             } else if (!err.response) {
@@ -233,26 +236,89 @@ export default function ProductDetailsScreen() {
     );
 
     // 👇 Buy Now pe checkout screen ko bhejne ke liye pura summary data
-    const handleBuyNow = () => {
-        trackEvent({
-            eventType: "BUY_NOW_BTN_CLICK",
-            screen: "product_detail_page",
-            payload: {
-                productId: product.id, variantId: selectedVariant.id,
+    const handleBuyNow = async () => {
+        if (buyingNow) return;
+        setBuyingNow(true);
+
+        const checkoutParams = {
+            productId: product.id,
+            variantId: selectedVariant.id,
+            quantity: 1,
+            productName: product.productName,
+            productImage: images[0]?.imageUrl || product.imageUrl,
+            price: selectedVariant.actualPrice,
+        };
+
+        try {
+            const token = await AsyncStorage.getItem("token");
+            if (!token) {
+                router.push({
+                    pathname: "/(root)/login",
+                    params: {
+                        redirectTo: "/(root)/checkout/checkout",
+                        redirectParams: JSON.stringify(checkoutParams),
+                    },
+                });
+                return;
             }
-        })
-        triggerScreenExit()
-        router.push({
-            pathname: "/(root)/checkout/checkout",
-            params: {
-                productId: product.id,
-                variantId: selectedVariant.id,
-                quantity: 1,
-                productName: product.productName,
-                productImage: images[0]?.imageUrl || product.imageUrl,
-                price: selectedVariant.actualPrice,
-            },
-        });
+
+            const res = await api.get("/api/auth/me");
+            if (res.data?.success && res.data?.user) {
+                trackEvent({
+                    eventType: "BUY_NOW_BTN_CLICK",
+                    screen: "product_detail_page",
+                    payload: {
+                        productId: product.id,
+                        variantId: selectedVariant.id,
+                    },
+                });
+                triggerScreenExit();
+                router.push({
+                    pathname: "/(root)/checkout/checkout",
+                    params: checkoutParams,
+                });
+            } else {
+                router.push({
+                    pathname: "/(root)/login",
+                    params: {
+                        redirectTo: "/(root)/checkout/checkout",
+                        redirectParams: JSON.stringify(checkoutParams),
+                    },
+                });
+            }
+        } catch (error) {
+            if (error?.response?.status === 401 || error?.response?.status === 403) {
+                router.push({
+                    pathname: "/(root)/login",
+                    params: {
+                        redirectTo: "/(root)/checkout/checkout",
+                        redirectParams: JSON.stringify(checkoutParams),
+                    },
+                });
+            } else {
+                Alert.alert(
+                    "Sign In Required",
+                    "Please sign in to proceed with Buy Now.",
+                    [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                            text: "Sign In",
+                            onPress: () => {
+                                router.push({
+                                    pathname: "/(root)/login",
+                                    params: {
+                                        redirectTo: "/(root)/checkout/checkout",
+                                        redirectParams: JSON.stringify(checkoutParams),
+                                    },
+                                });
+                            },
+                        },
+                    ]
+                );
+            }
+        } finally {
+            setBuyingNow(false);
+        }
     };
 
 
@@ -304,7 +370,7 @@ export default function ProductDetailsScreen() {
             });
 
         } catch (error) {
-            console.error("Share error:", error);
+
             Alert.alert("Error", "Unable to share this product.");
         }
     };
@@ -611,11 +677,15 @@ export default function ProductDetailsScreen() {
 
                 <Pressable
                     onPress={handleBuyNow}
-                    disabled={selectedVariant.stock === 0}
+                    disabled={selectedVariant.stock === 0 || buyingNow}
                     className={`flex-1 ml-2 mt-2.5 rounded-xl py-2.5 items-center justify-center ${selectedVariant.stock === 0 ? "bg-gray-300" : "bg-black"
                         } `}
                 >
-                    <Text className="text-white font-semibold text-[14px]">Buy Now</Text>
+                    {buyingNow ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Text className="text-white font-semibold text-[14px]">Buy Now</Text>
+                    )}
                 </Pressable>
             </View>
 

@@ -136,7 +136,7 @@ export const createReview = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
 
         if (error.code === "P2002") {
             return res.status(409).json({
@@ -209,7 +209,7 @@ export const updateReview = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -258,7 +258,7 @@ export const deleteReview = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -311,7 +311,7 @@ export const getVariantReviews = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -357,7 +357,7 @@ export const getMyReviews = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -393,7 +393,7 @@ export const getReviewableOrderItems = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -464,7 +464,7 @@ export const addReviewImage = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message
@@ -535,7 +535,7 @@ export const deleteReviewImage = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             success: false,
             message: error.message

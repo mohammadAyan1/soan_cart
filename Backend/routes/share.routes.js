@@ -24,8 +24,8 @@ shareRoutes.get("/.well-known/assetlinks.json", (req, res) => {
         .filter(Boolean);
 
     // Default fallback fingerprint ya env variable se
-    const finalFingerprints = fingerprints.length > 0 
-        ? fingerprints 
+    const finalFingerprints = fingerprints.length > 0
+        ? fingerprints
         : ["00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00"];
 
     res.setHeader("Content-Type", "application/json");
@@ -275,7 +275,7 @@ shareRoutes.get("/product/:id", async (req, res) => {
                             window.location.href = customSchemeUrl;
                         }
                     } catch (e) {
-                        console.log(e);
+                        
                     }
                 }, 300);
 
@@ -298,7 +298,7 @@ shareRoutes.get("/product/:id", async (req, res) => {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.send(html);
     } catch (error) {
-        console.error("Share product route error:", error);
+
         return res.status(500).send("Something went wrong");
     }
 });

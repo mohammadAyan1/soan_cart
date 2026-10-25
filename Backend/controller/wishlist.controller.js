@@ -9,7 +9,7 @@ import { buildProductSnapshot, logWishlistActivity } from "../utils/activityLogg
 import { mergeGuestWishlistIntoUser } from "../utils/wishlistMerge.service.js";
 
 // ================== ADD TO WISHLIST ==================
-// Body: { productId, variantId }
+
 export const addToWishlist = async (req, res) => {
     try {
         const { productId, variantId } = req.body;
@@ -334,7 +334,7 @@ export const mergeGuestWishlist = async (req, res) => {
             items: result.items,
         });
     } catch (error) {
-        console.error("Error in mergeGuestWishlist:", error);
+
         return res.status(500).json({
             success: false,
             message: "Wishlist merge karte waqt error aaya",
@@ -371,7 +371,7 @@ export const getAllWishlistsAdmin = async (req, res) => {
 
         return res.status(200).json({ success: true, data: wishlists });
     } catch (error) {
-        console.error("getAllWishlistsAdmin error:", error);
+
         return res.status(500).json({ success: false, message: "Wishlists fetch karne me error aaya" });
     }
 };
@@ -426,7 +426,7 @@ export const getWishlistStatsAdmin = async (req, res) => {
             topVendors,
         });
     } catch (error) {
-        console.error("getWishlistStatsAdmin error:", error);
+
         return res.status(500).json({ success: false, message: "Wishlist stats fetch karne me error aaya" });
     }
 };

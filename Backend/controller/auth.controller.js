@@ -207,7 +207,7 @@ export const register = async (req, res) => {
                 });
             }
         } catch (cleanupError) {
-            console.error("Cleanup Error:", cleanupError);
+
         }
 
         return res.status(500).json({
@@ -375,7 +375,7 @@ export const VendorRegister = async (req, res) => {
                 });
             }
         } catch (cleanupError) {
-            console.error("Cleanup Error:", cleanupError);
+
         }
 
         return res.status(500).json({
@@ -769,16 +769,14 @@ export const login = async (req, res) => {
                 });
 
                 if (result) {
-                    console.log('====================================');
-                    console.log(`success fully change the user session jo user ${findUser?.fullName}`);
-                    console.log('====================================');
+
                 }
 
 
                 const cartMergeResult = await mergeGuestCartIntoUser(findUser.id, guestId, context, "AUTO");
                 guestCartMerged = cartMergeResult.merged;
             } catch (mergeError) {
-                console.error("Guest cart merge error:", mergeError);
+
                 guestCartMerged = false;
             }
 
@@ -786,7 +784,7 @@ export const login = async (req, res) => {
                 const wishlistMergeResult = await mergeGuestWishlistIntoUser(findUser.id, guestId, context, "AUTO");
                 guestWishlistMerged = wishlistMergeResult.merged;
             } catch (mergeError) {
-                console.error("Guest wishlist merge error:", mergeError);
+
                 guestWishlistMerged = false;
             }
         }
@@ -809,7 +807,7 @@ export const login = async (req, res) => {
             guestWishlistMerged, // 👈 same, wishlist ke liye
         });
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({
             message: error.message,
             success: false,

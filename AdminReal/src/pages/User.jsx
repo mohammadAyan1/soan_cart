@@ -48,9 +48,7 @@ const User = () => {
     }, [dispatch, page, search, roleFilter]);
 
 
-    useEffect(() => {
-        console.log(users, "ASDFGHJK");
-    }, [users])
+
 
     // ---------- Search submit (debounce ki jagah simple submit rakha hai) ----------
     const handleSearchSubmit = (e) => {

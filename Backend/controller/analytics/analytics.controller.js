@@ -27,7 +27,7 @@ export const trackEvent = async (req, res) => {
             data: event
         });
     } catch (error) {
-        console.error(error);
+
         return res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -60,7 +60,7 @@ export const trackEventsBatch = async (req, res) => {
             ...(result.skippedCount > 0 && { skippedDetails: result.skipped }),
         });
     } catch (error) {
-        console.error("trackEventsBatch error:", error);
+
         return res.status(500).json({ success: false, message: error.message });
     }
 };

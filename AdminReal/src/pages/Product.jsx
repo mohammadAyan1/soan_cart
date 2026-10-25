@@ -240,7 +240,7 @@ const Product = () => {
                 }));
             }
         } catch (error) {
-            console.error("Approve toggle error:", error);
+
             alert(error.response?.data?.message || "Failed to update product approval status");
         } finally {
             setActionLoading(false);
@@ -262,7 +262,7 @@ const Product = () => {
                 }));
             }
         } catch (error) {
-            console.error("Delete toggle error:", error);
+
             alert(error.response?.data?.message || "Failed to update product delete status");
         } finally {
             setActionLoading(false);
@@ -284,7 +284,7 @@ const Product = () => {
                 }));
             }
         } catch (error) {
-            console.error("Variant toggle error:", error);
+
             alert(error.response?.data?.message || "Failed to update variant status");
         } finally {
             setVariantActionLoading(null);
@@ -307,7 +307,7 @@ const Product = () => {
                 }));
             }
         } catch (error) {
-            console.error("Variant toggle error:", error);
+
             alert(error.response?.data?.message || "Failed to update variant status");
         } finally {
             setVariantActionLoading(null);
@@ -639,9 +639,6 @@ const Product = () => {
                                 <div className="border-t border-gray-100 p-4 bg-gray-50 space-y-3">
                                     {product.variants.map((variant) => {
                                         const tab = activeTab[variant.id] || "buyers";
-                                        console.log('====================================');
-                                        console.log(variant);
-                                        console.log('====================================');
 
                                         const selectedBuyerId = buyerFilter[variant.id] || "";
                                         const selectedReviewId = reviewFilter[variant.id] || "";

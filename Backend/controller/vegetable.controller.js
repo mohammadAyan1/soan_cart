@@ -26,39 +26,18 @@ export const createVegetableProduct = async (req, res) => {
         }
 
         const files = req.files || [];
-        // -----------------------------
-        // Product Image Upload
-        // -----------------------------
-        // const productImageFile = files.find(
-        //     (f) => f.fieldname === "productImage"
-        // );
-
-        ////////////////////////////////////////////
 
 
 
-        console.log("========== VEGETABLE CREATE ==========");
-
-        console.log("REQ BODY:", req.body);
-
-        console.log("REQ FILES:", req.files);
 
         const productImageFile = req.files?.find(
             (file) => file.fieldname === "productImage"
         );
 
-        console.log("PRODUCT IMAGE FILE:", {
-            fieldname: productImageFile?.fieldname,
-            originalname: productImageFile?.originalname,
-            mimetype: productImageFile?.mimetype,
-            size: productImageFile?.size,
-            hasBuffer: !!productImageFile?.buffer,
-        });
 
 
 
 
-        ////////////////////////////////////////
 
 
 
@@ -116,7 +95,7 @@ export const createVegetableProduct = async (req, res) => {
                 });
             }
         } catch (cleanupError) {
-            console.error("Cleanup Error:", cleanupError);
+
         }
 
         return res.status(500).json({
@@ -133,11 +112,7 @@ export const fetchVegetableProduct = async (req, res) => {
 
         const { status = false, page, limit } = req.query;
 
-        console.log(status, "QWERTYUIOP");
 
-        // if () {
-
-        // }
 
 
         const vegetableProducts = await prisma.vegetableProduct.findMany({
@@ -206,20 +181,10 @@ export const updateVegetableProduct = async (req, res) => {
             });
         }
 
-        console.log("========== VEGETABLE UPDATE ==========");
-        console.log("REQ BODY:", req.body);
-        console.log("REQ FILES:", req.files);
         const productImageFile = req.files?.find(
             (file) => file.fieldname === "productImage"
         );
 
-        console.log("PRODUCT IMAGE FILE:", {
-            fieldname: productImageFile?.fieldname,
-            originalname: productImageFile?.originalname,
-            mimetype: productImageFile?.mimetype,
-            size: productImageFile?.size,
-            hasBuffer: !!productImageFile?.buffer,
-        });
 
         let productImageResult = null;
 
@@ -278,7 +243,7 @@ export const updateVegetableProduct = async (req, res) => {
                 });
             }
         } catch (cleanupError) {
-            console.error("Cleanup Error:", cleanupError);
+
         }
 
         return res.status(500).json({
@@ -335,7 +300,7 @@ export const toggleVegetableProduct = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Delete Vegetable Product Error:", error);
+
 
         return res.status(500).json({
             message: error.message,

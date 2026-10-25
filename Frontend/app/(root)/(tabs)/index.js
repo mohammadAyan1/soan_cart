@@ -33,18 +33,13 @@ export default function HomeScreen() {
                 await dispatch(fetchProducts({ page: 1 }));
                 await dispatch(fetchWishlist({}));
             } catch (error) {
-                console.error("Failed to fetch products:", error);
+
             }
         };
 
         loadData();
     }, [dispatch]);
 
-    // const loadMore = useCallback(() => {
-    //     if (!loading && !refreshing && hasNextPage) {
-    //         dispatch(fetchProducts({ page: page + 1 }));
-    //     }
-    // }, [loading, refreshing, hasNextPage, page]);
 
 
 
@@ -73,9 +68,7 @@ export default function HomeScreen() {
 
     const isInitialLoading = loading && !refreshing && items.length === 0;
 
-    // if (isInitialLoading) {
-    //     return <ProductSkeletonGrid count={6} />;
-    // }
+
 
 
 

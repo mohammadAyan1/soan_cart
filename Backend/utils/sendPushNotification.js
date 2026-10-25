@@ -26,7 +26,7 @@ async function sendPushNotifications(tokens, title, body, data = {}) {
             const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
             tickets.push(...ticketChunk);
         } catch (error) {
-            console.error('Push send error:', error);
+
         }
     }
 

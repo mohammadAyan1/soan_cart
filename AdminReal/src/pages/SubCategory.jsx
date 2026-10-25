@@ -133,7 +133,7 @@ function SubCategory() {
             await dispatch(toggleSubCategoryDelete(id)).unwrap();
             dispatch(fetchAllSubCategories({ page, limit, status: statusFilter }));
         } catch (err) {
-            console.error("Toggle status error:", err);
+
         }
     };
 

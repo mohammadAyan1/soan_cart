@@ -24,7 +24,7 @@ export default function CustomTabBar({ routes, activeIndex, onTabPress }) {
                     await dispatch(fetchCart()).unwrap();
                 }
             } catch (error) {
-                console.error("Failed to fetch cart on tab load:", error);
+                
             }
         };
 

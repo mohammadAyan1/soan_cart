@@ -157,7 +157,7 @@ const flush = async () => {
             body: JSON.stringify({ events: batchToSend }),
         });
     } catch (error) {
-        console.warn("Event batch send fail hua, events discard ho gaye:", error);
+        
     }
 };
 

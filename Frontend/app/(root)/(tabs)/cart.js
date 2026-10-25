@@ -1,6 +1,6 @@
 // app/(root)/(tabs)/cart.js
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -8,6 +8,7 @@ import {
     RefreshControl,
     ActivityIndicator,
     TouchableOpacity,
+    Alert,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCart, resetCart, clearCart } from "@/redux/slices/cartSlice";
@@ -21,6 +22,8 @@ import { useTabContext } from "@/context/TabContext";
 import { trackEvent, triggerScreenExit } from "@/utils/eventTracker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import api from "@/api/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CartScreen() {
     const dispatch = useDispatch();
@@ -29,11 +32,75 @@ export default function CartScreen() {
     const insets = useSafeAreaInsets();
 
     const { goToTab } = useTabContext();
+    const [checkingAuth, setCheckingAuth] = useState(false);
 
+    const handleCheckoutPress = async () => {
+        if (checkingAuth) return;
+        setCheckingAuth(true);
+
+        const cartItemPayload = items.map((item) => ({
+            productId: item?.productId,
+            variantId: item?.variantId,
+            cartItemId: item?.cartItemId,
+            cart: item?.cart,
+        }));
+
+        try {
+            const token = await AsyncStorage.getItem("token");
+            if (!token) {
+                router.push({
+                    pathname: "/(root)/login",
+                    params: { redirectTo: "/(root)/checkout/checkout" },
+                });
+                return;
+            }
+
+            const res = await api.get("/api/auth/me");
+            if (res.data?.success && res.data?.user) {
+                handleEventCall("CART_CHECKOUT_BTN_CLICK", cartItemPayload);
+                triggerScreenExit();
+                router.push("/(root)/checkout/checkout");
+            } else {
+                router.push({
+                    pathname: "/(root)/login",
+                    params: { redirectTo: "/(root)/checkout/checkout" },
+                });
+            }
+        } catch (error) {
+            if (error?.response?.status === 401 || error?.response?.status === 403) {
+                router.push({
+                    pathname: "/(root)/login",
+                    params: { redirectTo: "/(root)/checkout/checkout" },
+                });
+            } else {
+                Alert.alert(
+                    "Sign In Required",
+                    "Please sign in to proceed to checkout.",
+                    [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                            text: "Sign In",
+                            onPress: () => {
+                                router.push({
+                                    pathname: "/(root)/login",
+                                    params: { redirectTo: "/(root)/checkout/checkout" },
+                                });
+                            },
+                        },
+                    ]
+                );
+            }
+        } finally {
+            setCheckingAuth(false);
+        }
+    };
 
     const handleEraseAllCartItem = () => {
         dispatch(clearCart())
     }
+
+
+
 
     let result = {}
     useEffect(() => {
@@ -53,7 +120,7 @@ export default function CartScreen() {
     useFocusEffect(
         useCallback(() => {
             dispatch(fetchCart());
-        }, [])
+        }, []),
     );
 
     const onRefresh = useCallback(() => {
@@ -101,6 +168,7 @@ export default function CartScreen() {
             </View>
         );
     }
+
 
 
 
@@ -211,14 +279,21 @@ export default function CartScreen() {
                                 </Text>
                             </View>
                             <TouchableOpacity
-                                onPress={() => { router.push("/(root)/checkout/checkout"), handleEventCall("CART_CHECKOUT_BTN_CLICK", result), triggerScreenExit() }}
+                                onPress={handleCheckoutPress}
+                                disabled={checkingAuth}
                                 className="bg-green-600 px-8 py-3.5 rounded-full flex-row items-center"
                                 activeOpacity={0.85}
                             >
-                                <Text className="text-white font-semibold text-base mr-1">
-                                    Checkout
-                                </Text>
-                                <Ionicons name="arrow-forward" size={18} color="#fff" />
+                                {checkingAuth ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <>
+                                        <Text className="text-white font-semibold text-base mr-1">
+                                            Checkout
+                                        </Text>
+                                        <Ionicons name="arrow-forward" size={18} color="#fff" />
+                                    </>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>

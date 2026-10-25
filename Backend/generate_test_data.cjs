@@ -24,7 +24,7 @@ async function main() {
     }
   });
 
-  console.log('Created category:', category.id);
+
 
   const subCategories = [];
   for (let i = 1; i <= 8; i++) {
@@ -37,13 +37,13 @@ async function main() {
     });
     subCategories.push(subCat);
   }
-  
-  console.log('Created subcategories');
+
+
 
   let productCount = 0;
   for (let i = 0; i < 15; i++) {
     const subCat = subCategories[i % subCategories.length];
-    
+
     const product = await prisma.product.create({
       data: {
         productName: `Test Product ${i + 1}`,
@@ -53,25 +53,25 @@ async function main() {
         userId: user.id,
         isApprove: true,
         variants: {
-            create: {
-                actualPrice: 100,
-                mrp: 120,
-                vendorMinPrice: 90,
-                stock: 50,
-                isDefault: true
-            }
+          create: {
+            actualPrice: 100,
+            mrp: 120,
+            vendorMinPrice: 90,
+            stock: 50,
+            isDefault: true
+          }
         }
       }
     });
     productCount++;
   }
-  
-  console.log(`Created ${productCount} products in category ${category.id}`);
+
+
 }
 
 main()
   .catch(e => {
-    console.error(e);
+
     process.exit(1);
   })
   .finally(async () => {

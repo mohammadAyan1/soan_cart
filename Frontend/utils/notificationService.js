@@ -17,7 +17,7 @@ export async function registerForPushNotificationsAsync() {
     let token;
 
     if (!Device.isDevice) {
-        // console.log('Push notifications only work on physical devices, emulator me nahi.');
+
         return null;
     }
 
@@ -30,7 +30,7 @@ export async function registerForPushNotificationsAsync() {
     }
 
     if (finalStatus !== 'granted') {
-        // console.log('User ne notification permission deny kar di.');
+
         return null;
     }
 
@@ -40,7 +40,7 @@ export async function registerForPushNotificationsAsync() {
         const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
         token = tokenResponse.data; // Ye kuch aisa dikhega: ExponentPushToken[xxxxxxxxxxxx]
     } catch (e) {
-        console.warn("Push token fetching failed (Firebase shayad configure nahi hai):", e);
+
         return null;
     }
 

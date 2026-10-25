@@ -46,7 +46,7 @@ const Login = () => {
                 navigate("/vendor/dashboard", { replace: true });
             }
         } catch (err) {
-            console.log("Catch run", err);
+            
 
             // error already authSlice ke `error` state me store ho chuka hai
         }

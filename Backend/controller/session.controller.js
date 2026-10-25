@@ -121,7 +121,7 @@ export const getMySessions = async (req, res) => {
 
         return res.status(200).json({ success: true, data: formatted });
     } catch (error) {
-        console.error("getMySessions error:", error);
+
         return res.status(500).json({ success: false, message: "Devices fetch karne me error aaya" });
     }
 };
@@ -157,7 +157,7 @@ export const logoutSession = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Device logout ho gaya" });
     } catch (error) {
-        console.error("logoutSession error:", error);
+
         return res.status(500).json({ success: false, message: "Logout karne me error aaya" });
     }
 };
@@ -185,7 +185,7 @@ export const logoutAllSessions = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Baaki saare devices se logout ho gaya" });
     } catch (error) {
-        console.error("logoutAllSessions error:", error);
+
         return res.status(500).json({ success: false, message: "Logout karne me error aaya" });
     }
 };

@@ -47,7 +47,7 @@ function TabsContent() {
 
 
         activeIndexRef.current = activeIndex;
-        // console.log(activeIndex);
+
     }, [activeIndex]);
 
     // 👇 NAYA - pehla mount skip karne ke liye (warna "app_launch" SCREEN_VIEW
@@ -91,7 +91,7 @@ function TabsContent() {
                 });
             }
 
-            
+
 
 
             // 👇 YAHAN CHANGE KAREIN - Naya Return statement 👇
@@ -135,8 +135,8 @@ function TabsContent() {
 
 export default function TabsLayout() {
     return (
-        
+
         <TabsContent />
-        
+
     );
 }

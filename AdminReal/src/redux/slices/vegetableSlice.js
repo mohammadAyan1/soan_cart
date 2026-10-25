@@ -38,7 +38,7 @@ export const updateVegetable = createAsyncThunk(
                 if (key == "id") {
                     id = value
                 }
-                console.log(key, value, "QWERTYUIOP");
+
             }
 
             const res = await api.put(
@@ -67,7 +67,7 @@ export const toggleVegetableStatus = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
 
-            console.log(id, "ASDFGHJKL");
+
 
             const res = await api.put(
                 `/api/vegetable/toggle/${id}`,
@@ -90,7 +90,7 @@ export const fetchVegetable = createAsyncThunk(
     "vegetable/fetch",
     async (active, { rejectWithValue }) => {
         try {
-            console.log(active, "QWERTYU");
+
 
             const res = await api.get(
                 `/api/vegetable/get-all?status=${active?.isDelete}`
@@ -194,17 +194,6 @@ const vegetableSlice = createSlice({
                 state.error = null;
             })
 
-            // .addCase(updateVegetable.fulfilled, (state, action) => {
-            //     state.createLoading = false;
-
-            //     const newVegetable =
-            //         action.payload?.vegetableProduct ||
-            //         action.payload?.data;
-
-            //     if (newVegetable) {
-            //         state.vegetables.unshift(newVegetable);
-            //     }
-            // })
 
             .addCase(updateVegetable.fulfilled, (state, action) => {
                 state.createLoading = false;

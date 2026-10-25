@@ -79,15 +79,7 @@ const Unit = () => {
 
             setEditingId(null);
         } else {
-            // setUnits((prev) => [
-            //     ...prev,
-            //     {
-            //         id: Date.now(),
-            //         name: formData.name,
-            //         shortName: formData.shortName,
-            //         status: "Active",
-            //     },
-            // ]);
+            
 
 
             dispatch(createUnit(formData)).then((res) => {

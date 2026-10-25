@@ -27,7 +27,10 @@ api.interceptors.response.use(
                     console.log("Unauthorized");
                     // logout ya login page redirect
                     break;
-
+                case 404:
+                    console.log("Unauthorized");
+                    // logout ya login page redirect
+                    break;
                 case 403:
                     console.log("Forbidden");
                     break;

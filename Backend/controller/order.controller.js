@@ -203,7 +203,7 @@ export const checkoutFromCart = async (req, res) => {
 
         return res.status(201).json({ success: true, message: "Order successfully placed", data: fullOrder });
     } catch (error) {
-        console.error("checkoutFromCart error:", error);
+
         return res.status(500).json({ success: false, message: `Order create karne me error aaya ${error?.message}` });
     }
 };
@@ -341,7 +341,7 @@ export const checkoutSingleProduct = async (req, res) => {
 
         return res.status(201).json({ success: true, message: "Order successfully placed", data: fullOrder });
     } catch (error) {
-        console.error("checkoutSingleProduct error:", error);
+
         return res.status(500).json({ success: false, message: "Order create karne me error aaya" });
     }
 };
@@ -422,7 +422,7 @@ export const getMyOrders = async (req, res) => {
 
         return res.status(200).json({ success: true, data: ordersWithSource });
     } catch (error) {
-        console.error("getMyOrders error:", error);
+
         return res.status(500).json({ success: false, message: "Orders fetch karne me error aaya" });
     }
 };
@@ -462,7 +462,7 @@ export const getMyOrderById = async (req, res) => {
 
         return res.status(200).json({ success: true, data: orderWithSource });
     } catch (error) {
-        console.error("getMyOrderById error:", error);
+
         return res.status(500).json({ success: false, message: "Order fetch karne me error aaya" });
     }
 };
@@ -505,7 +505,7 @@ export const requestReturn = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Return request submit ho gayi", data: updated });
     } catch (error) {
-        console.error("requestReturn error:", error);
+
         return res.status(500).json({ success: false, message: "Return request me error aaya" });
     }
 };
@@ -554,7 +554,7 @@ export const respondToReturn = async (req, res) => {
 
         return res.status(200).json({ success: true, message: `Return ${action.toLowerCase()}ed`, data: updated });
     } catch (error) {
-        console.error("respondToReturn error:", error);
+
         return res.status(500).json({ success: false, message: "Return response me error aaya" });
     }
 };
@@ -597,7 +597,7 @@ export const confirmReturned = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Return confirm ho gaya", data: updated });
     } catch (error) {
-        console.error("confirmReturned error:", error);
+
         return res.status(500).json({ success: false, message: "Return confirm karne me error aaya" });
     }
 };
@@ -656,7 +656,7 @@ export const updateOrderItemStatus = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Order item update ho gaya", data: updated });
     } catch (error) {
-        console.error("updateOrderItemStatus error:", error);
+
         return res.status(500).json({ success: false, message: "Status update karne me error aaya" });
     }
 };
@@ -844,7 +844,7 @@ export const getAllOrdersAdmin = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("getAllOrdersAdmin error:", error);
+
         return res.status(500).json({ success: false, message: "Orders fetch karne me error aaya" });
     }
 };
@@ -904,7 +904,7 @@ export const getVendorSalesStatsAdmin = async (req, res) => {
 
         return res.status(200).json({ success: true, data: result });
     } catch (error) {
-        console.error("getVendorSalesStatsAdmin error:", error);
+
         return res.status(500).json({ success: false, message: "Vendor stats fetch karne me error aaya" });
     }
 };
@@ -976,7 +976,7 @@ export const getVendorOrders = async (req, res) => {
 
         return res.status(200).json({ success: true, data: orderItems });
     } catch (error) {
-        console.error("getVendorOrders error:", error);
+
         return res.status(500).json({ success: false, message: "Orders fetch karne me error aaya" });
     }
 };
@@ -1046,7 +1046,7 @@ export const changeVendor = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
 
         return res.status(500).json({
             success: false,
@@ -1116,7 +1116,7 @@ export const toggleVendor = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+
 
         return res.status(500).json({
             success: false,
@@ -1167,11 +1167,11 @@ export const toggleOrderDeleteAdmin = async (req, res) => {
             data: updatedOrder,
         });
     } catch (error) {
-        console.error("toggleOrderDeleteAdmin error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Something went wrong",
             error: error.message,
         });
     }
-};
+};

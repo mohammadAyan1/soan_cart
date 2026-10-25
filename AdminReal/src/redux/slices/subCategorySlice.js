@@ -30,7 +30,7 @@ export const fetchSubCategoryByCategory = createAsyncThunk(
         try {
             const data = await api.get(`/api/product-sub-category/get-by-category?cat=${categoryId}`);
 
-            console.log(data, "ASDFGHJKL");
+
 
             // data: { success: true, subCategories: [...] }
             return data?.data?.subCategories || [];

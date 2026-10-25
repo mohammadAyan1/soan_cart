@@ -19,10 +19,10 @@ export const sendOTPEmail = async (toEmail, subject, html) => {
             html: html,
         });
 
-        console.log("Email sent successfully:", data);
+
         return data;
     } catch (error) {
-        console.error("Email sending failed:", error);
+
         throw error;
     }
 };

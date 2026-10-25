@@ -45,7 +45,7 @@ export default function AddToCartButton({ productId, variantId, quantity = 1, so
             setStatus("success");
             setTimeout(() => setStatus("idle"), 1500);
         } catch (error) {
-            console.error("Add to cart failed:", error);
+            
             setStatus("error");
             setTimeout(() => setStatus("idle"), 1500);
         }

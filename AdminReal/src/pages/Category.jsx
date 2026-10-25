@@ -114,7 +114,7 @@ function Category() {
             await dispatch(toggleCategoryDelete(id)).unwrap();
             dispatch(fetchAllCategory({ page, limit, status: statusFilter }));
         } catch (err) {
-            console.error("Toggle status error:", err);
+            
         }
     };
 

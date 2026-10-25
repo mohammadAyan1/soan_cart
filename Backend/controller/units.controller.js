@@ -8,8 +8,6 @@ export const createUnit = async (req, res) => {
     try {
         const { name, shortName } = req.body;
 
-        console.log(name);
-        console.log(shortName);
 
 
         // Validation
@@ -62,7 +60,7 @@ export const createUnit = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Create Unit Error:", error);
+        
 
         return res.status(500).json({
             success: false,
@@ -96,7 +94,7 @@ export const getAllUnits = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Get All Units Error:", error);
+        
 
         return res.status(500).json({
             success: false,
@@ -143,7 +141,7 @@ export const getUnitById = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Get Unit By ID Error:", error);
+        
 
         return res.status(500).json({
             success: false,
@@ -243,7 +241,7 @@ export const updateUnit = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Update Unit Error:", error);
+        
 
         return res.status(500).json({
             success: false,
@@ -300,7 +298,7 @@ export const deleteUnit = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Delete Unit Error:", error);
+        
 
         return res.status(500).json({
             success: false,
@@ -357,7 +355,7 @@ export const restoreUnit = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Restore Unit Error:", error);
+        
 
         return res.status(500).json({
             success: false,
@@ -414,7 +412,7 @@ export const toggleUnitStatus = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Toggle Unit Status Error:", error);
+        
 
         return res.status(500).json({
             success: false,
