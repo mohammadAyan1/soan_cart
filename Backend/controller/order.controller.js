@@ -1218,6 +1218,10 @@ export const checkoutFromCart = async (req, res) => {
         const userId = req.user.id;
         const { fullName, phone, addressLine, city, state, pincode, orderType, sourceScreen, couponCode, rewardCode } = req.body;
 
+        console.log('====================================');
+        console.log(fullName);
+        console.log('====================================');
+
         if (!fullName || !phone || !addressLine || !city || !state || !pincode) {
             return res.status(400).json({ success: false, message: "Address ki saari fields required hai" });
         }
