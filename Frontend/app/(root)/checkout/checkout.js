@@ -108,6 +108,17 @@ export default function CheckoutScreen() {
         let addressData = null;
 
         try {
+            const cleanCoupon = couponCode ? couponCode.trim() : "";
+            const cleanReward = rewardCode ? rewardCode.trim() : "";
+
+            if (cleanCoupon && cleanReward) {
+                Alert.alert(
+                    "Invalid Discount",
+                    "Aap ek order me Coupon ya Reward me se koi ek hi code use kar sakte hain."
+                );
+                return;
+            }
+
             if (showNewAddressForm) {
                 if (!validateNewAddress()) return;
 
@@ -131,8 +142,8 @@ export default function CheckoutScreen() {
                     state: newAddress.state,
                     pincode: newAddress.pincode,
                     orderType,
-                    couponCode: couponCode.trim(),
-                    rewardCode: rewardCode.trim(),
+                    couponCode: cleanCoupon || undefined,
+                    rewardCode: cleanReward || undefined,
                 };
 
                 dispatch(fetchMyAddresses({}));
@@ -153,6 +164,8 @@ export default function CheckoutScreen() {
                     state: selected.state,
                     pincode: selected.pincode,
                     orderType,
+                    couponCode: cleanCoupon || undefined,
+                    rewardCode: cleanReward || undefined,
                 };
             }
 
@@ -176,6 +189,9 @@ export default function CheckoutScreen() {
                 dispatch(fetchCart());
                 handleEventCall("HANDLE_CHECK_OUT_FROM_CART_PAGE")
             }
+
+            setCouponCode("");
+            setRewardCode("");
 
             Alert.alert("Success 🎉", "Aapka order successfully place ho gaya!", [
                 {
@@ -416,26 +432,57 @@ export default function CheckoutScreen() {
                         Coupon Code
                     </Text>
 
-                    <TextInput
-                        value={couponCode}
-                        onChangeText={setCouponCode}
-                        placeholder="Enter coupon code"
-                        autoCapitalize="characters"
-                        className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-[15px] text-gray-900"
-                    />
+                    <View className="relative mb-3">
+                        <TextInput
+                            value={couponCode}
+                            onChangeText={(text) => setCouponCode(text.toUpperCase().replace(/\s/g, ""))}
+                            placeholder="Enter coupon code"
+                            autoCapitalize="characters"
+                            className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 pr-10"
+                        />
+                        {couponCode.length > 0 && (
+                            <TouchableOpacity
+                                onPress={() => setCouponCode("")}
+                                className="absolute right-3 top-3.5"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            >
+                                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
 
                     {/* Reward Code */}
                     <Text className="text-xs font-semibold text-gray-500 mb-1.5">
                         Reward Code
                     </Text>
 
-                    <TextInput
-                        value={rewardCode}
-                        onChangeText={setRewardCode}
-                        placeholder="Enter reward code"
-                        autoCapitalize="characters"
-                        className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900"
-                    />
+                    <View className="relative">
+                        <TextInput
+                            value={rewardCode}
+                            onChangeText={(text) => setRewardCode(text.toUpperCase().replace(/\s/g, ""))}
+                            placeholder="Enter reward code"
+                            autoCapitalize="characters"
+                            className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 pr-10"
+                        />
+                        {rewardCode.length > 0 && (
+                            <TouchableOpacity
+                                onPress={() => setRewardCode("")}
+                                className="absolute right-3 top-3.5"
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            >
+                                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    {couponCode.trim() && rewardCode.trim() ? (
+                        <View className="mt-2.5 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex-row items-center gap-2">
+                            <Ionicons name="alert-circle-outline" size={16} color="#d97706" />
+                            <Text className="text-xs text-amber-700 flex-1">
+                                Ek order me Coupon ya Reward me se koi ek hi code apply ho sakta hai.
+                            </Text>
+                        </View>
+                    ) : null}
 
                 </View>
 

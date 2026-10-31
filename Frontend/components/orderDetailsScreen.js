@@ -230,6 +230,10 @@ const OrderDetailScreen = () => {
                             <tr><td><strong>Address:</strong></td><td>${order.addressLine || ''}, ${order.city || ''}, ${order.state || ''} - ${order.pincode || ''}</td></tr>
                             <tr><td><strong>Payment:</strong></td><td>${order.orderType || ''} (${order.paymentStatus || ''})</td></tr>
                             <tr><td><strong>Order Status:</strong></td><td>${overallStatus}</td></tr>
+                            ${Number(order.discountAmount) > 0 ? `
+                            <tr><td><strong>Sub Total:</strong></td><td>₹${order.subTotal || '0'}</td></tr>
+                            <tr><td><strong>Discount (${order.discountCode || 'Applied'}):</strong></td><td>-₹${order.discountAmount}</td></tr>
+                            ` : ''}
                             <tr><td><strong>Total Amount:</strong></td><td>₹${order.totalAmount || '0'}</td></tr>
                         </table>
                     </div>
@@ -511,6 +515,11 @@ const OrderDetailScreen = () => {
                         <View>
                             <Text style={styles.totalLabel}>Total Amount</Text>
                             <Text style={styles.orderTotal}>₹{order.totalAmount || '0'}</Text>
+                            {Number(order.discountAmount) > 0 && (
+                                <Text style={{ fontSize: 12, color: '#16a34a', fontWeight: '600', marginTop: 2 }}>
+                                    Discount: -₹{order.discountAmount} {order.discountCode ? `(${order.discountCode})` : ''}
+                                </Text>
+                            )}
                         </View>
                         <View style={styles.paymentBadgesWrap}>
                             <View style={[styles.paymentStatusBadge, { backgroundColor: paymentMeta.bg }]}>
