@@ -39,6 +39,7 @@ model User {
   sessions             UserSession[]
   wishlist             Wishlist?
   wishlistActivities   WishlistActivity[]
+  rewards              Reward[]
   vendorWishlistItems  WishlistItem[]       @relation("VendorWishlistItems")
 
   // 👇 ye 2 lines missing thi, isi wajah se error aa raha tha
@@ -286,6 +287,11 @@ model Order {
   items            OrderItem[]
   purchaseJourneys PurchaseJourney[]
   reviews          Review[]
+  subTotal         Decimal?          @db.Decimal(10, 2)
+  discountAmount   Decimal           @default(0) @db.Decimal(10, 2)
+  couponId         Int?
+  rewardId         Int?
+  discountCode     String?           @db.VarChar(50)
 
   @@index([userId], map: "Order_userId_fkey")
 }
@@ -311,7 +317,7 @@ model OrderItem {
   statusHistory        OrderItemStatusHistory[]
   review               Review?
   vendorChanges        orderItemVendorChange[] // 👈 naya opposite relation
-
+  discountAmount       Decimal                  @default(0) @db.Decimal(10, 2)
   @@index([orderId], map: "OrderItem_orderId_fkey")
   @@index([productId], map: "OrderItem_productId_fkey")
   @@index([variantId], map: "OrderItem_variantId_fkey")
@@ -775,4 +781,115 @@ model VegetableProduct {
   @@index([unitId])
   @@index([isDelete])
   @@index([isActive])
+}
+
+/////
+
+enum CouponType {
+  FLAT
+  PERCENTAGE
+  UPTO
+}
+
+enum CouponScope {
+  ALL
+  PRODUCT
+  VARIANT
+  CATEGORY
+  SUBCATEGORY
+}
+
+model Coupon {
+  id                Int         @id @default(autoincrement())
+  code              String      @unique @db.VarChar(50)
+  description       String?     @db.Text
+  type              CouponType
+  value             Decimal     @db.Decimal(10, 2)
+  maxDiscountAmount Decimal?    @db.Decimal(10, 2) // sirf UPTO type ke liye
+  perUserLimit      Int? // null = unlimited
+  expiryDate        DateTime
+  scope             CouponScope @default(ALL)
+  productId         Int?
+  variantId         Int?
+  categoryId        Int?
+  subCategoryId     Int?
+  isActive          Boolean     @default(true)
+  isDelete          Boolean     @default(false)
+  createdBy         Int?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  usages            CouponUsage[]
+
+  @@index([isActive])
+  @@index([isDelete])
+  @@index([expiryDate])
+  @@index([productId])
+  @@index([variantId])
+  @@index([categoryId])
+  @@index([subCategoryId])
+}
+
+model CouponUsage {
+  id             Int      @id @default(autoincrement())
+  couponId       Int
+  userId         Int
+  orderId        Int
+  discountAmount Decimal  @db.Decimal(10, 2)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  coupon         Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  @@index([couponId, userId])
+  @@index([userId])
+  @@index([orderId])
+}
+
+model Reward {
+  id                Int         @id @default(autoincrement())
+  code              String      @unique @db.VarChar(50)
+  description       String?     @db.Text
+  userId            Int // ye reward kis user ke liye bana hai
+  type              CouponType
+  value             Decimal     @db.Decimal(10, 2)
+  maxDiscountAmount Decimal?    @db.Decimal(10, 2)
+  perUserLimit      Int? // null = unlimited
+  expiryDate        DateTime
+  scope             CouponScope @default(ALL)
+  productId         Int?
+  variantId         Int?
+  categoryId        Int?
+  subCategoryId     Int?
+  isActive          Boolean     @default(true)
+  isDelete          Boolean     @default(false)
+  createdBy         Int?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usages            RewardUsage[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([isDelete])
+  @@index([expiryDate])
+  @@index([productId])
+  @@index([variantId])
+  @@index([categoryId])
+  @@index([subCategoryId])
+}
+
+model RewardUsage {
+  id             Int      @id @default(autoincrement())
+  rewardId       Int
+  userId         Int
+  orderId        Int
+  discountAmount Decimal  @db.Decimal(10, 2)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  reward         Reward   @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([rewardId, userId])
+  @@index([userId])
+  @@index([orderId])
 }

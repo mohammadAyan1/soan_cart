@@ -166,6 +166,18 @@ function DashboardLayout() {
                         )}
                     </Link>
 
+                    <Link
+                        to="/admin/discounts"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+                    >
+                        <Weight size={20} />
+
+                        {isOpen && (
+                            <span>
+                                Coupon
+                            </span>
+                        )}
+                    </Link>
 
                 </nav>
 

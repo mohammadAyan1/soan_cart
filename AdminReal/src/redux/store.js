@@ -9,6 +9,7 @@ import orderSlice from "./slices/orderSlice"
 import dashboardSlice from "./slices/dashboardSlice"
 import unitSlice from "./slices/unitSlice"
 import vegetableReducer from "./slices/vegetableSlice"
+import couponRewardReducer from "./slices/couponRewardSlice"
 export const store = configureStore({
     reducer: {
         auth: authReducer,
@@ -19,6 +20,7 @@ export const store = configureStore({
         order: orderSlice,
         dashboard: dashboardSlice,
         unit: unitSlice,
-        vegetable: vegetableReducer
+        vegetable: vegetableReducer,
+        couponReward: couponRewardReducer
     },
 });

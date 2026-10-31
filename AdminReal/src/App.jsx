@@ -12,6 +12,10 @@ import Category from "./pages/Category";
 import SubCategory from "./pages/SubCategory";
 import VegetableProduct from "./pages/VegetableProduct";
 import Unit from "./pages/Unit";
+import AdminCouponsRewards from "./pages/AdminCouponsRewards";
+
+
+
 
 function App() {
 
@@ -67,7 +71,7 @@ function App() {
           path="unit"
           element={<Unit />}
         />
-
+        <Route path="admin/discounts" element={<AdminCouponsRewards />} />
       </Route>
     </Routes>
 

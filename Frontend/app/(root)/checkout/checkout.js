@@ -39,6 +39,10 @@ export default function CheckoutScreen() {
     const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [showNewAddressForm, setShowNewAddressForm] = useState(false);
 
+
+    const [couponCode, setCouponCode] = useState("");
+    const [rewardCode, setRewardCode] = useState("");
+
     const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
     const [addressLine, setAddressLine] = useState("");
@@ -127,6 +131,8 @@ export default function CheckoutScreen() {
                     state: newAddress.state,
                     pincode: newAddress.pincode,
                     orderType,
+                    couponCode: couponCode.trim(),
+                    rewardCode: rewardCode.trim(),
                 };
 
                 dispatch(fetchMyAddresses({}));
@@ -396,6 +402,43 @@ export default function CheckoutScreen() {
                         </View>
                     )}
                 </View>
+
+
+                {/* ---------- Coupon & Reward Code ---------- */}
+                <View className="bg-white rounded-2xl p-4 mb-4 border border-gray-100">
+
+                    <Text className="text-sm font-semibold text-gray-500 mb-3">
+                        Apply Coupon / Reward Code
+                    </Text>
+
+                    {/* Coupon Code */}
+                    <Text className="text-xs font-semibold text-gray-500 mb-1.5">
+                        Coupon Code
+                    </Text>
+
+                    <TextInput
+                        value={couponCode}
+                        onChangeText={setCouponCode}
+                        placeholder="Enter coupon code"
+                        autoCapitalize="characters"
+                        className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-[15px] text-gray-900"
+                    />
+
+                    {/* Reward Code */}
+                    <Text className="text-xs font-semibold text-gray-500 mb-1.5">
+                        Reward Code
+                    </Text>
+
+                    <TextInput
+                        value={rewardCode}
+                        onChangeText={setRewardCode}
+                        placeholder="Enter reward code"
+                        autoCapitalize="characters"
+                        className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900"
+                    />
+
+                </View>
+
 
                 {/* ---------- Payment Method ---------- */}
                 <View className="bg-white rounded-2xl p-4 mb-6 border border-gray-100">

@@ -31,7 +31,8 @@ import notificationRouter from "./routes/notification/notificationRoutes.js";
 import vegetableRoutes from "./routes/vegetable.routes.js";
 import unitsRoutes from "./routes/units.routes.js";
 import shareRoutes from "./routes/share.routes.js";
-
+import couponRoutes from "./routes/coupon.routes.js";
+import rewardRoutes from "./routes/reward.routes.js";
 
 const app = express();
 
@@ -88,6 +89,9 @@ app.use("/api/analytics/session", sessionRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/units', unitsRoutes);
+
+app.use("/api/coupons", couponRoutes);
+app.use("/api/rewards", rewardRoutes);
 
 // Share & App Links Landing Pages
 app.use("/", shareRoutes);
