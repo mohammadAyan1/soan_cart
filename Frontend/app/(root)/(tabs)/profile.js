@@ -228,8 +228,8 @@ export default function ProfileScreen() {
             {/* Quick actions */}
             <View className="bg-white mt-3 mx-4 rounded-xl flex-row items-center justify-between">
                 <QuickAction icon={Heart} label="Wishlist" onPress={() => setActiveIndex(2)} />
-                <QuickAction icon={Ticket} label="Coupons" onPress={() => router.push("/coupons")} />
-                <QuickAction icon={Gift} label="Rewards" onPress={() => router.push("/rewards")} />
+                <QuickAction icon={Ticket} label="Coupons" onPress={() => router.push("/(root)/coupons")} />
+                <QuickAction icon={Gift} label="Rewards" onPress={() => router.push("/(root)/rewards")} />
             </View>
 
             {/* Help center */}

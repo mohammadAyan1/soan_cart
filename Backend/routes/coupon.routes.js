@@ -13,7 +13,7 @@ import { requiredAuth } from "../middleware/auth.middleware.js";
 const couponRoutes = express.Router();
 
 // ---------------- USER routes ----------------
-couponRoutes.get("/", requiredAuth, getActiveCouponsForUser);
+couponRoutes.get("/", getActiveCouponsForUser);
 
 // ---------------- ADMIN only ----------------
 // NOTE: "/admin/all" ko "/admin/:couponId" se pehle hi rakhna warna "all" id samajh liya jayega

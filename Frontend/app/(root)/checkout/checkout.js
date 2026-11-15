@@ -504,7 +504,7 @@ export default function CheckoutScreen() {
                             </Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             onPress={() => setOrderType("ONLINE")}
                             className={`flex-1 flex-row items-center justify-center py-3 rounded-xl border ${orderType === "ONLINE" ? "bg-green-50 border-green-500" : "border-gray-200"
                                 }`}
@@ -515,7 +515,7 @@ export default function CheckoutScreen() {
                             <Text className={`text-[13px] font-semibold ${orderType === "ONLINE" ? "text-green-700" : "text-gray-700"}`}>
                                 Pay Online
                             </Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                 </View>
 

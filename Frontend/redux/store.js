@@ -8,7 +8,8 @@ import wishlistReducer from "./slices/wishlistSlice"; // 👈 ye import add karo
 import addressReducer from "./slices/addressSlice"
 import sessionReducer from "./slices/sessionSlice";
 import reviewReducer from "./slices/reviewSlice"; // 👈 naya review reducer add kiya
-
+import couponReducer from "./slices/couponsSlice"
+import rewardReducer from "./slices/rewardsSlice"
 
 export const store = configureStore({
     reducer: {
@@ -21,6 +22,7 @@ export const store = configureStore({
         address: addressReducer,
         session: sessionReducer,
         reviews: reviewReducer, // 👈 ye line add karo
-
+        coupons: couponReducer,
+        rewards: rewardReducer,
     },
 });

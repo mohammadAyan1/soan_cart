@@ -271,6 +271,7 @@ model Order {
   userId           Int
   totalAmount      Decimal           @db.Decimal(10, 2)
   paymentStatus    PaymentStatus     @default(PENDING)
+  orderStatus OrderStatus @default(PLACED) @map("order_status")
   orderType        OrderType
   fullName         String
   phone            String
@@ -292,8 +293,11 @@ model Order {
   couponId         Int?
   rewardId         Int?
   discountCode     String?           @db.VarChar(50)
-
+  payments         Payment[]
   @@index([userId], map: "Order_userId_fkey")
+  @@index([orderStatus])
+  @@index([paymentStatus])
+
 }
 
 model OrderItem {
@@ -689,6 +693,7 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+  UNPAID
 }
 
 enum OrderType {
@@ -892,4 +897,54 @@ model RewardUsage {
   @@index([rewardId, userId])
   @@index([userId])
   @@index([orderId])
+}
+
+
+model Payment {
+  id              BigInt        @id @default(autoincrement())
+
+  orderId         Int           @map("order_id")
+
+  merchantOrderId String        @unique @db.VarChar(100) @map("merchant_order_id")
+
+  amount          BigInt
+
+  transactionId   String?       @db.VarChar(150) @map("transaction_id")
+
+  paymentStatus   PaymentTransactionStatus @default(PENDING) @map("payment_status")
+
+  paymentSource   PaymentSource @map("payment_source")
+
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([paymentStatus])
+  @@map("payments")
+}
+
+
+enum PaymentTransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentSource {
+  WEBSITE
+  MOBILE_APP
+}
+enum OrderStatus {
+  
+  PLACED
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
 }

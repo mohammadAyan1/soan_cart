@@ -234,16 +234,84 @@ export const toggleCouponDeleteAdmin = async (req, res) => {
 // 7) USER: sirf active + non-expired coupons (GET /api/coupons)
 //    Har coupon ke saath user ka usage bhi aata hai (usedByYou, remainingUses, canUse)
 // ==================================================================
+// export const getActiveCouponsForUser = async (req, res) => {
+//     try {
+
+
+//         // const userId = req.user.id;
+
+
+//         const coupons = await prisma.coupon.findMany({
+//             where: {
+//                 isActive: true,
+//                 isDelete: false,
+//                 expiryDate: { gt: new Date() },
+//             },
+//             select: {
+//                 id: true,
+//                 code: true,
+//                 description: true,
+//                 type: true,
+//                 value: true,
+//                 maxDiscountAmount: true,
+//                 perUserLimit: true,
+//                 expiryDate: true,
+//                 scope: true,
+//                 productId: true,
+//                 variantId: true,
+//                 categoryId: true,
+//                 subCategoryId: true,
+//             },
+//             orderBy: { createdAt: "desc" },
+//         });
+
+//         const usedMap = new Map();
+//         if (coupons.length > 0) {
+//             const usedRows = await prisma.couponUsage.groupBy({
+//                 by: ["couponId"],
+//                 // where: { userId, isActive: true, couponId: { in: coupons.map((c) => c.id) } },
+//                 _count: { id: true },
+//             });
+//             for (const row of usedRows) usedMap.set(row.couponId, row._count.id);
+//         }
+
+//         const data = coupons.map((c) => {
+//             const used = usedMap.get(c.id) || 0;
+//             const remainingUses = c.perUserLimit === null ? null : Math.max(c.perUserLimit - used, 0);
+//             return {
+//                 ...c,
+//                 usedByYou: used,
+//                 remainingUses, // null = unlimited
+//                 canUse: remainingUses === null || remainingUses > 0,
+//             };
+//         });
+
+//         return res.status(200).json({ success: true, data });
+//     } catch (error) {
+
+
+//         return res.status(500).json({ success: false, message: "Coupons fetch karne me error aaya" });
+//     }
+// };
+
+
+
 export const getActiveCouponsForUser = async (req, res) => {
     try {
-        const userId = req.user.id;
+
+        // =====================================
+        // 1. Fetch Active Coupons
+        // =====================================
 
         const coupons = await prisma.coupon.findMany({
             where: {
                 isActive: true,
                 isDelete: false,
-                expiryDate: { gt: new Date() },
+                expiryDate: {
+                    gt: new Date()
+                }
             },
+
             select: {
                 id: true,
                 code: true,
@@ -254,37 +322,318 @@ export const getActiveCouponsForUser = async (req, res) => {
                 perUserLimit: true,
                 expiryDate: true,
                 scope: true,
+
                 productId: true,
                 variantId: true,
                 categoryId: true,
                 subCategoryId: true,
+
+                createdAt: true
             },
-            orderBy: { createdAt: "desc" },
+
+            orderBy: {
+                createdAt: "desc"
+            }
         });
 
-        const usedMap = new Map();
-        if (coupons.length > 0) {
-            const usedRows = await prisma.couponUsage.groupBy({
-                by: ["couponId"],
-                where: { userId, isActive: true, couponId: { in: coupons.map((c) => c.id) } },
-                _count: { id: true },
+
+        if (coupons.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No active coupons available",
+                total: 0,
+                data: []
             });
-            for (const row of usedRows) usedMap.set(row.couponId, row._count.id);
         }
 
-        const data = coupons.map((c) => {
-            const used = usedMap.get(c.id) || 0;
-            const remainingUses = c.perUserLimit === null ? null : Math.max(c.perUserLimit - used, 0);
-            return {
-                ...c,
-                usedByYou: used,
-                remainingUses, // null = unlimited
-                canUse: remainingUses === null || remainingUses > 0,
+
+        // =====================================
+        // 2. Collect All IDs
+        // =====================================
+
+        const productIds = [
+            ...new Set(
+                coupons
+                    .filter(c => c.productId)
+                    .map(c => c.productId)
+            )
+        ];
+
+        const variantIds = [
+            ...new Set(
+                coupons
+                    .filter(c => c.variantId)
+                    .map(c => c.variantId)
+            )
+        ];
+
+        const categoryIds = [
+            ...new Set(
+                coupons
+                    .filter(c => c.categoryId)
+                    .map(c => c.categoryId)
+            )
+        ];
+
+        const subCategoryIds = [
+            ...new Set(
+                coupons
+                    .filter(c => c.subCategoryId)
+                    .map(c => c.subCategoryId)
+            )
+        ];
+
+
+        // =====================================
+        // 3. Fetch Related Details
+        // =====================================
+
+        const [
+            products,
+            variants,
+            categories,
+            subCategories
+        ] = await Promise.all([
+
+            // Products
+            productIds.length
+                ? prisma.product.findMany({
+                    where: {
+                        id: {
+                            in: productIds
+                        },
+                        isDelete: false
+                    },
+                    select: {
+                        id: true,
+                        productName: true,
+                        description: true,
+                        imageUrl: true,
+                        categoryId: true,
+                        subCategoryId: true
+                    }
+                })
+                : [],
+
+
+            // Product Variants
+            variantIds.length
+                ? prisma.productVariant.findMany({
+                    where: {
+                        id: {
+                            in: variantIds
+                        },
+                        isDelete: false
+                    },
+                    select: {
+                        id: true,
+                        description: true,
+                        actualPrice: true,
+                        mrp: true,
+                        stock: true,
+                        attributes: true,
+
+                        images: {
+                            select: {
+                                id: true,
+                                imageUrl: true,
+                                isPrimary: true
+                            }
+                        },
+
+                        product: {
+                            select: {
+                                id: true,
+                                productName: true,
+                                description: true,
+                                imageUrl: true,
+                                categoryId: true,
+                                subCategoryId: true
+                            }
+                        }
+                    }
+                })
+                : [],
+
+
+            // Categories
+            categoryIds.length
+                ? prisma.productCategory.findMany({
+                    where: {
+                        id: {
+                            in: categoryIds
+                        },
+                        isDelete: false
+                    },
+                    select: {
+                        id: true,
+                        productCategoryName: true,
+                        imageUrl: true
+                    }
+                })
+                : [],
+
+
+            // SubCategories
+            subCategoryIds.length
+                ? prisma.productSubCategory.findMany({
+                    where: {
+                        id: {
+                            in: subCategoryIds
+                        },
+                        isDelete: false
+                    },
+                    select: {
+                        id: true,
+                        productSubCategoryName: true,
+                        imageUrl: true,
+                        categoryId: true
+                    }
+                })
+                : []
+
+        ]);
+
+
+        // =====================================
+        // 4. Create Lookup Maps
+        // =====================================
+
+        const productMap = new Map(
+            products.map(p => [p.id, p])
+        );
+
+        const variantMap = new Map(
+            variants.map(v => [v.id, v])
+        );
+
+        const categoryMap = new Map(
+            categories.map(c => [c.id, c])
+        );
+
+        const subCategoryMap = new Map(
+            subCategories.map(s => [s.id, s])
+        );
+
+
+        // =====================================
+        // 5. Format Coupon Response
+        // =====================================
+
+        const data = coupons.map(coupon => {
+
+            let appliesTo = {
+                type: "ALL",
+                label: "Applicable on all products",
+                details: null
             };
+
+
+            // VARIANT
+            if (coupon.scope === "VARIANT") {
+
+                appliesTo = {
+                    type: "VARIANT",
+                    label: "Applicable on specific variant",
+                    details: variantMap.get(coupon.variantId) || null
+                };
+
+            }
+
+
+            // PRODUCT
+            else if (coupon.scope === "PRODUCT") {
+
+                appliesTo = {
+                    type: "PRODUCT",
+                    label: "Applicable on specific product",
+                    details: productMap.get(coupon.productId) || null
+                };
+
+            }
+
+
+            // CATEGORY
+            else if (coupon.scope === "CATEGORY") {
+
+                appliesTo = {
+                    type: "CATEGORY",
+                    label: "Applicable on specific category",
+                    details: categoryMap.get(coupon.categoryId) || null
+                };
+
+            }
+
+
+            // SUBCATEGORY
+            else if (coupon.scope === "SUBCATEGORY") {
+
+                appliesTo = {
+                    type: "SUBCATEGORY",
+                    label: "Applicable on specific subcategory",
+                    details: subCategoryMap.get(coupon.subCategoryId) || null
+                };
+
+            }
+
+
+            return {
+
+                id: coupon.id,
+
+                code: coupon.code,
+
+                description: coupon.description,
+
+                type: coupon.type,
+
+                value: coupon.value,
+
+                maxDiscountAmount: coupon.maxDiscountAmount,
+
+                perUserLimit: coupon.perUserLimit,
+
+                expiryDate: coupon.expiryDate,
+
+                scope: coupon.scope,
+
+                appliesTo
+
+            };
+
         });
 
-        return res.status(200).json({ success: true, data });
+
+        // =====================================
+        // 6. Success Response
+        // =====================================
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Active coupons fetched successfully",
+
+            total: data.length,
+
+            data
+
+        });
+
+
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Coupons fetch karne me error aaya" });
+
+        console.error("Get Active Coupons Error:", error);
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: "Coupons fetch karne me error aaya",
+
+            error: error.message
+
+        });
+
     }
 };

@@ -353,7 +353,7 @@ export const getAllProduct = async (req, res) => {
                             actualPrice: true,
                             mrp: true,
                             showMrp: true,
-
+                            stock: true,
                             images: {
                                 take: 1,
                                 orderBy: {

@@ -242,58 +242,571 @@ export const toggleRewardDeleteAdmin = async (req, res) => {
 // ==================================================================
 // 7) USER: sirf apne liye bane hue + active + non-expired rewards (GET /api/rewards/my-rewards)
 // ==================================================================
+// export const getMyRewards = async (req, res) => {
+//     try {
+//         const userId = req.user.id;
+
+//         const rewards = await prisma.reward.findMany({
+//             where: {
+//                 userId,
+//                 isActive: true,
+//                 isDelete: false,
+//                 expiryDate: { gt: new Date() },
+//             },
+//             select: {
+//                 id: true,
+//                 code: true,
+//                 description: true,
+//                 type: true,
+//                 value: true,
+//                 maxDiscountAmount: true,
+//                 perUserLimit: true,
+//                 expiryDate: true,
+//                 scope: true,
+//                 productId: true,
+//                 variantId: true,
+//                 categoryId: true,
+//                 subCategoryId: true,
+//             },
+//             orderBy: { createdAt: "desc" },
+//         });
+
+//         const usedMap = new Map();
+//         if (rewards.length > 0) {
+//             const usedRows = await prisma.rewardUsage.groupBy({
+//                 by: ["rewardId"],
+//                 where: { userId, isActive: true, rewardId: { in: rewards.map((r) => r.id) } },
+//                 _count: { id: true },
+//             });
+//             for (const row of usedRows) usedMap.set(row.rewardId, row._count.id);
+//         }
+
+//         const data = rewards.map((r) => {
+//             const used = usedMap.get(r.id) || 0;
+//             const remainingUses = r.perUserLimit === null ? null : Math.max(r.perUserLimit - used, 0);
+//             return {
+//                 ...r,
+//                 usedByYou: used,
+//                 remainingUses, // null = unlimited
+//                 canUse: remainingUses === null || remainingUses > 0,
+//             };
+//         });
+
+//         return res.status(200).json({ success: true, data });
+//     } catch (error) {
+//         return res.status(500).json({ success: false, message: "Rewards fetch karne me error aaya" });
+//     }
+// };
+
+
+
 export const getMyRewards = async (req, res) => {
     try {
+
+        // =====================================
+        // 1. Get Logged In User
+        // =====================================
+
         const userId = req.user.id;
 
+
+        // =====================================
+        // 2. Fetch User Rewards
+        // =====================================
+
         const rewards = await prisma.reward.findMany({
+
             where: {
                 userId,
                 isActive: true,
                 isDelete: false,
-                expiryDate: { gt: new Date() },
+
+                expiryDate: {
+                    gt: new Date()
+                }
             },
+
             select: {
+
                 id: true,
                 code: true,
                 description: true,
+
                 type: true,
                 value: true,
                 maxDiscountAmount: true,
+
                 perUserLimit: true,
                 expiryDate: true,
                 scope: true,
+
                 productId: true,
                 variantId: true,
                 categoryId: true,
                 subCategoryId: true,
+
+                createdAt: true
+
             },
-            orderBy: { createdAt: "desc" },
+
+            orderBy: {
+                createdAt: "desc"
+            }
+
         });
 
-        const usedMap = new Map();
-        if (rewards.length > 0) {
-            const usedRows = await prisma.rewardUsage.groupBy({
-                by: ["rewardId"],
-                where: { userId, isActive: true, rewardId: { in: rewards.map((r) => r.id) } },
-                _count: { id: true },
+
+        // =====================================
+        // 3. No Rewards Found
+        // =====================================
+
+        if (rewards.length === 0) {
+
+            return res.status(200).json({
+
+                success: true,
+                message: "No active rewards available",
+                total: 0,
+                data: []
+
             });
-            for (const row of usedRows) usedMap.set(row.rewardId, row._count.id);
+
         }
 
-        const data = rewards.map((r) => {
-            const used = usedMap.get(r.id) || 0;
-            const remainingUses = r.perUserLimit === null ? null : Math.max(r.perUserLimit - used, 0);
-            return {
-                ...r,
-                usedByYou: used,
-                remainingUses, // null = unlimited
-                canUse: remainingUses === null || remainingUses > 0,
-            };
+
+        // =====================================
+        // 4. Get Reward Usage Count
+        // =====================================
+
+        const usedRows = await prisma.rewardUsage.groupBy({
+
+            by: ["rewardId"],
+
+            where: {
+
+                userId: userId,
+
+                isActive: true,
+
+                rewardId: {
+                    in: rewards.map((r) => r.id)
+                }
+
+            },
+
+            _count: {
+                id: true
+            }
+
         });
 
-        return res.status(200).json({ success: true, data });
+
+        // =====================================
+        // 5. Create Usage Map
+        // =====================================
+
+        const usedMap = new Map();
+
+        for (const row of usedRows) {
+
+            usedMap.set(
+                row.rewardId,
+                row._count.id
+            );
+
+        }
+
+
+        // =====================================
+        // 6. Collect Product IDs
+        // =====================================
+
+        const productIds = [
+            ...new Set(
+                rewards
+                    .filter(r => r.productId)
+                    .map(r => r.productId)
+            )
+        ];
+
+
+        const variantIds = [
+            ...new Set(
+                rewards
+                    .filter(r => r.variantId)
+                    .map(r => r.variantId)
+            )
+        ];
+
+
+        const categoryIds = [
+            ...new Set(
+                rewards
+                    .filter(r => r.categoryId)
+                    .map(r => r.categoryId)
+            )
+        ];
+
+
+        const subCategoryIds = [
+            ...new Set(
+                rewards
+                    .filter(r => r.subCategoryId)
+                    .map(r => r.subCategoryId)
+            )
+        ];
+
+
+        // =====================================
+        // 7. Fetch Related Details
+        // =====================================
+
+        const [
+
+            products,
+            variants,
+            categories,
+            subCategories
+
+        ] = await Promise.all([
+
+
+            // Products
+
+            productIds.length
+                ? prisma.product.findMany({
+
+                    where: {
+                        id: {
+                            in: productIds
+                        },
+                        isDelete: false
+                    },
+
+                    select: {
+                        id: true,
+                        productName: true,
+                        description: true,
+                        imageUrl: true,
+                        categoryId: true,
+                        subCategoryId: true
+                    }
+
+                })
+                : [],
+
+
+            // Variants
+
+            variantIds.length
+                ? prisma.productVariant.findMany({
+
+                    where: {
+                        id: {
+                            in: variantIds
+                        },
+                        isDelete: false
+                    },
+
+                    select: {
+
+                        id: true,
+                        description: true,
+                        actualPrice: true,
+                        mrp: true,
+                        stock: true,
+                        attributes: true,
+
+                        images: {
+                            select: {
+                                id: true,
+                                imageUrl: true,
+                                isPrimary: true
+                            }
+                        },
+
+                        product: {
+                            select: {
+                                id: true,
+                                productName: true,
+                                description: true,
+                                imageUrl: true,
+                                categoryId: true,
+                                subCategoryId: true
+                            }
+                        }
+
+                    }
+
+                })
+                : [],
+
+
+            // Categories
+
+            categoryIds.length
+                ? prisma.productCategory.findMany({
+
+                    where: {
+                        id: {
+                            in: categoryIds
+                        },
+                        isDelete: false
+                    },
+
+                    select: {
+                        id: true,
+                        productCategoryName: true,
+                        imageUrl: true
+                    }
+
+                })
+                : [],
+
+
+            // SubCategories
+
+            subCategoryIds.length
+                ? prisma.productSubCategory.findMany({
+
+                    where: {
+                        id: {
+                            in: subCategoryIds
+                        },
+                        isDelete: false
+                    },
+
+                    select: {
+                        id: true,
+                        productSubCategoryName: true,
+                        imageUrl: true,
+                        categoryId: true
+                    }
+
+                })
+                : []
+
+        ]);
+
+
+        // =====================================
+        // 8. Create Lookup Maps
+        // =====================================
+
+        const productMap = new Map(
+            products.map(p => [p.id, p])
+        );
+
+
+        const variantMap = new Map(
+            variants.map(v => [v.id, v])
+        );
+
+
+        const categoryMap = new Map(
+            categories.map(c => [c.id, c])
+        );
+
+
+        const subCategoryMap = new Map(
+            subCategories.map(s => [s.id, s])
+        );
+
+
+        // =====================================
+        // 9. Format Rewards
+        // =====================================
+
+        const data = rewards.map((reward) => {
+
+
+            // Usage Calculation
+
+            const used = usedMap.get(reward.id) || 0;
+
+
+            const remainingUses =
+
+                reward.perUserLimit === null
+
+                    ? null
+
+                    : Math.max(
+                        reward.perUserLimit - used,
+                        0
+                    );
+
+
+            const canUse =
+
+                remainingUses === null ||
+
+                remainingUses > 0;
+
+
+            // =====================================
+            // Applicability Details
+            // =====================================
+
+            let appliesTo = {
+
+                type: "ALL",
+                label: "Applicable on all products",
+                details: null
+
+            };
+
+
+            // VARIANT
+
+            if (reward.scope === "VARIANT") {
+
+                appliesTo = {
+
+                    type: "VARIANT",
+
+                    label: "Applicable on specific variant",
+
+                    details:
+                        variantMap.get(reward.variantId) || null
+
+                };
+
+            }
+
+
+            // PRODUCT
+
+            else if (reward.scope === "PRODUCT") {
+
+                appliesTo = {
+
+                    type: "PRODUCT",
+
+                    label: "Applicable on specific product",
+
+                    details:
+                        productMap.get(reward.productId) || null
+
+                };
+
+            }
+
+
+            // CATEGORY
+
+            else if (reward.scope === "CATEGORY") {
+
+                appliesTo = {
+
+                    type: "CATEGORY",
+
+                    label: "Applicable on specific category",
+
+                    details:
+                        categoryMap.get(reward.categoryId) || null
+
+                };
+
+            }
+
+
+            // SUBCATEGORY
+
+            else if (reward.scope === "SUBCATEGORY") {
+
+                appliesTo = {
+
+                    type: "SUBCATEGORY",
+
+                    label: "Applicable on specific subcategory",
+
+                    details:
+                        subCategoryMap.get(reward.subCategoryId) || null
+
+                };
+
+            }
+
+
+            // =====================================
+            // Final Reward Object
+            // =====================================
+
+            return {
+
+                id: reward.id,
+
+                code: reward.code,
+
+                description: reward.description,
+
+                type: reward.type,
+
+                value: reward.value,
+
+                maxDiscountAmount: reward.maxDiscountAmount,
+
+                perUserLimit: reward.perUserLimit,
+
+                expiryDate: reward.expiryDate,
+
+                scope: reward.scope,
+
+                appliesTo,
+
+
+                // Usage Details
+
+                usage: {
+
+                    usedByYou: used,
+
+                    totalAllowed: reward.perUserLimit,
+
+                    remainingUses,
+
+                    canUse,
+
+                    usageLimitReached: !canUse
+
+                }
+
+            };
+
+        });
+
+
+        // =====================================
+        // 10. Success Response
+        // =====================================
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Your rewards fetched successfully",
+
+            total: data.length,
+
+            data
+
+        });
+
+
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Rewards fetch karne me error aaya" });
+
+        console.error("Get My Rewards Error:", error);
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: "Rewards fetch karne me error aaya",
+
+            error: error.message
+
+        });
+
     }
 };

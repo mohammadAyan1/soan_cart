@@ -253,7 +253,7 @@ const OrderInvoiceModal = ({ order, onClose }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden my-auto border border-gray-200">
-                
+
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
                     <div className="flex items-center gap-3">
@@ -286,11 +286,11 @@ const OrderInvoiceModal = ({ order, onClose }) => {
                 {/* Printable Invoice Body Container */}
                 <div className="flex-1 overflow-y-auto p-6 bg-gray-100 flex justify-center">
                     <div className="bg-white shadow-md p-6 max-w-[760px] w-full text-black">
-                        
+
                         {/* REF CONTAINER THAT IS PRINTED */}
                         <div ref={printContentRef}>
                             <div className="invoice-container border-[1.5px] border-black text-black">
-                                
+
                                 {/* Header: Tax Invoice + Recipient badge */}
                                 <div className="header-title-bar flex items-center gap-3 p-2 border-b-[1.5px] border-black">
                                     <span className="tax-invoice-text font-black text-base tracking-wide">TAX INVOICE</span>
@@ -304,19 +304,19 @@ const OrderInvoiceModal = ({ order, onClose }) => {
                                     {/* Left: Sounkart */}
                                     <div className="col-left flex-[1.25] p-2.5 border-r-[1.5px] border-black">
                                         <h1 className="company-name text-lg font-black tracking-tight leading-none mb-1 text-black">
-                                            Sounkart
+                                            Order Through Sounkart
                                         </h1>
-                                        <div className="company-info text-[11px] leading-snug text-gray-900 space-y-0.5">
+                                        {/* <div className="company-info text-[11px] leading-snug text-gray-900 space-y-0.5">
                                             <p>Kotma road Samatpur Rd, Anuppur, Madhya Pradesh, 484224</p>
                                             <p className="font-medium">
-                                                <span className="font-bold">GSTIN:</span> 23DLJPA4954E1ZD &nbsp;&nbsp; 
+                                                <span className="font-bold">GSTIN:</span> 23DLJPA4954E1ZD &nbsp;&nbsp;
                                                 <span className="font-bold">Mobile:</span> 6260888737
                                             </p>
                                             <p className="font-medium">
-                                                <span className="font-bold">PAN Number:</span> DLJPA4954E &nbsp;&nbsp; 
+                                                <span className="font-bold">PAN Number:</span> DLJPA4954E &nbsp;&nbsp;
                                                 <span className="font-bold">Email:</span> anmolagrahari46@gmail.com
                                             </p>
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                     {/* Right: Invoice No & Date */}
@@ -368,8 +368,8 @@ const OrderInvoiceModal = ({ order, onClose }) => {
                                             <th className="border-r border-black p-1.5 text-left font-extrabold text-[10px]">ITEMS</th>
                                             <th className="border-r border-black p-1.5 text-center font-extrabold w-[12%] text-[10px]">QTY.</th>
                                             <th className="border-r border-black p-1.5 text-right font-extrabold w-[14%] text-[10px]">RATE</th>
-                                            <th className="border-r border-black p-1.5 text-right font-extrabold w-[12%] text-[10px]">SGST</th>
-                                            <th className="border-r border-black p-1.5 text-right font-extrabold w-[12%] text-[10px]">CGST</th>
+                                            {/* <th className="border-r border-black p-1.5 text-right font-extrabold w-[12%] text-[10px]">SGST</th> */}
+                                            {/* <th className="border-r border-black p-1.5 text-right font-extrabold w-[12%] text-[10px]">CGST</th> */}
                                             <th className="p-1.5 text-right font-extrabold w-[16%] text-[10px]">AMOUNT</th>
                                         </tr>
                                     </thead>
@@ -380,8 +380,8 @@ const OrderInvoiceModal = ({ order, onClose }) => {
                                                 <td className="border-r border-b border-black p-1.5 text-left font-semibold">{item.title}</td>
                                                 <td className="border-r border-b border-black p-1.5 text-center font-medium">{item.qty}</td>
                                                 <td className="border-r border-b border-black p-1.5 text-right font-medium">₹{item.rate.toLocaleString('en-IN')}</td>
-                                                <td className="border-r border-b border-black p-1.5 text-right font-medium">{item.sgst}</td>
-                                                <td className="border-r border-b border-black p-1.5 text-right font-medium">{item.cgst}</td>
+                                                {/* <td className="border-r border-b border-black p-1.5 text-right font-medium">{item.sgst}</td> */}
+                                                {/* <td className="border-r border-b border-black p-1.5 text-right font-medium">{item.cgst}</td> */}
                                                 <td className="border-b border-black p-1.5 text-right font-bold">₹{item.amount.toLocaleString('en-IN')}</td>
                                             </tr>
                                         ))}
@@ -408,12 +408,12 @@ const OrderInvoiceModal = ({ order, onClose }) => {
                                                 {totalQty}
                                             </td>
                                             <td className="border-r border-b border-black p-1.5"></td>
-                                            <td className="border-r border-b border-black p-1.5 text-right font-extrabold">
+                                            {/* <td className="border-r border-b border-black p-1.5 text-right font-extrabold">
                                                 ₹0.00
                                             </td>
                                             <td className="border-r border-b border-black p-1.5 text-right font-extrabold">
                                                 ₹0.00
-                                            </td>
+                                            </td> */}
                                             <td className="border-b border-black p-1.5 text-right font-extrabold text-sm">
                                                 ₹{finalTotalAmount.toLocaleString('en-IN')}
                                             </td>
@@ -432,11 +432,11 @@ const OrderInvoiceModal = ({ order, onClose }) => {
                                 </div>
 
                                 {/* Terms and Conditions */}
-                                <div className="terms-box p-2.5 text-[10px] text-gray-800 leading-normal">
+                                {/* <div className="terms-box p-2.5 text-[10px] text-gray-800 leading-normal">
                                     <p className="terms-title font-extrabold text-[11px] mb-1 text-black">Terms and Conditions</p>
                                     <p>1. Goods once sold will not be taken back or exchanged</p>
                                     <p>2. All disputes are subject to Anuppur jurisdiction only</p>
-                                </div>
+                                </div> */}
 
                             </div>
                         </div>
