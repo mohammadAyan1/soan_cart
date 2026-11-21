@@ -26,8 +26,11 @@ import { useDispatch } from 'react-redux';
 import { setupImageNotificationListener } from '../utils/notificationListener'
 import AnimatedSplashScreen from "../components/AnimatedSplashScreen"
 import * as SplashScreen from 'expo-splash-screen';
-import { usePathname } from "expo-router";
+import { usePathname, router } from "expo-router";
 import { getCurrentLocationDetails } from "@/utils/locationService"
+import { Alert } from "react-native";
+import { setOnUnauthorizedCallback } from "@/api/api";
+import { forceLogout, fetchUserProfile, loadAuthFromStorage } from "@/redux/slices/authSlice";
 
 
 SplashScreen.preventAutoHideAsync();
@@ -105,13 +108,32 @@ function AppContent() {
   // event tracker ko sessionId de do - isse pehle koi bhi event kaam
   // nahi karega
   useEffect(() => {
+    let alertActive = false;
+    setOnUnauthorizedCallback((reason) => {
+      dispatch(forceLogout());
+      if (reason && !alertActive) {
+        alertActive = true;
+        Alert.alert("Session Expired", reason, [
+          {
+            text: "OK",
+            onPress: () => {
+              alertActive = false;
+            },
+          },
+        ]);
+      }
+      router.replace("/(root)/login");
+    });
 
+    dispatch(loadAuthFromStorage());
     setupImageNotificationListener();
 
     const setupPushNotifications = async () => {
+      // Guest users ke liye save-push-token call nahi karna
+      const userToken = await AsyncStorage.getItem("token");
+      if (!userToken) return;
+
       const token = await registerForPushNotificationsAsync();
-
-
       if (token) {
         try {
           await dispatch(registerPushToken(token)).unwrap();
@@ -123,7 +145,7 @@ function AppContent() {
     setupPushNotifications();
 
     setupAnalytics();
-  }, [setupAnalytics]);
+  }, [setupAnalytics, dispatch]);
 
   // 👇 FIXED (v2) - NO debounce ab. Android background me JS engine
   // suspend ho jaata hai, isliye resume hone par "background" aur "active"
@@ -158,13 +180,6 @@ function AppContent() {
 
         flushEvents();
         resetEventTracker(); // sessionId, queue, currentScreen sab reset
-
-        try {
-          await AsyncStorage.removeItem("deviceId");
-          await AsyncStorage.removeItem("sessionId");
-        } catch (err) {
-
-        }
       } else if (
         (prevState === "background" || prevState === "inactive") &&
         nextState === "active"
@@ -172,6 +187,13 @@ function AppContent() {
 
         // 👇 setAppIsReady(false) jaan-bujh kar NAHI kiya
         setupAnalytics();
+
+        // Foreground me aane par check karo ki session abhi bhi active hai ya nahi
+        AsyncStorage.getItem("token").then((token) => {
+          if (token) {
+            dispatch(fetchUserProfile({}));
+          }
+        });
       }
     };
 

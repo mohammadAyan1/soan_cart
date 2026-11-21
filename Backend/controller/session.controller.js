@@ -18,8 +18,10 @@ function normalizePlatform(raw) {
 
 // Ye function auth.controller.js ke login() se call hota hai
 export async function createOrUpdateSession(req, userId) {
-    const deviceId = req.headers["x-device-id"];
-    if (!deviceId) return null;
+    let deviceId = req.headers["x-device-id"] || req.body?.deviceId;
+    if (!deviceId) {
+        deviceId = uuidv4();
+    }
 
     const platform = normalizePlatform(req.headers["x-platform"]);
     const deviceBrand = req.headers["x-device-brand"] || "";

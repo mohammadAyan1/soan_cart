@@ -21,7 +21,16 @@ export const requiredAuth = async (req, res, next) => {
             });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (jwtErr) {
+            return res.status(401).json({
+                success: false,
+                tokenExpired: jwtErr.name === "TokenExpiredError",
+                message: `Invalid or expired token ${jwtErr.message}`,
+            });
+        }
 
         const user = await prisma.user.findUnique({
             where: {
@@ -50,29 +59,36 @@ export const requiredAuth = async (req, res, next) => {
             });
         }
 
-
-
-        // 👇 NAYA BLOCK - agar frontend x-session-id header bhej raha
-        // hai, toh check karo wo session abhi bhi active hai ya nahi.
-        // Yehi Manage Devices ke remote-logout ko REAL banata hai -
-        // warna DB row update hoti rahegi par token phir bhi valid
-        // rahega us device pe.
-        const sessionId = req.headers["x-session-id"];
-        if (sessionId) {
-            const session = await prisma.userSession.findUnique({ where: { sessionId } });
+        // 👇 Session check
+        // Agar token ke andar embedded sessionId hai, toh check karo ki wo active hai ya nahi
+        const sessionId = decoded.sessionId || req.headers["x-session-id"];
+        if (decoded.sessionId) {
+            const session = await prisma.userSession.findUnique({ where: { sessionId: decoded.sessionId } });
             if (!session || !session.isActive) {
                 return res.status(401).json({
                     success: false,
-                    message: "Session expire ho gaya hai, dobara login karo",
+                    sessionExpired: true,
+                    message: "Session expire ho gaya hai ya device logout kar diya gaya hai",
                 });
             }
-            // lastSeen background me update - await ki zaroorat nahi
+            // lastSeen background me update
             prisma.userSession
-                .update({ where: { sessionId }, data: { lastSeen: new Date() } })
+                .update({ where: { sessionId: decoded.sessionId }, data: { lastSeen: new Date() } })
                 .catch(() => { });
+        } else if (req.headers["x-session-id"]) {
+            // Legacy token support: agar header bheja hai aur wo explicitly inactive hai tabhi 401 do
+            const session = await prisma.userSession.findUnique({ where: { sessionId: req.headers["x-session-id"] } });
+            if (session && !session.isActive) {
+                return res.status(401).json({
+                    success: false,
+                    sessionExpired: true,
+                    message: "Session expire ho gaya hai ya device logout kar diya gaya hai",
+                });
+            }
         }
 
         req.user = user;
+        req.sessionId = sessionId;
 
         next();
     } catch (error) {

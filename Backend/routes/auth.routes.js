@@ -14,6 +14,7 @@ import {
     getMe,
     VendorRegister,
     savePushToken,
+    refreshTokenHandler,
 } from "../controller/auth.controller.js"; // apna actual path
 
 
@@ -28,6 +29,7 @@ router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 router.post("/forget-password", forgetPassword);
 router.post("/login", login);
+router.post("/refresh-token", refreshTokenHandler);
 
 // ---------- Protected routes ----------
 router.post("/logout", requiredAuth, logout);

@@ -731,21 +731,45 @@ export const login = async (req, res) => {
             });
         }
 
-        const token = jwt.sign(
-            { id: findUser.id, email: findUser.email, role: findUser.role },
+        // 👇 Session create/update karo (Device management)
+        const session = await createOrUpdateSession(req, findUser.id);
+        const currentSessionId = session?.sessionId || null;
+
+        const accessToken = jwt.sign(
+            {
+                id: findUser.id,
+                email: findUser.email,
+                role: findUser.role,
+                sessionId: currentSessionId,
+            },
             process.env.JWT_SECRET,
-            { expiresIn: "7d" }
+            { expiresIn: "15m" }
         );
 
-        res.cookie("token", token, {
+        const refreshSecret = process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET + "_REFRESH");
+        const refreshToken = jwt.sign(
+            {
+                id: findUser.id,
+                sessionId: currentSessionId,
+                type: "refresh",
+            },
+            refreshSecret,
+            { expiresIn: "36500d" } // Lifetime: ~100 years jab tak secret ya session invalid na ho
+        );
+
+        res.cookie("token", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            maxAge: 24 * 60 * 60 * 1000,
+            maxAge: 15 * 60 * 1000,
         });
 
-        // 👇 NAYI LINE - session create/update karo
-        // const session = await createOrUpdateSession(req, findUser.id);
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 36500 * 24 * 60 * 60 * 1000,
+        });
 
 
         // ---------------- 👇 GUEST CART + WISHLIST MERGE (sirf header ho tabhi) ----------------
@@ -801,8 +825,10 @@ export const login = async (req, res) => {
                 role: findUser.role,
                 imageUrl: findUser?.imageUrl,
             },
-            token,
-            // sessionId: session?.sessionId || null, // 👈 NAYI LINE
+            token: accessToken,
+            accessToken,
+            refreshToken,
+            sessionId: currentSessionId,
             guestCartMerged, // 👈 frontend isi flag se decide karega guestId remove karni hai ya nahi (cart)
             guestWishlistMerged, // 👈 same, wishlist ke liye
         });
@@ -815,14 +841,110 @@ export const login = async (req, res) => {
     }
 };
 
+// ==================================================================
+// REFRESH TOKEN HANDLER (POST /api/auth/refresh-token)
+// Allows user to stay logged in permanently (lifetime) until
+// the session is revoked from Manage Devices or JWT secret changes
+// ==================================================================
+export const refreshTokenHandler = async (req, res) => {
+    try {
+        const refreshToken =
+            req.body?.refreshToken ||
+            req.cookies?.refreshToken ||
+            req.headers["x-refresh-token"];
 
+        if (!refreshToken) {
+            return res.status(401).json({
+                success: false,
+                message: "Refresh token is required",
+            });
+        }
 
+        const refreshSecret = process.env.REFRESH_TOKEN_SECRET || (process.env.JWT_SECRET + "_REFRESH");
+        let decoded;
+        try {
+            decoded = jwt.verify(refreshToken, refreshSecret);
+        } catch (jwtErr) {
+            return res.status(401).json({
+                success: false,
+                tokenExpired: true,
+                message: "Invalid or expired refresh token. Please login again.",
+            });
+        }
+
+        if (!decoded || !decoded.id) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid token payload",
+            });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.id },
+        });
+
+        if (!user || user.isDelete || !user.isVerified) {
+            return res.status(401).json({
+                success: false,
+                message: "User account is no longer active",
+            });
+        }
+
+        // Session check: ensure device was not logged out from Manage Devices
+        const sessionId = decoded.sessionId || req.headers["x-session-id"];
+        if (sessionId) {
+            const session = await prisma.userSession.findUnique({ where: { sessionId } });
+            if (!session || !session.isActive) {
+                return res.status(401).json({
+                    success: false,
+                    sessionExpired: true,
+                    message: "Session has been logged out from another device",
+                });
+            }
+
+            prisma.userSession
+                .update({ where: { sessionId }, data: { lastSeen: new Date() } })
+                .catch(() => {});
+        }
+
+        // Generate new short-lived Access Token
+        const newAccessToken = jwt.sign(
+            {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+                sessionId: sessionId || null,
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        res.cookie("token", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 15 * 60 * 1000,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Token refreshed successfully",
+            token: newAccessToken,
+            accessToken: newAccessToken,
+            sessionId: sessionId || null,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to refresh token: ${error?.message}`,
+        });
+    }
+};
 
 export const logout = async (req, res) => {
     try {
-        // 👇 NAYA - current device ka session bhi database me inactive
-        // mark ho jaye, taaki Manage Devices list se bhi hat jaye
-        const sessionId = req.headers["x-session-id"];
+        // 👇 Current device ka session database me inactive mark ho jaye
+        const sessionId = req.headers["x-session-id"] || req.sessionId;
         if (sessionId) {
             await prisma.userSession.updateMany({
                 where: { sessionId },
@@ -835,6 +957,11 @@ export const logout = async (req, res) => {
         }
 
         res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        });
+        res.clearCookie("refreshToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",

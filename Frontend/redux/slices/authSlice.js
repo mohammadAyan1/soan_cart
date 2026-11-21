@@ -20,12 +20,17 @@ export const loginUser = createAsyncThunk(
 
             const res = await api.post("/api/auth/login", data, { headers });
 
-            await AsyncStorage.setItem("token", res.data.token);
+            const token = res.data.accessToken || res.data.token;
+            await AsyncStorage.setItem("token", token);
             await AsyncStorage.setItem("user", JSON.stringify(res.data.user));
 
-            await AsyncStorage.removeItem("sessionId");
+            if (res.data.refreshToken) {
+                await AsyncStorage.setItem("refreshToken", res.data.refreshToken);
+            }
             if (res.data.sessionId) {
                 await AsyncStorage.setItem("sessionId", res.data.sessionId);
+            } else {
+                await AsyncStorage.removeItem("sessionId");
             }
 
             // guestId ko permanent rakha gaya hai - jab tak user app cache/storage clear na kare tab tak delete nahi hoga
@@ -67,14 +72,10 @@ export const logoutUser = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             await api.post("/api/auth/logout");
-            await AsyncStorage.removeItem("token");
-            await AsyncStorage.removeItem("user");
-            await AsyncStorage.removeItem("sessionId"); // 👈 NAYI LINE
+            await AsyncStorage.multiRemove(["token", "refreshToken", "sessionId", "user"]);
             return true;
         } catch (error) {
-            await AsyncStorage.removeItem("token");
-            await AsyncStorage.removeItem("user");
-            await AsyncStorage.removeItem("sessionId"); // 👈 NAYI LINE
+            await AsyncStorage.multiRemove(["token", "refreshToken", "sessionId", "user"]);
             return rejectWithValue(error.response?.data);
         }
     }
@@ -119,10 +120,12 @@ export const loadAuthFromStorage = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const token = await AsyncStorage.getItem("token");
+            const refreshToken = await AsyncStorage.getItem("refreshToken");
+            const sessionId = await AsyncStorage.getItem("sessionId");
             const userStr = await AsyncStorage.getItem("user");
             const user = userStr ? JSON.parse(userStr) : null;
-            if (!token || !user) return rejectWithValue("No stored session");
-            return { token, user };
+            if (!token && !refreshToken) return rejectWithValue("No stored session");
+            return { token, refreshToken, sessionId, user };
         } catch (error) {
             return rejectWithValue("Failed to load session");
         }
@@ -201,6 +204,8 @@ export const forgetPassword = createAsyncThunk(
 const initialState = {
     user: null,
     token: null,
+    refreshToken: null,
+    sessionId: null,
     isLoggedIn: false,
     loading: false,
     updateLoading: false,
@@ -246,6 +251,15 @@ const authSlice = createSlice({
         clearAuthError: (state) => {
             state.error = null;
         },
+        forceLogout: (state) => {
+            state.user = null;
+            state.token = null;
+            state.refreshToken = null;
+            state.sessionId = null;
+            state.isLoggedIn = false;
+            state.loading = false;
+            state.error = null;
+        },
     },
 
     extraReducers: (builder) => {
@@ -258,7 +272,9 @@ const authSlice = createSlice({
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.loading = false;
                 state.user = action.payload.user;
-                state.token = action.payload.token;
+                state.token = action.payload.accessToken || action.payload.token;
+                state.refreshToken = action.payload.refreshToken || null;
+                state.sessionId = action.payload.sessionId || null;
                 state.isLoggedIn = true;
             })
             .addCase(loginUser.rejected, (state, action) => {
@@ -274,12 +290,16 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.user = null;
                 state.token = null;
+                state.refreshToken = null;
+                state.sessionId = null;
                 state.isLoggedIn = false;
             })
             .addCase(logoutUser.rejected, (state) => {
                 state.loading = false;
                 state.user = null;
                 state.token = null;
+                state.refreshToken = null;
+                state.sessionId = null;
                 state.isLoggedIn = false;
             })
 
@@ -386,7 +406,9 @@ const authSlice = createSlice({
             .addCase(loadAuthFromStorage.fulfilled, (state, action) => {
                 state.user = action.payload.user;
                 state.token = action.payload.token;
-                state.isLoggedIn = true;
+                state.refreshToken = action.payload.refreshToken || null;
+                state.sessionId = action.payload.sessionId || null;
+                state.isLoggedIn = !!(action.payload.token || action.payload.refreshToken);
             })
             .addCase(loadAuthFromStorage.rejected, (state) => {
                 state.isLoggedIn = false;
@@ -394,5 +416,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { updateUserLocal, clearAuthError } = authSlice.actions;
+export const { updateUserLocal, clearAuthError, forceLogout } = authSlice.actions;
 export default authSlice.reducer;

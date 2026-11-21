@@ -86,14 +86,18 @@ export default function ProfileScreen() {
     const [editModalVisible, setEditModalVisible] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchUserProfile({}));
-    }, []);
+        if (isLoggedIn) {
+            dispatch(fetchUserProfile({}));
+        }
+    }, [isLoggedIn]);
 
 
 
     const onRefresh = useCallback(() => {
-        dispatch(fetchUserProfile({ isRefresh: true }));
-    }, []);
+        if (isLoggedIn) {
+            dispatch(fetchUserProfile({ isRefresh: true }));
+        }
+    }, [isLoggedIn]);
 
     // Tab bar modal khulte hi hide, aur closing animation poori hone
     // ke baad hi wapas dikhega

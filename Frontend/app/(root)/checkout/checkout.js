@@ -1,6 +1,546 @@
 
 
 
+// import { useState, useEffect } from "react";
+// import {
+//     View,
+//     Text,
+//     TextInput,
+//     TouchableOpacity,
+//     // Image,
+//     Alert,
+//     ActivityIndicator,
+// } from "react-native";
+// import { useLocalSearchParams, router, Stack } from "expo-router";
+// import { useDispatch, useSelector } from "react-redux";
+// import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+// import { checkoutCart, checkoutDirect, clearLastOrder } from "@/redux/slices/orderSlice";
+// import { fetchCart, resetCart } from "@/redux/slices/cartSlice";
+// import { fetchMyAddresses, createAddress } from "@/redux/slices/addressSlice";
+// import { Ionicons } from "@expo/vector-icons";
+// import { Image } from "expo-image";
+// import { trackEvent } from "../../../utils/eventTracker";
+// import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// export default function CheckoutScreen() {
+//     const dispatch = useDispatch();
+//     const params = useLocalSearchParams();
+//     const insets = useSafeAreaInsets();
+
+//     const isDirectCheckout = !!params.productId;
+
+//     const { items: cartItems, cartTotal } = useSelector((state) => state.cart);
+//     const { placing } = useSelector((state) => state.order);
+
+//     const addresses = useSelector((state) => state.address.addresses);
+//     const addressLoading = useSelector((state) => state.address.loading);
+//     const addressActionLoading = useSelector((state) => state.address.actionLoading);
+
+//     const [selectedAddressId, setSelectedAddressId] = useState(null);
+//     const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+
+
+//     const [couponCode, setCouponCode] = useState("");
+//     const [rewardCode, setRewardCode] = useState("");
+
+//     const [fullName, setFullName] = useState("");
+//     const [phone, setPhone] = useState("");
+//     const [addressLine, setAddressLine] = useState("");
+//     const [city, setCity] = useState("");
+//     const [state, setState] = useState("");
+//     const [pincode, setPincode] = useState("");
+
+//     const [orderType, setOrderType] = useState("COD");
+
+//     const directQuantity = Number(params.quantity) || 1;
+//     const directPrice = Number(params.price) || 0;
+//     const directTotal = directPrice * directQuantity;
+
+//     useEffect(() => {
+//         dispatch(fetchMyAddresses({}));
+//     }, []);
+
+
+//     const handleEventCall = (eventType = "SCREEN_VIEW", payload) => {
+//         trackEvent({
+//             eventType,
+//             screen: "CHECK_OUT_SCREEN",
+//             ...(payload ? { payload } : {})
+//         })
+//     }
+
+//     useEffect(() => {
+//         handleEventCall()
+//     }, []);
+
+//     useEffect(() => {
+//         if (addresses.length === 0) {
+//             setShowNewAddressForm(true);
+//             setSelectedAddressId(null);
+//             return;
+//         }
+
+//         const stillExists = addresses.some((a) => a.id === selectedAddressId);
+//         if (!selectedAddressId || !stillExists) {
+//             const defaultAddress = addresses.find((a) => a.isDefault) || addresses[0];
+//             setSelectedAddressId(defaultAddress.id);
+//             setShowNewAddressForm(false);
+//         }
+//     }, [addresses]);
+
+//     const validateNewAddress = () => {
+//         if (!fullName || !phone || !addressLine || !city || !state || !pincode) {
+//             Alert.alert("Error", "Address ki saari fields bharna zaroori hai");
+//             return false;
+//         }
+//         if (phone.length !== 10) {
+//             Alert.alert("Error", "Phone number 10 digit ka hona chahiye");
+//             return false;
+//         }
+//         if (pincode.length !== 6) {
+//             Alert.alert("Error", "Pincode 6 digit ka hona chahiye");
+//             return false;
+//         }
+//         return true;
+//     };
+
+//     const handlePlaceOrder = async () => {
+//         let addressData = null;
+
+//         try {
+//             const cleanCoupon = couponCode ? couponCode.trim() : "";
+//             const cleanReward = rewardCode ? rewardCode.trim() : "";
+
+//             if (cleanCoupon && cleanReward) {
+//                 Alert.alert(
+//                     "Invalid Discount",
+//                     "Aap ek order me Coupon ya Reward me se koi ek hi code use kar sakte hain."
+//                 );
+//                 return;
+//             }
+
+//             if (showNewAddressForm) {
+//                 if (!validateNewAddress()) return;
+
+//                 const payload = {
+//                     fullName,
+//                     phone,
+//                     addressLine,
+//                     city,
+//                     state,
+//                     pincode,
+//                     isDefault: true,
+//                 };
+
+//                 const newAddress = await dispatch(createAddress(payload)).unwrap();
+
+//                 addressData = {
+//                     fullName: newAddress.fullName,
+//                     phone: newAddress.phone,
+//                     addressLine: newAddress.addressLine,
+//                     city: newAddress.city,
+//                     state: newAddress.state,
+//                     pincode: newAddress.pincode,
+//                     orderType,
+//                     couponCode: cleanCoupon || undefined,
+//                     rewardCode: cleanReward || undefined,
+//                 };
+
+//                 dispatch(fetchMyAddresses({}));
+//                 setSelectedAddressId(newAddress.id);
+//                 setShowNewAddressForm(false);
+//             } else {
+//                 const selected = addresses.find((a) => a.id === selectedAddressId);
+//                 if (!selected) {
+//                     Alert.alert("Error", "Pehle delivery address select karo");
+//                     return;
+//                 }
+
+//                 addressData = {
+//                     fullName: selected.fullName,
+//                     phone: selected.phone,
+//                     addressLine: selected.addressLine,
+//                     city: selected.city,
+//                     state: selected.state,
+//                     pincode: selected.pincode,
+//                     orderType,
+//                     couponCode: cleanCoupon || undefined,
+//                     rewardCode: cleanReward || undefined,
+//                 };
+//             }
+
+//             if (isDirectCheckout) {
+//                 await dispatch(
+//                     checkoutDirect({
+//                         productId: Number(params.productId),
+//                         variantId: Number(params.variantId),
+//                         quantity: directQuantity,
+//                         ...addressData,
+//                     })
+//                 ).unwrap();
+
+//                 handleEventCall("HANDLE_CHECK_OUT_FROM_DETAILS_PAGE", {
+//                     productId: Number(params.productId),
+//                     variantId: Number(params.variantId),
+//                 })
+//             } else {
+//                 await dispatch(checkoutCart(addressData)).unwrap();
+//                 dispatch(resetCart());
+//                 dispatch(fetchCart());
+//                 handleEventCall("HANDLE_CHECK_OUT_FROM_CART_PAGE")
+//             }
+
+//             setCouponCode("");
+//             setRewardCode("");
+
+//             Alert.alert("Success 🎉", "Aapka order successfully place ho gaya!", [
+//                 {
+//                     text: "OK",
+//                     onPress: () => {
+//                         dispatch(clearLastOrder());
+//                         router.replace("/(root)/(tabs)");
+//                     },
+//                 },
+//             ]);
+//         } catch (err) {
+//             Alert.alert("Order Failed", err || "Kuch galat ho gaya, dobara try karo");
+//         }
+//     };
+
+//     const isPlacing = placing || addressActionLoading;
+
+//     return (
+//         <View className="flex-1 bg-gray-50" style={{ paddingTop: insets.top }}>
+//             <Stack.Screen options={{ headerShown: false }} />
+
+//             {/* Header */}
+//             <View className="bg-white px-4 pt-6 pb-4 flex-row items-center gap-3 border-b border-gray-100">
+//                 <TouchableOpacity
+//                     onPress={() => router.back()}
+//                     className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
+//                     activeOpacity={0.7}
+//                 >
+//                     <Ionicons name="chevron-back" size={20} color="#374151" />
+//                 </TouchableOpacity>
+//                 <Text className="text-lg font-bold text-gray-900 flex-1">
+//                     Checkout
+//                 </Text>
+//             </View>
+
+//             {/* 👇 Yahan bhi KeyboardAvoidingView + ScrollView ki jagah
+//                 KeyboardAwareScrollView - focused field tak auto scroll karega */}
+//             <KeyboardAwareScrollView
+//                 contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+//                 keyboardShouldPersistTaps="handled"
+//                 showsVerticalScrollIndicator={false}
+//                 enableOnAndroid={true}
+//                 enableAutomaticScroll={true}
+//                 extraScrollHeight={20}
+//                 keyboardOpeningTime={0}
+//             >
+//                 {/* ---------- Order Summary ---------- */}
+//                 <View className="bg-white rounded-2xl p-4 mb-4 border border-gray-100">
+//                     <Text className="text-sm font-semibold text-gray-500 mb-3">Order Summary</Text>
+
+//                     {isDirectCheckout ? (
+//                         <View className="flex-row items-center">
+//                             {/* <Image
+//                                 source={{ uri: params.productImage }}
+//                                 className="w-16 h-16 rounded-xl bg-gray-100"
+//                             /> */}
+
+//                             <Image
+//                                 source={params.productImage || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200"}
+//                                 contentFit="cover"
+//                                 cachePolicy="memory-disk"
+//                                 className="w-16 h-16 rounded-xl bg-gray-100"
+//                             />
+//                             <View className="flex-1 ml-3">
+//                                 <Text className="text-[14px] font-semibold text-gray-900" numberOfLines={2}>
+//                                     {params.productName}
+//                                 </Text>
+//                                 <Text className="text-xs text-gray-400 mt-1">Qty: {directQuantity}</Text>
+//                             </View>
+//                             <Text className="text-[15px] font-bold text-gray-900">₹{directTotal}</Text>
+//                         </View>
+//                     ) : (
+//                         <>
+//                             {cartItems.map((item) => (
+//                                 <View
+//                                     key={item.cartItemId || item.id}
+//                                     className="flex-row items-center justify-between mb-2"
+//                                 >
+//                                     <Text className="text-[13px] text-gray-700 flex-1" numberOfLines={1}>
+//                                         {item.productName} × {item.quantity}
+//                                     </Text>
+//                                     <Text className="text-[13px] font-semibold text-gray-900">
+//                                         ₹{item.totalPrice}
+//                                     </Text>
+//                                 </View>
+//                             ))}
+//                             <View className="h-[1px] bg-gray-100 my-2" />
+//                             <View className="flex-row items-center justify-between">
+//                                 <Text className="text-sm font-bold text-gray-900">Total</Text>
+//                                 <Text className="text-base font-bold text-gray-900">{cartTotal}</Text>
+//                             </View>
+//                         </>
+//                     )}
+//                 </View>
+
+//                 {/* ---------- Delivery Address ---------- */}
+//                 <View className="bg-white rounded-2xl p-4 mb-4 border border-gray-100">
+//                     <View className="flex-row items-center justify-between mb-3">
+//                         <Text className="text-sm font-semibold text-gray-500">Delivery Address</Text>
+
+//                         {addresses.length > 0 && (
+//                             <TouchableOpacity
+//                                 onPress={() => setShowNewAddressForm((prev) => !prev)}
+//                                 className="flex-row items-center gap-1"
+//                                 activeOpacity={0.7}
+//                             >
+//                                 <Ionicons
+//                                     name={showNewAddressForm ? "list-outline" : "add-circle-outline"}
+//                                     size={16}
+//                                     color="#16a34a"
+//                                 />
+//                                 <Text className="text-[13px] font-semibold text-green-700">
+//                                     {showNewAddressForm ? "Use Saved Address" : "Add New Address"}
+//                                 </Text>
+//                             </TouchableOpacity>
+//                         )}
+//                     </View>
+
+//                     {addressLoading && addresses.length === 0 ? (
+//                         <ActivityIndicator color="#16a34a" style={{ marginVertical: 12 }} />
+//                     ) : !showNewAddressForm ? (
+//                         <View>
+//                             {addresses.map((address) => {
+//                                 const isSelected = address.id === selectedAddressId;
+//                                 return (
+//                                     <TouchableOpacity
+//                                         key={address.id}
+//                                         onPress={() => setSelectedAddressId(address.id)}
+//                                         activeOpacity={0.7}
+//                                         className={`flex-row border rounded-xl p-3 mb-2 ${isSelected ? "border-green-500 bg-green-50" : "border-gray-200"
+//                                             }`}
+//                                     >
+//                                         <Ionicons
+//                                             name={isSelected ? "radio-button-on" : "radio-button-off"}
+//                                             size={18}
+//                                             color={isSelected ? "#16a34a" : "#9CA3AF"}
+//                                             style={{ marginRight: 10, marginTop: 2 }}
+//                                         />
+//                                         <View className="flex-1">
+//                                             <View className="flex-row items-center gap-2">
+//                                                 <Text className="text-[14px] font-bold text-gray-900">
+//                                                     {address.fullName}
+//                                                 </Text>
+//                                                 {address.isDefault && (
+//                                                     <View className="bg-green-100 px-2 py-0.5 rounded-full">
+//                                                         <Text className="text-[10px] font-semibold text-green-700">
+//                                                             DEFAULT
+//                                                         </Text>
+//                                                     </View>
+//                                                 )}
+//                                             </View>
+//                                             <Text className="text-xs text-gray-500 mt-0.5">{address.phone}</Text>
+//                                             <Text className="text-[13px] text-gray-700 mt-1 leading-5">
+//                                                 {address.addressLine}, {address.city}, {address.state} -{" "}
+//                                                 {address.pincode}
+//                                             </Text>
+//                                         </View>
+//                                     </TouchableOpacity>
+//                                 );
+//                             })}
+//                         </View>
+//                     ) : (
+//                         <View>
+//                             <Text className="text-xs font-semibold text-gray-500 mb-1.5">Full Name</Text>
+//                             <TextInput
+//                                 value={fullName}
+//                                 onChangeText={setFullName}
+//                                 placeholder="Apna naam likho"
+//                                 className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-[15px] text-gray-900"
+//                             />
+
+//                             <Text className="text-xs font-semibold text-gray-500 mb-1.5">Phone Number</Text>
+//                             <TextInput
+//                                 value={phone}
+//                                 onChangeText={setPhone}
+//                                 placeholder="10 digit number"
+//                                 keyboardType="number-pad"
+//                                 maxLength={10}
+//                                 className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-[15px] text-gray-900"
+//                             />
+
+//                             <Text className="text-xs font-semibold text-gray-500 mb-1.5">Address Line</Text>
+//                             <TextInput
+//                                 value={addressLine}
+//                                 onChangeText={setAddressLine}
+//                                 placeholder="House no, street, area"
+//                                 className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-[15px] text-gray-900"
+//                             />
+
+//                             <View className="flex-row gap-3">
+//                                 <View className="flex-1">
+//                                     <Text className="text-xs font-semibold text-gray-500 mb-1.5">City</Text>
+//                                     <TextInput
+//                                         value={city}
+//                                         onChangeText={setCity}
+//                                         placeholder="City"
+//                                         className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-[15px] text-gray-900"
+//                                     />
+//                                 </View>
+//                                 <View className="flex-1">
+//                                     <Text className="text-xs font-semibold text-gray-500 mb-1.5">State</Text>
+//                                     <TextInput
+//                                         value={state}
+//                                         onChangeText={setState}
+//                                         placeholder="State"
+//                                         className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-[15px] text-gray-900"
+//                                     />
+//                                 </View>
+//                             </View>
+
+//                             <Text className="text-xs font-semibold text-gray-500 mb-1.5">Pincode</Text>
+//                             <TextInput
+//                                 value={pincode}
+//                                 onChangeText={setPincode}
+//                                 placeholder="6 digit pincode"
+//                                 keyboardType="number-pad"
+//                                 maxLength={6}
+//                                 className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900"
+//                             />
+
+//                             <Text className="text-[11px] text-gray-400 mt-2">
+//                                 Ye address save hoke automatically default aur checkout ke liye select ho jayega.
+//                             </Text>
+//                         </View>
+//                     )}
+//                 </View>
+
+
+//                 {/* ---------- Coupon & Reward Code ---------- */}
+//                 <View className="bg-white rounded-2xl p-4 mb-4 border border-gray-100">
+
+//                     <Text className="text-sm font-semibold text-gray-500 mb-3">
+//                         Apply Coupon / Reward Code
+//                     </Text>
+
+//                     {/* Coupon Code */}
+//                     <Text className="text-xs font-semibold text-gray-500 mb-1.5">
+//                         Coupon Code
+//                     </Text>
+
+//                     <View className="relative mb-3">
+//                         <TextInput
+//                             value={couponCode}
+//                             onChangeText={(text) => setCouponCode(text.toUpperCase().replace(/\s/g, ""))}
+//                             placeholder="Enter coupon code"
+//                             autoCapitalize="characters"
+//                             className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 pr-10"
+//                         />
+//                         {couponCode.length > 0 && (
+//                             <TouchableOpacity
+//                                 onPress={() => setCouponCode("")}
+//                                 className="absolute right-3 top-3.5"
+//                                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+//                             >
+//                                 <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+//                             </TouchableOpacity>
+//                         )}
+//                     </View>
+
+//                     {/* Reward Code */}
+//                     <Text className="text-xs font-semibold text-gray-500 mb-1.5">
+//                         Reward Code
+//                     </Text>
+
+//                     <View className="relative">
+//                         <TextInput
+//                             value={rewardCode}
+//                             onChangeText={(text) => setRewardCode(text.toUpperCase().replace(/\s/g, ""))}
+//                             placeholder="Enter reward code"
+//                             autoCapitalize="characters"
+//                             className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 pr-10"
+//                         />
+//                         {rewardCode.length > 0 && (
+//                             <TouchableOpacity
+//                                 onPress={() => setRewardCode("")}
+//                                 className="absolute right-3 top-3.5"
+//                                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+//                             >
+//                                 <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+//                             </TouchableOpacity>
+//                         )}
+//                     </View>
+
+//                     {couponCode.trim() && rewardCode.trim() ? (
+//                         <View className="mt-2.5 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex-row items-center gap-2">
+//                             <Ionicons name="alert-circle-outline" size={16} color="#d97706" />
+//                             <Text className="text-xs text-amber-700 flex-1">
+//                                 Ek order me Coupon ya Reward me se koi ek hi code apply ho sakta hai.
+//                             </Text>
+//                         </View>
+//                     ) : null}
+
+//                 </View>
+
+
+//                 {/* ---------- Payment Method ---------- */}
+//                 <View className="bg-white rounded-2xl p-4 mb-6 border border-gray-100">
+//                     <Text className="text-sm font-semibold text-gray-500 mb-3">Payment Method</Text>
+//                     <View className="flex-row gap-3">
+//                         <TouchableOpacity
+//                             onPress={() => setOrderType("COD")}
+//                             className={`flex-1 flex-row items-center justify-center py-3 rounded-xl border ${orderType === "COD" ? "bg-green-50 border-green-500" : "border-gray-200"
+//                                 }`}
+//                         >
+//                             {orderType === "COD" && (
+//                                 <Ionicons name="checkmark-circle" size={16} color="#16a34a" style={{ marginRight: 6 }} />
+//                             )}
+//                             <Text className={`text-[13px] font-semibold ${orderType === "COD" ? "text-green-700" : "text-gray-700"}`}>
+//                                 Cash on Delivery
+//                             </Text>
+//                         </TouchableOpacity>
+
+//                         {/* <TouchableOpacity
+//                             onPress={() => setOrderType("ONLINE")}
+//                             className={`flex-1 flex-row items-center justify-center py-3 rounded-xl border ${orderType === "ONLINE" ? "bg-green-50 border-green-500" : "border-gray-200"
+//                                 }`}
+//                         >
+//                             {orderType === "ONLINE" && (
+//                                 <Ionicons name="checkmark-circle" size={16} color="#16a34a" style={{ marginRight: 6 }} />
+//                             )}
+//                             <Text className={`text-[13px] font-semibold ${orderType === "ONLINE" ? "text-green-700" : "text-gray-700"}`}>
+//                                 Pay Online
+//                             </Text>
+//                         </TouchableOpacity> */}
+//                     </View>
+//                 </View>
+
+//                 {/* ---------- Place Order ---------- */}
+//                 <TouchableOpacity
+//                     onPress={handlePlaceOrder}
+//                     disabled={isPlacing}
+//                     className="bg-green-600 rounded-xl py-4 items-center justify-center"
+//                     activeOpacity={0.85}
+//                 >
+//                     {isPlacing ? (
+//                         <ActivityIndicator color="#fff" />
+//                     ) : (
+//                         <Text className="text-white font-semibold text-[15px]">
+//                             {showNewAddressForm ? "Save Address & Place Order" : "Place Order"}
+//                         </Text>
+//                     )}
+//                 </TouchableOpacity>
+//             </KeyboardAwareScrollView>
+//         </View>
+//     );
+// }
+
+
+
 import { useState, useEffect } from "react";
 import {
     View,
@@ -21,16 +561,29 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { trackEvent } from "../../../utils/eventTracker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { fetchRewards } from "../../../redux/slices/rewardsSlice";
+import { fetchCoupons } from "../../../redux/slices/couponsSlice";
+import CodeDropdownInput from "@/components/CodeDropdownInput";
 
 export default function CheckoutScreen() {
     const dispatch = useDispatch();
     const params = useLocalSearchParams();
     const insets = useSafeAreaInsets();
 
+
     const isDirectCheckout = !!params.productId;
 
     const { items: cartItems, cartTotal } = useSelector((state) => state.cart);
     const { placing } = useSelector((state) => state.order);
+
+
+    // reward
+    const { items: rewardItems } = useSelector((state) => state.rewards);
+    // reward
+
+    // coupon
+    const { items: couponItems } = useSelector((state) => state.coupons);
+    // coupon
 
     const addresses = useSelector((state) => state.address.addresses);
     const addressLoading = useSelector((state) => state.address.loading);
@@ -56,10 +609,24 @@ export default function CheckoutScreen() {
     const directPrice = Number(params.price) || 0;
     const directTotal = directPrice * directQuantity;
 
+
+
+
     useEffect(() => {
         dispatch(fetchMyAddresses({}));
     }, []);
 
+    // reward
+    useEffect(() => {
+        dispatch(fetchRewards());
+    }, [dispatch]);
+    // reward
+
+    // coupon
+    useEffect(() => {
+        dispatch(fetchCoupons());
+    }, [dispatch]);
+    // coupon
 
     const handleEventCall = (eventType = "SCREEN_VIEW", payload) => {
         trackEvent({
@@ -432,23 +999,14 @@ export default function CheckoutScreen() {
                         Coupon Code
                     </Text>
 
-                    <View className="relative mb-3">
-                        <TextInput
+                    <View className="mb-3">
+                        <CodeDropdownInput
+                            variant="coupon"
                             value={couponCode}
-                            onChangeText={(text) => setCouponCode(text.toUpperCase().replace(/\s/g, ""))}
+                            onChange={setCouponCode}
+                            items={couponItems}
                             placeholder="Enter coupon code"
-                            autoCapitalize="characters"
-                            className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 pr-10"
                         />
-                        {couponCode.length > 0 && (
-                            <TouchableOpacity
-                                onPress={() => setCouponCode("")}
-                                className="absolute right-3 top-3.5"
-                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                            >
-                                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-                            </TouchableOpacity>
-                        )}
                     </View>
 
                     {/* Reward Code */}
@@ -456,24 +1014,13 @@ export default function CheckoutScreen() {
                         Reward Code
                     </Text>
 
-                    <View className="relative">
-                        <TextInput
-                            value={rewardCode}
-                            onChangeText={(text) => setRewardCode(text.toUpperCase().replace(/\s/g, ""))}
-                            placeholder="Enter reward code"
-                            autoCapitalize="characters"
-                            className="border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 pr-10"
-                        />
-                        {rewardCode.length > 0 && (
-                            <TouchableOpacity
-                                onPress={() => setRewardCode("")}
-                                className="absolute right-3 top-3.5"
-                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                            >
-                                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                    <CodeDropdownInput
+                        variant="reward"
+                        value={rewardCode}
+                        onChange={setRewardCode}
+                        items={rewardItems}
+                        placeholder="Enter reward code"
+                    />
 
                     {couponCode.trim() && rewardCode.trim() ? (
                         <View className="mt-2.5 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex-row items-center gap-2">
