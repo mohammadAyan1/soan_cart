@@ -16,8 +16,11 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { loginUser } from "../redux/slices/authSlice.js"
 import { fetchCart } from "../redux/slices/cartSlice.js"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTabContext } from "@/context/TabContext";
 
 export default function LoginScreen(props) {
+
+    const { goToTab } = useTabContext();
     const searchParams = useLocalSearchParams();
     const redirectTo = props?.redirectTo || searchParams?.redirectTo;
     const redirectParams = props?.redirectParams || searchParams?.redirectParams;
@@ -77,6 +80,7 @@ export default function LoginScreen(props) {
                     router.replace(redirectTo);
                 }
             } else {
+                goToTab(0); // 👉 Active tab ko Home (0) set karega
                 router.replace("/(root)/(tabs)");
             }
         } catch (err) {
