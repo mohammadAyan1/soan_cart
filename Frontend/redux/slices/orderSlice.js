@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/api/api"; // 👈 apna actual axios instance path yaha daalo
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ==========================================================
 // 1) Cart checkout — cart ke saare items ka ek order banega
@@ -8,10 +9,16 @@ export const checkoutCart = createAsyncThunk(
     "order/checkoutCart",
     async (addressData, { rejectWithValue }) => {
         try {
+            // 👇 Geofencing Guard: Agar user service radius se bahar hai toh order block karein
+            const isOut = await AsyncStorage.getItem("isOutOfServiceRange");
+            if (isOut === "true") {
+                return rejectWithValue("Aap hamari delivery service radius se bahar hain. Is location par order place nahi kiya ja sakta.");
+            }
+
             const res = await api.post("/api/order/checkout/cart", addressData);
             return res.data.data;
         } catch (err) {
-            return rejectWithValue(err?.response?.data?.message || "Order place karne me error aaya");
+            return rejectWithValue(err?.response?.data?.message || err?.message || "Order place karne me error aaya");
         }
     }
 );
@@ -23,10 +30,16 @@ export const checkoutDirect = createAsyncThunk(
     "order/checkoutDirect",
     async (payload, { rejectWithValue }) => {
         try {
+            // 👇 Geofencing Guard: Agar user service radius se bahar hai toh order block karein
+            const isOut = await AsyncStorage.getItem("isOutOfServiceRange");
+            if (isOut === "true") {
+                return rejectWithValue("Aap hamari delivery service radius se bahar hain. Is location par order place nahi kiya ja sakta.");
+            }
+
             const res = await api.post("/api/order/checkout/direct", payload);
             return res.data.data;
         } catch (err) {
-            return rejectWithValue(err?.response?.data?.message || "Order place karne me error aaya");
+            return rejectWithValue(err?.response?.data?.message || err?.message || "Order place karne me error aaya");
         }
     }
 );

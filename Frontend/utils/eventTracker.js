@@ -7,7 +7,12 @@ let screenEnterTime = null;
 
 const FLUSH_INTERVAL_MS = 10000;
 const MAX_BATCH_SIZE = 20;
-const API_BASE_URL = `${process.env.EXPO_PUBLIC_API_URL}/api`;
+// ================= OLD CODE (COMMENTED) =================
+// const baseURL = process.env.EXPO_PUBLIC_API_URL || "https://soan-cart-backend.onrender.com"
+// const API_BASE_URL = `${baseURL}/api`;
+// ========================================================
+const rawBase = process.env.EXPO_PUBLIC_API_URL || "https://soan-cart-backend.onrender.com";
+const API_BASE_URL = `${rawBase.replace(/\/+$/, "")}/api`;
 
 let queue = [];
 let flushTimer = null;
@@ -157,7 +162,7 @@ const flush = async () => {
             body: JSON.stringify({ events: batchToSend }),
         });
     } catch (error) {
-        
+
     }
 };
 

@@ -34,6 +34,10 @@ import shareRoutes from "./routes/share.routes.js";
 import couponRoutes from "./routes/coupon.routes.js";
 import rewardRoutes from "./routes/reward.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import serviceZoneRoutes from "./routes/serviceZone.routes.js";
+import locationRoutes from "./routes/location.routes.js";
+import analyticsLocationRoutes from "./routes/locationAnalytics.routes.js";
+import bannerRoutes from "./routes/banner.routes.js";
 
 const app = express();
 
@@ -95,6 +99,17 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/rewards", rewardRoutes);
 // Share & App Links Landing Pages
 app.use("/", shareRoutes);
+
+
+// ////////////////////////////////
+
+app.use("/api/service-zones", serviceZoneRoutes);
+
+app.use("/api/location", locationRoutes);
+
+app.use("/api/get-customer-range", analyticsLocationRoutes);
+
+app.use("/api/banners", bannerRoutes);
 
 
 

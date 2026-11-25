@@ -21,11 +21,23 @@ export async function getLocationHeaders() {
 
         if (!place) return {};
 
+        // ================= OLD CODE (COMMENTED) =================
+        // return {
+        //     "x-loc-city": place.city || "",
+        //     "x-loc-region": place.region || "",
+        //     "x-loc-country": place.country || "",
+        // };
+        // ========================================================
+
+        // ================= NEW FIXED CODE =======================
         return {
-            "x-loc-city": place.city || "",
-            "x-loc-region": place.region || "",
+            "x-loc-city": place.city || place.district || place.subregion || "",
+            "x-loc-region": place.region || place.subregion || "",
             "x-loc-country": place.country || "",
+            "x-loc-lat": position?.coords?.latitude ? String(position.coords.latitude) : "",
+            "x-loc-lng": position?.coords?.longitude ? String(position.coords.longitude) : "",
         };
+        // ========================================================
     } catch (err) {
         // Location fail ho toh login block mat karo, bas headers skip karo
         return {};

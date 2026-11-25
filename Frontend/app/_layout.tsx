@@ -28,6 +28,7 @@ import AnimatedSplashScreen from "../components/AnimatedSplashScreen"
 import * as SplashScreen from 'expo-splash-screen';
 import { usePathname, router } from "expo-router";
 import { getCurrentLocationDetails } from "@/utils/locationService"
+import LocationGuard from "@/components/LocationGuard";
 import { Alert } from "react-native";
 import { setOnUnauthorizedCallback } from "@/api/api";
 import { forceLogout, fetchUserProfile, loadAuthFromStorage } from "@/redux/slices/authSlice";
@@ -45,6 +46,8 @@ function AppContent() {
 
   // 👇 AppState ka pichla value track karne ke liye
   const appStateRef = useRef(AppState.currentState);
+  // 👇 NAYA: setupAnalytics ko ek hi waqt pe multiple baar chalne se rokne ke liye guard
+  const isSettingUpRef = useRef(false);
 
   const backEnabledRoutes = ["/product", "/search", "/category"];
   const isChildScreen = backEnabledRoutes.some((route) => pathname?.includes(route));
@@ -59,6 +62,10 @@ function AppContent() {
   // 👇 setupAnalytics ko useCallback mein rakha taaki mount pe bhi chale
   // aur reopen pe bhi - code duplicate nahi karna pada
   const setupAnalytics = useCallback(async () => {
+    // 👇 NAYA: Agar analytics pehle se chal raha hai toh dobara mat chalao (Loop protection)
+    if (isSettingUpRef.current) return;
+    isSettingUpRef.current = true;
+
     try {
       let deviceId = await AsyncStorage.getItem("deviceId");
       if (!deviceId) {
@@ -68,9 +75,9 @@ function AppContent() {
 
       // 👇 TEMP DEBUG - location fetch ko temporarily disable kiya hai
       // taaki confirm kar sakein ki ye hi AppState loop ka culprit hai ya nahi
-      // const { latitude, longitude, city, state, country } =
-      //   await getCurrentLocationDetails();
-      const latitude = null, longitude = null, city = null, state = null, country = null;
+      const { latitude, longitude, city, state, country } =
+        await getCurrentLocationDetails();
+      // const latitude = null, longitude = null, city = null, state = null, country = null;
 
 
 
@@ -100,6 +107,7 @@ function AppContent() {
     } catch (error) {
 
     } finally {
+      isSettingUpRef.current = false; // 👈 Lock release
       setAppIsReady(true);
     }
   }, []);
@@ -173,19 +181,37 @@ function AppContent() {
 
       if (prevState === nextState) return; // real change nahi hai, skip
 
-      if (
-        prevState === "active" &&
-        (nextState === "background" || nextState === "inactive")
-      ) {
+      // ================= OLD CODE (COMMENTED) =================
+      // 👇 Purana code jo "inactive" pe bhi chalta tha aur Android me loop banata tha:
+      // if (
+      //   prevState === "active" &&
+      //   (nextState === "background" || nextState === "inactive")
+      // ) {
+      //   flushEvents();
+      //   resetEventTracker(); // sessionId, queue, currentScreen sab reset
+      // } else if (
+      //   (prevState === "background" || prevState === "inactive") &&
+      //   nextState === "active"
+      // ) {
+      //   // 👇 setAppIsReady(false) jaan-bujh kar NAHI kiya
+      //   setupAnalytics();
+      //   // Foreground me aane par check karo ki session abhi bhi active hai ya nahi
+      //   AsyncStorage.getItem("token").then((token) => {
+      //     if (token) {
+      //       dispatch(fetchUserProfile({}));
+      //     }
+      //   });
+      // }
+      // ========================================================
 
+      // ================= NEW FIXED CODE =======================
+      // 👇 NAYA CODE: Android me sirf "background" ko app-minimize maanein.
+      // "inactive" state temporary system dialog (jaise location popup) ke waqt aati hai,
+      // usse app-exit ya re-open na maanein taaki loop na bane.
+      if (prevState === "active" && nextState === "background") {
         flushEvents();
         resetEventTracker(); // sessionId, queue, currentScreen sab reset
-      } else if (
-        (prevState === "background" || prevState === "inactive") &&
-        nextState === "active"
-      ) {
-
-        // 👇 setAppIsReady(false) jaan-bujh kar NAHI kiya
+      } else if (prevState === "background" && nextState === "active") {
         setupAnalytics();
 
         // Foreground me aane par check karo ki session abhi bhi active hai ya nahi
@@ -195,6 +221,7 @@ function AppContent() {
           }
         });
       }
+      // ========================================================
     };
 
     const subscription = AppState.addEventListener("change", handleAppStateChange);
@@ -255,13 +282,30 @@ function AppContent() {
 
 // 👇 Ye outer component sirf providers set karta hai - koi useTabContext()
 // call nahi karta, isliye order ki koi problem nahi
+// ================= OLD CODE (COMMENTED) =================
+// function RootLayoutContent() {
+//   return (
+//     <GestureHandlerRootView style={{ flex: 1 }}>
+//       <TabProvider>
+//         <ScrollProvider>
+//           <SearchProvider>
+//             <AppContent />
+//           </SearchProvider>
+//         </ScrollProvider>
+//       </TabProvider>
+//     </GestureHandlerRootView>
+//   );
+// }
+// ========================================================
 function RootLayoutContent() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TabProvider>
         <ScrollProvider>
           <SearchProvider>
-            <AppContent />
+            <LocationGuard>
+              <AppContent />
+            </LocationGuard>
           </SearchProvider>
         </ScrollProvider>
       </TabProvider>

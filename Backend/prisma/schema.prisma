@@ -1,5 +1,11 @@
+// ================= OLD CODE (COMMENTED) =================
+// generator client {
+//   provider = "prisma-client-js"
+// }
+// ========================================================
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -947,4 +953,97 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   RETURNED
+}
+
+
+
+
+model ServiceZone {
+  id              Int      @id @default(autoincrement())
+
+  zoneName        String
+  district        String
+  state           String
+  city            String?
+  village         String?
+
+  centerLatitude  Decimal  @db.Decimal(10, 7)
+  centerLongitude Decimal  @db.Decimal(10, 7)
+
+  radiusKm        Decimal  @db.Decimal(8, 2)
+
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  locationLogs    LocationCheckLog[]
+
+  @@index([district, state])
+  @@index([isActive])
+}
+
+model LocationCheckLog {
+  id              Int      @id @default(autoincrement())
+
+  userId          Int?
+
+  serviceZoneId   Int
+
+  latitude        Decimal  @db.Decimal(10, 7)
+  longitude       Decimal  @db.Decimal(10, 7)
+
+  distanceKm      Decimal  @db.Decimal(10, 3)
+  allowedRadiusKm Decimal  @db.Decimal(8, 2)
+
+  accuracyMeters  Decimal? @db.Decimal(10, 2)
+
+  isWithinRange   Boolean
+
+  platform        String?
+  checkSource     String?
+
+  checkedAt       DateTime @default(now())
+
+  serviceZone     ServiceZone @relation(fields: [serviceZoneId], references: [id], onDelete: Restrict)
+
+  @@index([userId, checkedAt])
+  @@index([isWithinRange, checkedAt])
+  @@index([serviceZoneId, checkedAt])
+}
+
+enum BannerTargetType {
+  CATEGORY
+  SUB_CATEGORY
+  PRODUCT
+  VARIANT
+}
+
+model Banner {
+  id           Int              @id @default(autoincrement())
+  title        String?
+  subtitle     String?
+  imageUrl     String           @db.Text
+  imageId      String?
+
+  // Text overlay customization
+  text         String?          @db.Text
+  textSize     Int              @default(18)
+  isBold       Boolean          @default(false)
+  textColor    String           @default("#FFFFFF")
+  textPosition String           @default("BOTTOM_LEFT")
+
+  // Target navigation
+  targetType   BannerTargetType
+  targetId     Int
+  productId    Int?             // For VARIANT: parent product id
+  targetName   String?          // e.g. "Vegetables" or "Tomato 1kg"
+
+  isActive     Boolean          @default(true)
+  orderIndex   Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([isActive])
+  @@index([targetType, targetId])
 }

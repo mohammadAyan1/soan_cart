@@ -13,6 +13,8 @@ import SubCategory from "./pages/SubCategory";
 import VegetableProduct from "./pages/VegetableProduct";
 import Unit from "./pages/Unit";
 import AdminCouponsRewards from "./pages/AdminCouponsRewards";
+import ServiceZones from "./pages/ServiceZones";
+import Banners from "./pages/Banners";
 
 
 
@@ -72,6 +74,8 @@ function App() {
           element={<Unit />}
         />
         <Route path="admin/discounts" element={<AdminCouponsRewards />} />
+        <Route path="service-zones" element={<ServiceZones />} />
+        <Route path="banners" element={<Banners />} />
       </Route>
     </Routes>
 

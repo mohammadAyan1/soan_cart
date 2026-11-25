@@ -8,7 +8,9 @@ import {
     FolderTree,
     Tags,
     Carrot,
-    Weight
+    Weight,
+    MapPin,
+    Image as ImageIcon
 } from "lucide-react";
 
 function DashboardLayout() {
@@ -175,6 +177,32 @@ function DashboardLayout() {
                         {isOpen && (
                             <span>
                                 Coupon
+                            </span>
+                        )}
+                    </Link>
+
+                    <Link
+                        to="/service-zones"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+                    >
+                        <MapPin size={20} className="text-emerald-600" />
+
+                        {isOpen && (
+                            <span>
+                                Geofencing Zones
+                            </span>
+                        )}
+                    </Link>
+
+                    <Link
+                        to="/banners"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100"
+                    >
+                        <ImageIcon size={20} className="text-indigo-600" />
+
+                        {isOpen && (
+                            <span>
+                                Hero Banners
                             </span>
                         )}
                     </Link>

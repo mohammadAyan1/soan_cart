@@ -10,6 +10,7 @@ import ProductSkeletonGrid from "@/components/ProductSkeleton";
 import { fetchWishlist } from "@/redux/slices/wishlistSlice";
 import { useProductListTracker } from "../../../hooks/useProductListTracker"; // 👈 NAYA
 import Header from "@/components/Header";
+import HeroBannerCarousel from "@/components/HeroBannerCarousel";
 
 const SCREEN_NAME = "home_page";
 
@@ -81,6 +82,7 @@ export default function HomeScreen() {
             ) : (
 
                 <FlatList
+                    ListHeaderComponent={<HeroBannerCarousel />}
                     data={items}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={({ item }) => (
