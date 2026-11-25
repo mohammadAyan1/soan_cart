@@ -11,7 +11,9 @@ import {
     Link as LinkIcon,
     Layers,
     Tag,
-    Package
+    Package,
+    Sparkles,
+    Palette
 } from "lucide-react";
 import api from "../api/api";
 
@@ -35,11 +37,29 @@ export default function Banners() {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
-    // Text Overlay Styling
-    const [overlayText, setOverlayText] = useState("");
-    const [textSize, setTextSize] = useState(24);
-    const [isBold, setIsBold] = useState(true);
-    const [textColor, setTextColor] = useState("#FFFFFF");
+    // ================= OLD CODE (COMMENTED) =================
+    // const [overlayText, setOverlayText] = useState("");
+    // const [textSize, setTextSize] = useState(24);
+    // const [isBold, setIsBold] = useState(true);
+    // const [textColor, setTextColor] = useState("#FFFFFF");
+    // ========================================================
+
+    // 👇 NAYA: Dynamic Multi-Row Text Overlay with Fonts, Colors, and CTA Button
+    const [textRows, setTextRows] = useState([
+        {
+            id: 1,
+            text: "",
+            fontSize: 22,
+            fontWeight: "700",
+            fontStyle: "normal",
+            fontFamily: "sans-serif",
+            color: "#FFFFFF"
+        }
+    ]);
+    const [showCta, setShowCta] = useState(true);
+    const [ctaText, setCtaText] = useState("SHOP NOW");
+    const [ctaBgColor, setCtaBgColor] = useState("#E11D48");
+    const [ctaTextColor, setCtaTextColor] = useState("#FFFFFF");
     const [textPosition, setTextPosition] = useState("BOTTOM_LEFT");
 
     // Target Link
@@ -64,20 +84,45 @@ export default function Banners() {
 
     const fetchDropdownData = async () => {
         try {
+            // ================= OLD CODE (COMMENTED) =================
+            // const [catRes, subRes, prodRes] = await Promise.allSettled([
+            //     api.get("/api/product-category/get-all?limit=200"),
+            //     api.get("/api/product-sub-category/get-all?limit=200"),
+            //     api.get("/api/product/getall/admin?limit=200")
+            // ]);
+            // if (catRes.status === "fulfilled" && catRes.value.data?.data) {
+            //     setCategories(catRes.value.data.data || []);
+            // }
+            // if (subRes.status === "fulfilled" && subRes.value.data?.data) {
+            //     setSubCategories(subRes.value.data.data || []);
+            // }
+            // if (prodRes.status === "fulfilled" && prodRes.value.data?.data) {
+            //     setProducts(prodRes.value.data.data?.products || prodRes.value.data.data || []);
+            // }
+            // ========================================================
+
             const [catRes, subRes, prodRes] = await Promise.allSettled([
                 api.get("/api/product-category/get-all?limit=200"),
                 api.get("/api/product-sub-category/get-all?limit=200"),
                 api.get("/api/product/getall/admin?limit=200")
             ]);
 
-            if (catRes.status === "fulfilled" && catRes.value.data?.data) {
-                setCategories(catRes.value.data.data || []);
+            // Categories: backend returns { success: true, productsCat: [...] }
+            if (catRes.status === "fulfilled") {
+                const cList = catRes.value.data?.productsCat || catRes.value.data?.data || [];
+                setCategories(Array.isArray(cList) ? cList : []);
             }
-            if (subRes.status === "fulfilled" && subRes.value.data?.data) {
-                setSubCategories(subRes.value.data.data || []);
+
+            // Subcategories: backend returns { success: true, subCategories: [...] }
+            if (subRes.status === "fulfilled") {
+                const sList = subRes.value.data?.subCategories || subRes.value.data?.data || [];
+                setSubCategories(Array.isArray(sList) ? sList : []);
             }
-            if (prodRes.status === "fulfilled" && prodRes.value.data?.data) {
-                setProducts(prodRes.value.data.data?.products || prodRes.value.data.data || []);
+
+            // Products: backend returns { success: true, data: [...] }
+            if (prodRes.status === "fulfilled") {
+                const pList = prodRes.value.data?.data || prodRes.value.data?.products || [];
+                setProducts(Array.isArray(pList) ? pList : []);
             }
         } catch (err) {
             console.error("fetchDropdownData error:", err);
@@ -94,10 +139,21 @@ export default function Banners() {
         setSubtitle("");
         setImageFile(null);
         setImagePreview(null);
-        setOverlayText("");
-        setTextSize(24);
-        setIsBold(true);
-        setTextColor("#FFFFFF");
+        setTextRows([
+            {
+                id: 1,
+                text: "",
+                fontSize: 22,
+                fontWeight: "700",
+                fontStyle: "normal",
+                fontFamily: "sans-serif",
+                color: "#FFFFFF"
+            }
+        ]);
+        setShowCta(true);
+        setCtaText("SHOP NOW");
+        setCtaBgColor("#E11D48");
+        setCtaTextColor("#FFFFFF");
         setTextPosition("BOTTOM_LEFT");
         setTargetType("CATEGORY");
         setTargetId("");
@@ -105,6 +161,35 @@ export default function Banners() {
         setSelectedProductId("");
         setSelectedProductVariants([]);
         setFormError("");
+    };
+
+    // Text rows management
+    const handleAddTextRow = () => {
+        setTextRows((prev) => [
+            ...prev,
+            {
+                id: Date.now(),
+                text: "",
+                fontSize: 14,
+                fontWeight: "400",
+                fontStyle: "normal",
+                fontFamily: "sans-serif",
+                color: "#FFFFFF"
+            }
+        ]);
+    };
+
+    const handleUpdateTextRow = (id, field, value) => {
+        setTextRows((prev) =>
+            prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
+        );
+    };
+
+    const handleRemoveTextRow = (id) => {
+        setTextRows((prev) => {
+            if (prev.length <= 1) return prev;
+            return prev.filter((r) => r.id !== id);
+        });
     };
 
     const handleImageChange = (e) => {
@@ -133,6 +218,36 @@ export default function Banners() {
         }
     };
 
+    // ================= OLD CODE (COMMENTED) =================
+    // const handleCreateBanner = async (e) => {
+    //     e.preventDefault();
+    //     setFormError("");
+    //     if (!imageFile) {
+    //         setFormError("Please select a banner image.");
+    //         return;
+    //     }
+    //     if (!targetId) {
+    //         setFormError(`Please select a ${targetType.toLowerCase().replace("_", " ")} to link this banner to.`);
+    //         return;
+    //     }
+    //     const formData = new FormData();
+    //     formData.append("image", imageFile);
+    //     formData.append("title", title || "");
+    //     formData.append("subtitle", subtitle || "");
+    //     formData.append("text", overlayText || "");
+    //     formData.append("textSize", String(textSize));
+    //     formData.append("isBold", String(isBold));
+    //     formData.append("textColor", textColor);
+    //     formData.append("textPosition", textPosition);
+    //     formData.append("targetType", targetType);
+    //     formData.append("targetId", String(targetId));
+    //     if (targetType === "VARIANT" && selectedProductId) {
+    //         formData.append("productId", String(selectedProductId));
+    //     }
+    //     formData.append("targetName", targetName || "");
+    //     ...
+    // ========================================================
+
     const handleCreateBanner = async (e) => {
         e.preventDefault();
         setFormError("");
@@ -147,14 +262,22 @@ export default function Banners() {
             return;
         }
 
+        // Filter valid text rows
+        const activeRows = textRows.filter((r) => r.text && r.text.trim() !== "");
+        const overlayPayload = JSON.stringify({
+            rows: activeRows.length > 0 ? activeRows : [],
+            cta: showCta ? { show: true, text: ctaText, bgColor: ctaBgColor, textColor: ctaTextColor } : { show: false }
+        });
+
         const formData = new FormData();
         formData.append("image", imageFile);
         formData.append("title", title || "");
         formData.append("subtitle", subtitle || "");
-        formData.append("text", overlayText || "");
-        formData.append("textSize", String(textSize));
-        formData.append("isBold", String(isBold));
-        formData.append("textColor", textColor);
+        // Save full JSON containing dynamic rows & CTA in text field
+        formData.append("text", overlayPayload);
+        formData.append("textSize", String(activeRows[0]?.fontSize || 22));
+        formData.append("isBold", String(activeRows[0]?.fontWeight === "700" || activeRows[0]?.fontWeight === "900"));
+        formData.append("textColor", activeRows[0]?.color || "#FFFFFF");
         formData.append("textPosition", textPosition);
         formData.append("targetType", targetType);
         formData.append("targetId", String(targetId));
@@ -206,6 +329,60 @@ export default function Banners() {
         } catch (err) {
             console.error("deleteBanner error:", err);
         }
+    };
+
+    // Helper to render dynamic multi-line overlay and CTA button
+    const renderOverlayContent = (textData, fallbackSize = 18, fallbackColor = "#FFFFFF", fallbackBold = false) => {
+        if (!textData) return null;
+        let rows = [];
+        let cta = null;
+        try {
+            const parsed = JSON.parse(textData);
+            if (parsed && Array.isArray(parsed.rows)) {
+                rows = parsed.rows;
+                cta = parsed.cta;
+            } else if (Array.isArray(parsed)) {
+                rows = parsed;
+            } else {
+                rows = [{ text: textData, fontSize: fallbackSize, color: fallbackColor, fontWeight: fallbackBold ? "700" : "400", fontStyle: "normal", fontFamily: "sans-serif" }];
+            }
+        } catch {
+            rows = [{ text: textData, fontSize: fallbackSize, color: fallbackColor, fontWeight: fallbackBold ? "700" : "400", fontStyle: "normal", fontFamily: "sans-serif" }];
+        }
+
+        return (
+            <div className="space-y-1">
+                {rows.map((row, idx) => (
+                    <div
+                        key={idx}
+                        style={{
+                            color: row.color || "#FFFFFF",
+                            fontSize: `${row.fontSize ? Math.max(12, Math.min(32, row.fontSize * 0.85)) : 16}px`,
+                            fontWeight: row.fontWeight || "normal",
+                            fontStyle: row.fontStyle || "normal",
+                            fontFamily: row.fontFamily || "sans-serif",
+                            textShadow: "0 2px 4px rgba(0,0,0,0.85)"
+                        }}
+                        className="leading-tight"
+                    >
+                        {row.text}
+                    </div>
+                ))}
+                {cta && cta.show && (
+                    <div className="pt-1.5">
+                        <span
+                            style={{
+                                backgroundColor: cta.bgColor || "#E11D48",
+                                color: cta.textColor || "#FFFFFF"
+                            }}
+                            className="inline-block px-3.5 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase shadow-md"
+                        >
+                            {cta.text || "SHOP NOW"}
+                        </span>
+                    </div>
+                )}
+            </div>
+        );
     };
 
     // Helper for text alignment classes
@@ -285,14 +462,15 @@ export default function Banners() {
                                 {/* Dark overlay gradient for readable text */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
 
-                                {/* Custom Text Overlay */}
+                                {/* Custom Text Overlay (Dynamic Multi-Row and CTA aware) */}
                                 {b.text && (
                                     <div
                                         className={`absolute pointer-events-none p-3 max-w-[85%] ${getPositionClasses(
                                             b.textPosition
                                         )}`}
                                     >
-                                        <p
+                                        {/* ================= OLD CODE (COMMENTED) ================= */}
+                                        {/* <p
                                             style={{
                                                 color: b.textColor || "#FFFFFF",
                                                 fontSize: `${Math.max(14, Math.min(26, b.textSize * 0.85))}px`,
@@ -302,7 +480,9 @@ export default function Banners() {
                                             className="leading-tight"
                                         >
                                             {b.text}
-                                        </p>
+                                        </p> */}
+                                        {/* ======================================================== */}
+                                        {renderOverlayContent(b.text, b.textSize, b.textColor, b.isBold)}
                                     </div>
                                 )}
 
@@ -419,25 +599,20 @@ export default function Banners() {
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
 
-                                        {overlayText && (
-                                            <div
-                                                className={`absolute pointer-events-none p-3 max-w-[85%] ${getPositionClasses(
-                                                    textPosition
-                                                )}`}
-                                            >
-                                                <p
-                                                    style={{
-                                                        color: textColor,
-                                                        fontSize: `${textSize}px`,
-                                                        fontWeight: isBold ? "700" : "400",
-                                                        textShadow: "0 2px 4px rgba(0,0,0,0.8)"
-                                                    }}
-                                                    className="leading-tight"
-                                                >
-                                                    {overlayText}
-                                                </p>
-                                            </div>
-                                        )}
+                                        {/* Dynamic Live Mobile Preview with Multiple Text Rows and CTA */}
+                                        <div
+                                            className={`absolute pointer-events-none p-4 max-w-[85%] ${getPositionClasses(
+                                                textPosition
+                                            )}`}
+                                        >
+                                            {renderOverlayContent(
+                                                JSON.stringify({
+                                                    rows: textRows.filter((r) => r.text && r.text.trim() !== ""),
+                                                    cta: showCta ? { show: true, text: ctaText, bgColor: ctaBgColor, textColor: ctaTextColor } : { show: false }
+                                                })
+                                            )}
+                                        </div>
+
                                         <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-mono px-2 py-0.5 rounded">
                                             Live Mobile Preview
                                         </div>
@@ -445,12 +620,8 @@ export default function Banners() {
                                 )}
                             </div>
 
-                            {/* Text Overlay Customization */}
-                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
-                                <h4 className="text-xs font-bold text-gray-700 uppercase flex items-center gap-1.5">
-                                    <Type size={16} /> Custom Text Overlay on Image
-                                </h4>
-
+                            {/* ================= OLD CODE (COMMENTED) ================= */}
+                            {/* <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">
                                         Text to Display (Appears on top of banner)
@@ -463,59 +634,273 @@ export default function Banners() {
                                         className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm"
                                     />
                                 </div>
+                            </div> */}
+                            {/* ======================================================== */}
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    {/* Text Size */}
-                                    <div>
-                                        <label className="block text-xs text-gray-600 mb-1">Font Size (px)</label>
-                                        <select
-                                            value={textSize}
-                                            onChange={(e) => setTextSize(Number(e.target.value))}
-                                            className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-medium"
+                            {/* Dynamic Multi-Row Text Overlay Customization */}
+                            <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-xs font-bold text-gray-800 uppercase flex items-center gap-1.5 tracking-wider">
+                                        <Type size={16} className="text-indigo-600" /> Dynamic Text Overlay on Image
+                                    </h4>
+                                    <span className="text-[11px] text-gray-500 font-medium">
+                                        {textRows.length} Text Line{textRows.length > 1 ? "s" : ""}
+                                    </span>
+                                </div>
+
+                                <p className="text-xs text-gray-500">
+                                    Add as many text lines as you want. Each line can have its own font, size, weight, italic style, and color!
+                                </p>
+
+                                {/* List of Text Lines */}
+                                <div className="space-y-3">
+                                    {textRows.map((row, index) => (
+                                        <div
+                                            key={row.id}
+                                            className="p-3.5 bg-white rounded-xl border border-gray-200 shadow-sm space-y-3"
                                         >
-                                            <option value={16}>Small (16px)</option>
-                                            <option value={20}>Medium (20px)</option>
-                                            <option value={24}>Large (24px)</option>
-                                            <option value={28}>Extra Large (28px)</option>
-                                            <option value={34}>Huge (34px)</option>
-                                        </select>
-                                    </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] flex items-center justify-center font-bold">
+                                                        {index + 1}
+                                                    </span>
+                                                    Text Line #{index + 1}
+                                                </span>
+                                                {textRows.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveTextRow(row.id)}
+                                                        className="text-red-500 hover:text-red-700 p-1 rounded-lg hover:bg-red-50 transition text-xs flex items-center gap-1"
+                                                        title="Delete this row"
+                                                    >
+                                                        <Trash2 size={14} /> Remove
+                                                    </button>
+                                                )}
+                                            </div>
 
-                                    {/* Text Bold */}
-                                    <div>
-                                        <label className="block text-xs text-gray-600 mb-1">Font Weight</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsBold(!isBold)}
-                                            className={`w-full py-2 px-3 rounded-xl border text-xs font-bold transition ${
-                                                isBold
-                                                    ? "bg-gray-900 text-white border-gray-900"
-                                                    : "bg-white text-gray-700 border-gray-200"
-                                            }`}
-                                        >
-                                            {isBold ? "Bold (Active)" : "Normal"}
-                                        </button>
-                                    </div>
+                                            {/* Text string input */}
+                                            <div>
+                                                <input
+                                                    type="text"
+                                                    placeholder={index === 0 ? "e.g. Chilled Treats Await" : "e.g. Indulge in flavour-packed ice creams"}
+                                                    value={row.text}
+                                                    onChange={(e) => handleUpdateTextRow(row.id, "text", e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:border-indigo-500 focus:outline-none"
+                                                />
+                                            </div>
 
-                                    {/* Text Color */}
-                                    <div>
-                                        <label className="block text-xs text-gray-600 mb-1">Text Color</label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="color"
-                                                value={textColor}
-                                                onChange={(e) => setTextColor(e.target.value)}
-                                                className="w-9 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
-                                            />
+                                            {/* Controls grid for this row */}
+                                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+                                                {/* Font Family */}
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                                                        Font Style
+                                                    </label>
+                                                    <select
+                                                        value={row.fontFamily}
+                                                        onChange={(e) => handleUpdateTextRow(row.id, "fontFamily", e.target.value)}
+                                                        className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
+                                                    >
+                                                        <option value="sans-serif">Modern (Sans)</option>
+                                                        <option value="serif">Classic (Serif)</option>
+                                                        <option value="monospace">Clean (Mono)</option>
+                                                        <option value="cursive">Cursive (Script)</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Font Size */}
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                                                        Size (px)
+                                                    </label>
+                                                    <select
+                                                        value={row.fontSize}
+                                                        onChange={(e) => handleUpdateTextRow(row.id, "fontSize", Number(e.target.value))}
+                                                        className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
+                                                    >
+                                                        <option value={12}>12px (Tiny)</option>
+                                                        <option value={14}>14px (Small)</option>
+                                                        <option value={16}>16px (Normal)</option>
+                                                        <option value={18}>18px (Medium)</option>
+                                                        <option value={22}>22px (Large)</option>
+                                                        <option value={26}>26px (X-Large)</option>
+                                                        <option value={32}>32px (Huge)</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Font Weight */}
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                                                        Weight
+                                                    </label>
+                                                    <select
+                                                        value={row.fontWeight}
+                                                        onChange={(e) => handleUpdateTextRow(row.id, "fontWeight", e.target.value)}
+                                                        className="w-full px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-semibold"
+                                                    >
+                                                        <option value="400">Normal</option>
+                                                        <option value="700">Bold</option>
+                                                        <option value="900">Extra Bold</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Font Italic Style */}
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                                                        Italic
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleUpdateTextRow(
+                                                                row.id,
+                                                                "fontStyle",
+                                                                row.fontStyle === "italic" ? "normal" : "italic"
+                                                            )
+                                                        }
+                                                        className={`w-full py-1.5 px-2 rounded-lg border text-xs font-semibold transition ${
+                                                            row.fontStyle === "italic"
+                                                                ? "bg-indigo-600 text-white border-indigo-600 italic"
+                                                                : "bg-white text-gray-700 border-gray-200"
+                                                        }`}
+                                                    >
+                                                        {row.fontStyle === "italic" ? "Italic" : "Normal"}
+                                                    </button>
+                                                </div>
+
+                                                {/* Text Color */}
+                                                <div>
+                                                    <label className="block text-[11px] font-medium text-gray-500 mb-1">
+                                                        Color
+                                                    </label>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <input
+                                                            type="color"
+                                                            value={row.color}
+                                                            onChange={(e) => handleUpdateTextRow(row.id, "color", e.target.value)}
+                                                            className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0 bg-white shrink-0"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={row.color}
+                                                            onChange={(e) => handleUpdateTextRow(row.id, "color", e.target.value)}
+                                                            className="w-full px-1.5 py-1 rounded border border-gray-200 bg-white text-[11px] font-mono uppercase"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Add Text Line Button */}
+                                <button
+                                    type="button"
+                                    onClick={handleAddTextRow}
+                                    className="w-full py-2.5 border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/60 hover:bg-indigo-50 text-indigo-700 font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition"
+                                >
+                                    <Plus size={16} /> + Add Another Text Line
+                                </button>
+                            </div>
+
+                            {/* Instamart-Style CTA Button Settings */}
+                            <div className="p-4 bg-rose-50/50 rounded-2xl border border-rose-100 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-bold text-gray-800 uppercase flex items-center gap-1.5 cursor-pointer">
+                                        <Sparkles size={16} className="text-rose-600" /> Call To Action (CTA) Pill Button
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-rose-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={showCta}
+                                            onChange={(e) => setShowCta(e.target.checked)}
+                                            className="w-4 h-4 rounded text-rose-600 accent-rose-600 cursor-pointer"
+                                        />
+                                        Show CTA Button
+                                    </label>
+                                </div>
+
+                                {showCta && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                                        <div>
+                                            <label className="block text-[11px] font-medium text-gray-600 mb-1">
+                                                Button Text
+                                            </label>
                                             <input
                                                 type="text"
-                                                value={textColor}
-                                                onChange={(e) => setTextColor(e.target.value)}
-                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-mono uppercase"
-                                                placeholder="#FFFFFF"
+                                                value={ctaText}
+                                                onChange={(e) => setCtaText(e.target.value)}
+                                                placeholder="e.g. SHOP NOW"
+                                                className="w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold uppercase tracking-wider"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-[11px] font-medium text-gray-600 mb-1">
+                                                Button Color
+                                            </label>
+                                            <div className="flex items-center gap-1.5">
+                                                <input
+                                                    type="color"
+                                                    value={ctaBgColor}
+                                                    onChange={(e) => setCtaBgColor(e.target.value)}
+                                                    className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0 bg-white shrink-0"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={ctaBgColor}
+                                                    onChange={(e) => setCtaBgColor(e.target.value)}
+                                                    className="w-full px-2 py-1 rounded border border-gray-200 bg-white text-xs font-mono uppercase"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-medium text-gray-600 mb-1">
+                                                Text Color
+                                            </label>
+                                            <div className="flex items-center gap-1.5">
+                                                <input
+                                                    type="color"
+                                                    value={ctaTextColor}
+                                                    onChange={(e) => setCtaTextColor(e.target.value)}
+                                                    className="w-7 h-7 rounded border border-gray-200 cursor-pointer p-0 bg-white shrink-0"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={ctaTextColor}
+                                                    onChange={(e) => setCtaTextColor(e.target.value)}
+                                                    className="w-full px-2 py-1 rounded border border-gray-200 bg-white text-xs font-mono uppercase"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
+                                )}
+                            </div>
+
+                            {/* Text Position */}
+                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">
+                                    Text Placement on Banner
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {[
+                                        { key: "BOTTOM_LEFT", label: "Bottom Left (Recommended)" },
+                                        { key: "TOP_LEFT", label: "Top Left" },
+                                        { key: "CENTER", label: "Center" },
+                                        { key: "BOTTOM_CENTER", label: "Bottom Center" }
+                                    ].map(({ key, label }) => (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            onClick={() => setTextPosition(key)}
+                                            className={`py-2 px-3 rounded-xl text-xs font-medium border transition ${
+                                                textPosition === key
+                                                    ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                                                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
@@ -556,7 +941,7 @@ export default function Banners() {
                                 {targetType === "CATEGORY" && (
                                     <div>
                                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                                            Select Category *
+                                            Select Category * ({categories.length} available)
                                         </label>
                                         <select
                                             value={targetId}
@@ -582,7 +967,7 @@ export default function Banners() {
                                 {targetType === "SUB_CATEGORY" && (
                                     <div>
                                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                                            Select Subcategory *
+                                            Select Subcategory * ({subCategories.length} available)
                                         </label>
                                         <select
                                             value={targetId}
@@ -590,7 +975,8 @@ export default function Banners() {
                                                 const id = e.target.value;
                                                 setTargetId(id);
                                                 const sub = subCategories.find((s) => String(s.id) === String(id));
-                                                setTargetName(sub?.subCategoryTitle || sub?.name || "");
+                                                // Backend field is productSubCategoryName
+                                                setTargetName(sub?.productSubCategoryName || sub?.subCategoryTitle || sub?.name || "");
                                             }}
                                             className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm"
                                             required
@@ -598,7 +984,7 @@ export default function Banners() {
                                             <option value="">-- Choose Subcategory --</option>
                                             {subCategories.map((s) => (
                                                 <option key={s.id} value={s.id}>
-                                                    {s.subCategoryTitle || s.name}
+                                                    {s.productSubCategoryName || s.subCategoryTitle || s.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -608,7 +994,7 @@ export default function Banners() {
                                 {targetType === "PRODUCT" && (
                                     <div>
                                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                                            Select Product *
+                                            Select Product * ({products.length} available)
                                         </label>
                                         <select
                                             value={targetId}
@@ -635,7 +1021,7 @@ export default function Banners() {
                                     <div className="space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                First Choose Product *
+                                                First Choose Product * ({products.length} available)
                                             </label>
                                             <select
                                                 value={selectedProductId}
@@ -646,7 +1032,7 @@ export default function Banners() {
                                                 <option value="">-- Choose Parent Product --</option>
                                                 {products.map((p) => (
                                                     <option key={p.id} value={p.id}>
-                                                        {p.productName}
+                                                        {p.productName} ({p.variants?.length || 0} variants)
                                                     </option>
                                                 ))}
                                             </select>
@@ -654,7 +1040,7 @@ export default function Banners() {
 
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                Then Choose Variant *
+                                                Then Choose Variant * {selectedProductId ? `(${selectedProductVariants.length} available)` : ""}
                                             </label>
                                             <select
                                                 value={targetId}
@@ -664,9 +1050,10 @@ export default function Banners() {
                                                     const v = selectedProductVariants.find(
                                                         (vr) => String(vr.id) === String(id)
                                                     );
-                                                    setTargetName(
-                                                        v ? `${v.title || v.packSize || v.unit} (₹${v.price})` : ""
-                                                    );
+                                                    const attrLabel = v?.attributes ? (typeof v.attributes === "object" ? Object.values(v.attributes).join(" ") : String(v.attributes)) : "";
+                                                    const desc = v?.description || attrLabel || `Variant #${v?.id}`;
+                                                    const price = v?.actualPrice || v?.mrp || 0;
+                                                    setTargetName(v ? `${desc} - ₹${price}` : "");
                                                 }}
                                                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm"
                                                 disabled={!selectedProductId}
@@ -674,14 +1061,21 @@ export default function Banners() {
                                             >
                                                 <option value="">
                                                     {selectedProductId
-                                                        ? "-- Choose Variant --"
+                                                        ? selectedProductVariants.length > 0
+                                                            ? "-- Choose Variant --"
+                                                            : "-- No variants found for this product --"
                                                         : "-- Select Product First --"}
                                                 </option>
-                                                {selectedProductVariants.map((v) => (
-                                                    <option key={v.id} value={v.id}>
-                                                        {v.title || v.packSize || v.unit || "Variant"} - ₹{v.price}
-                                                    </option>
-                                                ))}
+                                                {selectedProductVariants.map((v) => {
+                                                    const attrLabel = v.attributes ? (typeof v.attributes === "object" ? Object.values(v.attributes).join(" ") : String(v.attributes)) : "";
+                                                    const desc = v.description || attrLabel || `Variant #${v.id}`;
+                                                    const price = v.actualPrice || v.mrp || 0;
+                                                    return (
+                                                        <option key={v.id} value={v.id}>
+                                                            {desc} - ₹{price} (Stock: {v.stock ?? 0})
+                                                        </option>
+                                                    );
+                                                })}
                                             </select>
                                         </div>
                                     </div>

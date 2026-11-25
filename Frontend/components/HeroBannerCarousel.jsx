@@ -15,8 +15,51 @@ import api from "@/api/api";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 // Card width with 12px margin on both sides for a clean modern banner look
 const BANNER_WIDTH = SCREEN_WIDTH - 24;
-// Aspect ratio 16:7 ensures crisp rendering without distortion on all screen sizes
-const BANNER_HEIGHT = Math.round(BANNER_WIDTH * (7 / 16));
+// ================= OLD CODE (COMMENTED) =================
+// // Aspect ratio 16:7 ensures crisp rendering without distortion on all screen sizes
+// const BANNER_HEIGHT = Math.round(BANNER_WIDTH * (7 / 16));
+// ========================================================
+// Instamart-style roomy height (~195px) for spacious title, subtitle & CTA button
+const BANNER_HEIGHT = 195;
+
+// Helper to safely parse multi-row text overlay & CTA button
+const parseBannerOverlay = (textString, fallbackSize, fallbackColor, fallbackBold) => {
+    if (!textString) return { rows: [], cta: null };
+    try {
+        const parsed = JSON.parse(textString);
+        if (parsed && Array.isArray(parsed.rows)) {
+            return { rows: parsed.rows, cta: parsed.cta || null };
+        } else if (Array.isArray(parsed)) {
+            return { rows: parsed, cta: null };
+        } else {
+            return {
+                rows: [
+                    {
+                        text: textString,
+                        fontSize: fallbackSize || 20,
+                        color: fallbackColor || "#FFFFFF",
+                        fontWeight: fallbackBold ? "700" : "400",
+                        fontStyle: "normal",
+                    },
+                ],
+                cta: null,
+            };
+        }
+    } catch {
+        return {
+            rows: [
+                {
+                    text: textString,
+                    fontSize: fallbackSize || 20,
+                    color: fallbackColor || "#FFFFFF",
+                    fontWeight: fallbackBold ? "700" : "400",
+                    fontStyle: "normal",
+                },
+            ],
+            cta: null,
+        };
+    }
+};
 
 export default function HeroBannerCarousel() {
     const router = useRouter();
@@ -152,52 +195,130 @@ export default function HeroBannerCarousel() {
                 contentContainerStyle={styles.listContent}
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        activeOpacity={0.9}
-                        style={styles.cardContainer}
-                        onPress={() => handleBannerPress(item)}
-                    >
-                        <Image
-                            source={{ uri: item.imageUrl }}
-                            style={styles.bannerImage}
-                            contentFit="cover"
-                            transition={200}
-                        />
+                renderItem={({ item }) => {
+                    const overlayData = parseBannerOverlay(
+                        item.text,
+                        item.textSize,
+                        item.textColor,
+                        item.isBold
+                    );
 
-                        {/* Subtle dark bottom gradient overlay to keep text crisp */}
-                        <View style={styles.darkGradient} pointerEvents="none" />
+                    return (
+                        <TouchableOpacity
+                            activeOpacity={0.9}
+                            style={styles.cardContainer}
+                            onPress={() => handleBannerPress(item)}
+                        >
+                            <Image
+                                source={{ uri: item.imageUrl }}
+                                style={styles.bannerImage}
+                                contentFit="cover"
+                                transition={200}
+                            />
 
-                        {/* Custom Text Overlay */}
-                        {item.text ? (
-                            <View
-                                style={[
-                                    styles.textContainer,
-                                    getTextPositionStyle(item.textPosition),
-                                ]}
-                                pointerEvents="none"
-                            >
-                                <Text
+                            {/* Subtle dark gradient overlay to keep text and CTA crisp */}
+                            <View style={styles.darkGradient} pointerEvents="none" />
+
+                            {/* ================= OLD CODE (COMMENTED) ================= */}
+                            {/* {item.text ? (
+                                <View
                                     style={[
-                                        styles.overlayText,
-                                        {
-                                            color: item.textColor || "#FFFFFF",
-                                            fontSize: item.textSize ? Number(item.textSize) : 18,
-                                            fontWeight: item.isBold ? "700" : "400",
-                                        },
+                                        styles.textContainer,
+                                        getTextPositionStyle(item.textPosition),
                                     ]}
-                                    numberOfLines={2}
+                                    pointerEvents="none"
                                 >
-                                    {item.text}
-                                </Text>
-                            </View>
-                        ) : null}
-                    </TouchableOpacity>
-                )}
+                                    <Text
+                                        style={[
+                                            styles.overlayText,
+                                            {
+                                                color: item.textColor || "#FFFFFF",
+                                                fontSize: item.textSize ? Number(item.textSize) : 18,
+                                                fontWeight: item.isBold ? "700" : "400",
+                                            },
+                                        ]}
+                                        numberOfLines={2}
+                                    >
+                                        {item.text}
+                                    </Text>
+                                </View>
+                            ) : null} */}
+                            {/* ======================================================== */}
+
+                            {/* 👇 NAYA: Dynamic Multi-Row Text Overlay & Instamart CTA Button */}
+                            {(overlayData.rows.length > 0 || overlayData.cta?.show) && (
+                                <View
+                                    style={[
+                                        styles.textContainer,
+                                        getTextPositionStyle(item.textPosition),
+                                    ]}
+                                    pointerEvents="none"
+                                >
+                                    {overlayData.rows.map((row, idx) => (
+                                        <Text
+                                            key={idx}
+                                            style={[
+                                                styles.overlayText,
+                                                {
+                                                    color: row.color || "#FFFFFF",
+                                                    fontSize: row.fontSize
+                                                        ? Number(row.fontSize)
+                                                        : idx === 0
+                                                        ? 20
+                                                        : 13,
+                                                    fontWeight:
+                                                        row.fontWeight === "bold" || row.fontWeight === "700" || row.fontWeight === "900"
+                                                            ? "700"
+                                                            : "400",
+                                                    fontStyle: row.fontStyle || "normal",
+                                                    fontFamily:
+                                                        row.fontFamily === "serif"
+                                                            ? Platform.OS === "android"
+                                                                ? "serif"
+                                                                : "Georgia"
+                                                            : undefined,
+                                                },
+                                            ]}
+                                            numberOfLines={2}
+                                        >
+                                            {row.text}
+                                        </Text>
+                                    ))}
+
+                                    {/* Instamart Style Pill CTA Button */}
+                                    {overlayData.cta && overlayData.cta.show && (
+                                        <View
+                                            style={[
+                                                styles.ctaPill,
+                                                {
+                                                    backgroundColor:
+                                                        overlayData.cta.bgColor || "#E11D48",
+                                                },
+                                            ]}
+                                        >
+                                            <Text
+                                                style={[
+                                                    styles.ctaText,
+                                                    {
+                                                        color:
+                                                            overlayData.cta.textColor ||
+                                                            "#FFFFFF",
+                                                    },
+                                                ]}
+                                            >
+                                                {overlayData.cta.text || "SHOP NOW"}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    );
+                }}
             />
 
-            {/* Pagination Dots */}
-            {banners.length > 1 && (
+            {/* ================= OLD CODE (COMMENTED) ================= */}
+            {/* {banners.length > 1 && (
                 <View style={styles.paginationContainer}>
                     {banners.map((_, i) => (
                         <View
@@ -209,6 +330,31 @@ export default function HeroBannerCarousel() {
                         />
                     ))}
                 </View>
+            )} */}
+            {/* ======================================================== */}
+
+            {/* 👇 NAYA: Instamart-Style Floating Pagination Pill: [ 1/7 • • • • ] */}
+            {banners.length > 1 && (
+                <View style={styles.instamartBadgeContainer}>
+                    <View style={styles.instamartBadge}>
+                        <Text style={styles.instamartBadgeCount}>
+                            {currentIndex + 1}/{banners.length}
+                        </Text>
+                        <View style={styles.badgeDotRow}>
+                            {banners.map((_, i) => (
+                                <View
+                                    key={i}
+                                    style={[
+                                        styles.badgeDot,
+                                        currentIndex === i
+                                            ? styles.badgeActiveDot
+                                            : styles.badgeInactiveDot,
+                                    ]}
+                                />
+                            ))}
+                        </View>
+                    </View>
+                </View>
             )}
         </View>
     );
@@ -216,24 +362,25 @@ export default function HeroBannerCarousel() {
 
 const styles = StyleSheet.create({
     container: {
+        marginTop: 6,
         marginBottom: 12,
     },
     listContent: {
         paddingHorizontal: 12,
-        paddingTop: 4,
+        paddingTop: 2,
     },
     cardContainer: {
         width: BANNER_WIDTH,
         height: BANNER_HEIGHT,
         marginRight: 12,
-        borderRadius: 18,
+        borderRadius: 22,
         overflow: "hidden",
         backgroundColor: "#1F2937",
-        elevation: 4,
+        elevation: 5,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.18,
-        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.22,
+        shadowRadius: 6,
     },
     bannerImage: {
         width: "100%",
@@ -241,36 +388,77 @@ const styles = StyleSheet.create({
     },
     darkGradient: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(0,0,0,0.22)",
+        backgroundColor: "rgba(0,0,0,0.25)",
     },
     textContainer: {
         position: "absolute",
-        maxWidth: "88%",
-        paddingHorizontal: 6,
+        maxWidth: "85%",
+        paddingHorizontal: 8,
     },
     overlayText: {
-        textShadowColor: "rgba(0, 0, 0, 0.8)",
+        textShadowColor: "rgba(0, 0, 0, 0.85)",
         textShadowOffset: { width: 0, height: 1.5 },
         textShadowRadius: 4,
         lineHeight: Platform.OS === "android" ? 24 : 26,
+        marginBottom: 2,
     },
-    paginationContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
+    ctaPill: {
+        alignSelf: "flex-start",
+        paddingHorizontal: 16,
+        paddingVertical: 7,
+        borderRadius: 20,
         marginTop: 8,
-        gap: 6,
+        elevation: 3,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
     },
-    dot: {
-        height: 6,
-        borderRadius: 3,
+    ctaText: {
+        fontSize: 12,
+        fontWeight: "800",
+        letterSpacing: 0.6,
+        textTransform: "uppercase",
     },
-    activeDot: {
-        width: 18,
-        backgroundColor: "#16A34A",
+    // Instamart-style Pagination Capsule Pill
+    instamartBadgeContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 8,
     },
-    inactiveDot: {
-        width: 6,
-        backgroundColor: "#D1D5DB",
+    instamartBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(30, 41, 59, 0.88)",
+        borderRadius: 14,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        gap: 7,
+        elevation: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+    },
+    instamartBadgeCount: {
+        color: "#FFFFFF",
+        fontSize: 11,
+        fontWeight: "700",
+    },
+    badgeDotRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+    },
+    badgeDot: {
+        width: 5,
+        height: 5,
+        borderRadius: 2.5,
+    },
+    badgeActiveDot: {
+        backgroundColor: "#FFFFFF",
+    },
+    badgeInactiveDot: {
+        backgroundColor: "rgba(255, 255, 255, 0.35)",
     },
 });

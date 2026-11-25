@@ -16,6 +16,25 @@ import { useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { checkAppLocation } from "../services/locationService.jsx";
 
+// ================= OLD CODE (COMMENTED) =================
+// const LocationGuard = ({ children }) => {
+//     const [available, setAvailable] = useState(true);
+//     const [distance, setDistance] = useState(null);
+//     const [allowedRadius, setAllowedRadius] = useState(5);
+//     const [showModal, setShowModal] = useState(false);
+//     const isCheckingRef = useRef(false);
+//     // 👇 NAYA: User ne agar "Theek hai, Browse karein" click kar diya hai toh session me baar baar pop up na aaye
+//     const hasDismissedModalRef = useRef(false);
+//
+//     // 👇 Login state track karein taaki user login hone par hi check chale
+//     const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
+//     const userId = useSelector((state) => state.auth?.user?.id);
+//     const prevAuthRef = useRef(isLoggedIn);
+// ========================================================
+
+// 👇 Global session-level flag jo app minimize / resume hone par bhi reset nahi hota
+let isLocationModalDismissedInSession = false;
+
 const LocationGuard = ({ children }) => {
     const [available, setAvailable] = useState(true);
     const [distance, setDistance] = useState(null);
@@ -23,12 +42,28 @@ const LocationGuard = ({ children }) => {
     const [showModal, setShowModal] = useState(false);
     const isCheckingRef = useRef(false);
 
-    // 👇 Login state track karein taaki user login hone par bhi check chale
+    // 👇 Redux auth state: Login hone par hi verification chalega
     const isLoggedIn = useSelector((state) => state.auth?.isLoggedIn);
     const userId = useSelector((state) => state.auth?.user?.id);
     const prevAuthRef = useRef(isLoggedIn);
 
     const verifyLocation = async (source) => {
+        // ================= OLD CODE (COMMENTED) =================
+        // // Pehle guest user pe bhi chalta tha:
+        // // if (isCheckingRef.current) return;
+        // ========================================================
+
+        // 👇 USER REQUIREMENT: Jab tak login na ho tab tak modal bilkul na chale
+        if (!isLoggedIn) {
+            setShowModal(false);
+            return;
+        }
+
+        // Agar user ne session me ek baar dismiss kar diya hai toh modal wapis na dikhayein
+        if (isLocationModalDismissedInSession) {
+            return;
+        }
+
         if (isCheckingRef.current) return;
         isCheckingRef.current = true;
 
@@ -43,8 +78,8 @@ const LocationGuard = ({ children }) => {
 
                 await AsyncStorage.setItem("isOutOfServiceRange", isAvailable ? "false" : "true");
 
-                // Agar service range se bahar hai toh modal open karo
-                if (!isAvailable) {
+                // Agar service range se bahar hai aur user ne current session me dismiss nahi kiya hai
+                if (!isAvailable && !isLocationModalDismissedInSession && isLoggedIn) {
                     setShowModal(true);
                 }
             }
@@ -58,13 +93,17 @@ const LocationGuard = ({ children }) => {
     const previousState = useRef(AppState.currentState);
 
     useEffect(() => {
-        // 1. App open pe check karo
-        verifyLocation("APP_OPEN");
+        // App open pe sirf tab check karein agar user logged in hai aur session me dismiss nahi kiya
+        if (isLoggedIn && !isLocationModalDismissedInSession) {
+            verifyLocation("APP_OPEN");
+        }
 
-        // Sirf real "background" se "active" hone par check karo (inactive loop ko avoid karta hai)
+        // Sirf real "background" se "active" hone par check karo, lekin agar dismiss kiya hai toh bilkul mat dikhao
         const subscription = AppState.addEventListener("change", (nextState) => {
             if (previousState.current === "background" && nextState === "active") {
-                verifyLocation("APP_RESUME");
+                if (isLoggedIn && !isLocationModalDismissedInSession) {
+                    verifyLocation("APP_RESUME");
+                }
             }
             previousState.current = nextState;
         });
@@ -72,12 +111,18 @@ const LocationGuard = ({ children }) => {
         return () => {
             subscription.remove();
         };
-    }, []);
+    }, [isLoggedIn]);
 
-    // 2. 👇 Login hone par check karo (User jab login karega tab chalega)
+    // 2. 👇 Login hone par check karo (User jaise hi login karta hai tab chalega)
     useEffect(() => {
         if (!prevAuthRef.current && isLoggedIn) {
+            // Fresh login par session dismissal reset kar sakte hain taaki login ke baad warning mile
+            isLocationModalDismissedInSession = false;
             verifyLocation("LOGIN");
+        } else if (prevAuthRef.current && !isLoggedIn) {
+            // Logout par reset aur modal band
+            isLocationModalDismissedInSession = false;
+            setShowModal(false);
         }
         prevAuthRef.current = isLoggedIn;
     }, [isLoggedIn, userId]);
@@ -124,7 +169,13 @@ const LocationGuard = ({ children }) => {
                 visible={showModal}
                 transparent={true}
                 animationType="fade"
-                onRequestClose={() => setShowModal(false)}
+                onRequestClose={() => {
+                    // ================= OLD CODE (COMMENTED) =================
+                    // setShowModal(false)
+                    // ========================================================
+                    isLocationModalDismissedInSession = true;
+                    setShowModal(false);
+                }}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalCard}>
@@ -156,7 +207,14 @@ const LocationGuard = ({ children }) => {
                         <TouchableOpacity
                             style={styles.closeBtn}
                             activeOpacity={0.8}
-                            onPress={() => setShowModal(false)}
+                            onPress={() => {
+                                // ================= OLD CODE (COMMENTED) =================
+                                // hasDismissedModalRef.current = true;
+                                // setShowModal(false);
+                                // ========================================================
+                                isLocationModalDismissedInSession = true;
+                                setShowModal(false);
+                            }}
                         >
                             <Text style={styles.closeBtnText}>Theek hai, Browse karein</Text>
                         </TouchableOpacity>
