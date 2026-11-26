@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: Deploy Backend MILESWEB
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
     paths:
-      - 'Backend/**'
+      - "Backend/**"
 
 jobs:
   deploy:
@@ -19,15 +19,13 @@ jobs:
       - name: Deploy Backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT }}
-
-          
+          server: ${{ secrets.MILESWEB_FTP_SERVER }}
+          username: ${{ secrets.MILESWEB_FTP_USERNAME }}
+          password: ${{ secrets.MILESWEB_FTP_PASSWORD }}
+          port: ${{ secrets.MILESWEB_FTP_PORT }}
 
           local-dir: ./Backend/
-          server-dir: /rambhaji.backend.shreenari.com/
+          server-dir: /sounkart/backend/
 
           dangerous-clean-slate: false
 
