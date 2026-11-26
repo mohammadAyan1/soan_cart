@@ -358,7 +358,7 @@ export default function ProductDetailsScreen() {
 
             // Dynamic base URL: Abhi Render URL chalega, domain renew hone par sounkart.in
             const shareBaseUrl =
-                process.env.EXPO_PUBLIC_SHARE_URL || "https://soan-cart-backend.onrender.com";
+                process.env.EXPO_PUBLIC_SHARE_URL || "https://sounkart.rambhaji.com";
 
             const queryParts = [sharerParam, "source=share_link"].filter(Boolean).join("&");
             const productLink = `${shareBaseUrl}/product/${product.id}${queryParts ? `?${queryParts}` : ""}`;

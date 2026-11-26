@@ -8,10 +8,10 @@ let screenEnterTime = null;
 const FLUSH_INTERVAL_MS = 10000;
 const MAX_BATCH_SIZE = 20;
 // ================= OLD CODE (COMMENTED) =================
-// const baseURL = process.env.EXPO_PUBLIC_API_URL || "https://soan-cart-backend.onrender.com"
+// const baseURL = process.env.EXPO_PUBLIC_API_URL || "https://sounkart.rambhaji.com"
 // const API_BASE_URL = `${baseURL}/api`;
 // ========================================================
-const rawBase = process.env.EXPO_PUBLIC_API_URL || "https://soan-cart-backend.onrender.com";
+const rawBase = process.env.EXPO_PUBLIC_API_URL || "https://sounkart.rambhaji.com";
 const API_BASE_URL = `${rawBase.replace(/\/+$/, "")}/api`;
 
 let queue = [];

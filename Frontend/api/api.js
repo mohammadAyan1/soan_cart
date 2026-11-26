@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDeviceHeaders } from "@/utils/deviceInfo";
 
 export const api = axios.create({
-    baseURL: process.env.EXPO_PUBLIC_API_URL || "https://soan-cart-backend.onrender.com",
+    baseURL: process.env.EXPO_PUBLIC_API_URL || "https://sounkart.rambhaji.com",
     timeout: 40000,
     headers: {
         "Content-Type": "application/json",
@@ -151,7 +151,7 @@ api.interceptors.response.use(
             }
 
             const sessionId = await AsyncStorage.getItem("sessionId");
-            const baseURL = api.defaults.baseURL || "https://soan-cart-backend.onrender.com";
+            const baseURL = api.defaults.baseURL || "https://sounkart.rambhaji.com";
             const refreshRes = await axios.post(
                 `${baseURL}/api/auth/refresh-token`,
                 { refreshToken: storedRefreshToken },

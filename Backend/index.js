@@ -38,6 +38,26 @@ import serviceZoneRoutes from "./routes/serviceZone.routes.js";
 import locationRoutes from "./routes/location.routes.js";
 import analyticsLocationRoutes from "./routes/locationAnalytics.routes.js";
 import bannerRoutes from "./routes/banner.routes.js";
+import { exec } from "child_process";
+import path from "path";
+
+// 👇 NAYA: Server restart hone par auto database sync (Safe - No Data Loss)
+const autoSyncDatabaseOnRestart = () => {
+    try {
+        const nodeBin = process.execPath;
+        const prismaCli = path.resolve("./node_modules/prisma/build/index.js");
+        exec(`"${nodeBin}" "${prismaCli}" db push --skip-generate --schema=./prisma/schema.prisma`, (error, stdout, stderr) => {
+            if (error) {
+                // Agar data loss ka risk hoga toh Prisma bina permission data delete nahi karega
+                console.log("ℹ️ Auto DB Sync note:", stderr || error.message);
+            } else {
+                console.log("🚀 Database automatically synced with schema on server startup!");
+            }
+        });
+    } catch (err) {
+        console.warn("Auto DB Sync skipped:", err?.message);
+    }
+};
 
 const app = express();
 
@@ -116,6 +136,13 @@ app.use("/api/banners", bannerRoutes);
 
 const port = process.env.PORT || 5000;
 
+// ================= OLD CODE (COMMENTED) =================
+// app.listen(port, "0.0.0.0", () => {
+//     console.log(`Server Running On ${port}`);
+// });
+// ========================================================
 app.listen(port, "0.0.0.0", () => {
     console.log(`Server Running On ${port}`);
+    // 👇 Server start / restart hote hi safe database sync execute hoga
+    autoSyncDatabaseOnRestart();
 });
